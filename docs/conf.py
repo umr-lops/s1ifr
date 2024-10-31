@@ -79,12 +79,11 @@ html_static_path = ['_static']
 
 html_style = 'css/aar.css'
 
-#html_logo = "_static/logo.png"
 html_theme_options = {
     'logo_only': False,
     'display_version': True,
-    'navigation_depth': 4,  # FIXME: doesn't work as expeted: should expand side menu
-    'collapse_navigation': False # FIXME: same as above
+    'navigation_depth': 4,
+    'collapse_navigation': False,
 }
 
 # If true, links to the reST sources are added to the pages.
