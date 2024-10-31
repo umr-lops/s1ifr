@@ -1,0 +1,72 @@
+[project]
+name = "s1ifr"
+requires-python = ">= 3.10"
+license = {text = "MIT"}
+description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
+readme = "README.md"
+dependencies = [
+  "numpy",
+  "xarray",
+]
+keywords = [
+  "earth-observation",
+  "remote-sensing",
+  "satellite-imagery",
+  "filesystem",
+  "sar",
+  "sentinel-1",
+  "archive",
+  "database",
+  "files",
+  "SAFE"
+
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering",
+]
+dynamic = ["version"]
+
+[project.urls]
+homepage = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io"
+documentation = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io"
+repository = "https://gitlab.ifremer.fr/lops-wave/s1ifr"
+changelog = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io/en/latest/changelog.html"
+
+[project.scripts]
+
+
+[build-system]
+requires = ["setuptools>=64.0", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["s1ifr"]
+
+[tool.setuptools_scm]
+fallback_version = "999"
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true
+float_to_top = true
+default_section = "THIRDPARTY"
+known_first_party = "s1ifr"
+
+[tool.black]
+line-length = 100
+
+[tool.coverage.run]
+source = ["s1ifr"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING"]

@@ -1,0 +1,9 @@
+-e .
+pandoc==2.3
+sphinx
+numpydoc
+sphinx-rtd-theme
+nbsphinx
+jupyter-sphinx
+sphinxcontrib-programoutput
+matplotlib
