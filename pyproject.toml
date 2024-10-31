@@ -42,6 +42,8 @@ changelog = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io/en/latest/
 
 [project.scripts]
 syncsafe = "s1ifr.move_safe_from_ifr_to_ifr:main"
+syncsafebatch = "s1ifr.script.move_safe_from_ifr_to_ifr_prun:main"
+
 
 [build-system]
 requires = ["setuptools>=64.0", "setuptools-scm"]

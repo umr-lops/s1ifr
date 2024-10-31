@@ -1,0 +1,25 @@
+#!/bin/bash
+#PBS -l walltime=0:45:00
+#PBS -l mem=500m
+#PBS -N movesafes1
+#PBS -j oe
+#PBS -m n
+echo 'script to convert Ifremer L1C IW SARWAVE product into a csv file per subswath'
+echo "SAFE source: "$1
+echo "directory destination: "$2
+#pybin=/home/datawork-cersat-public/cache/project/mpc-sentinel1/workspace/mamba/envs/imacs-l1c/bin/python3
+. /appli/anaconda/2.7/etc/profile.d/conda.sh
+source /etc/profile.d/modules.sh #recommende par RIC mars 2020
+pythonbin=/home/datawork-cersat-public/cache/project/mpc-sentinel1/workspace/mamba/envs/imacs-l1c
+conda activate $pythonbin
+which python
+pyexe=synsafe
+echo 'pybin:'$pybin
+echo 'pyexe:'$pyexe
+if [ -z "$3" ]; then
+    echo "The third argument is empty: source files is untouched"
+    syncsafe --input $1 --outputdir $2
+else
+    echo "The third argument is not empty: source file will be removed after sync."
+    syncsafe --input $1 --outputdir $2 --removesource
+fi
