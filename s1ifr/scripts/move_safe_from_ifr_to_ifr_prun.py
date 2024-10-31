@@ -34,9 +34,9 @@ def main():
     fud = open(tmplisting,'w')
     for ll in lines:
         if args.removesource is True:
-            ll2 = ll.replace('\n','')+' --outputdir '+args.outputdir+' --removesource'
+            ll2 = ll.replace('\n','')+' '+args.outputdir+' --removesource'
         else:
-            ll2 = ll.replace('\n','')+' --outputdir '+args.outputdir
+            ll2 = ll.replace('\n','')+' '+args.outputdir
         # new_lines.append(ll2)
         fud.write(ll2+'\n')
     fud.close()

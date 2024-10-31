@@ -13,9 +13,7 @@ source /etc/profile.d/modules.sh #recommende par RIC mars 2020
 pythonbin=/home/datawork-cersat-public/cache/project/mpc-sentinel1/workspace/mamba/envs/imacs-l1c
 conda activate $pythonbin
 which python
-pyexe=synsafe
 echo 'pybin:'$pybin
-echo 'pyexe:'$pyexe
 if [ -z "$3" ]; then
     echo "The third argument is empty: source files is untouched"
     syncsafe --input $1 --outputdir $2
