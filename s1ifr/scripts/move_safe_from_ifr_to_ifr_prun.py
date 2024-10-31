@@ -27,8 +27,8 @@ def main():
     prunexe = '/appli/prun/bin/prun'
     cpt = len(open(args.listinginputsafe).readlines())
     #initial listing
-    current_directory = os.getcwd()
-    pbs = os.path.join(current_directory,'move_safe_from_ifr_to_ifr.pbs')
+    # current_directory = os.getcwd()
+    pbs = os.path.join(os.path.dirname(__file__),'move_safe_from_ifr_to_ifr.pbs')
     # call prun
     opts = ' --split-max-jobs=700 --background -e '
     py2='/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python '
