@@ -1,7 +1,7 @@
 # s1ifr
 
 
-This library allows to perform filesystem operation of Ifremer Sentinel-1 Archive.
+This library allows to perform filesystem operation on Ifremer Sentinel-1 Archive.
 
 
 
@@ -9,19 +9,9 @@ This library allows to perform filesystem operation of Ifremer Sentinel-1 Archiv
 
 From sources:
 ```shell
+pip install .
+# for developers
 pip install -e .
-```
-
-From `PyPI`
-
-```sh
-TO BE DONE
-```
-
-From `conda-forge`
-
-```sh
-TO BE DONE
 ```
 
 ## Usage
