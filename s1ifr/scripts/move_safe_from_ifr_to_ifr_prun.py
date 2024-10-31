@@ -29,7 +29,7 @@ def main():
     prunexe = '/appli/prun/bin/prun'
     lines = open(args.listinginputsafe).readlines()
     cpt = len(lines)
-    new_lines = []
+    logging.info('number of SAFE to be sync : %i',cpt)
     tmplisting = os.path.join('/home1/scratch/',getpass.getuser(),'temporary_listing_sync_safe_sentinel1.txt')
     fud = open(tmplisting,'w')
     for ll in lines:

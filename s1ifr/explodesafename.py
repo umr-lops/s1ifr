@@ -11,7 +11,7 @@ import datetime
 fields = ['satellite','mode','product','level','polarisation'
          ,'startdate','enddate','absolute_orbit_number',
          'mission_data_take','product_id','kind']
-
+DEFAULT_DATE_FORMAT = '%Y%m%dT%H%M%S'
 class ExplodeSAFE(object):
     '''input basename_safe (str) SAFE name
      only (no parent directories before neitheir children files) '''
@@ -26,8 +26,8 @@ class ExplodeSAFE(object):
             self.level = self.safename[12]
             self.kind = self.safename[13]
             self.polarisation = self.safename[14:16]
-            self.startdate = datetime.datetime.strptime(self.safename[17:32],'%Y%m%dT%H%M%S')
-            self.enddate = datetime.datetime.strptime(self.safename[33:48],'%Y%m%dT%H%M%S')
+            self.startdate = datetime.datetime.strptime(self.safename[17:32],DEFAULT_DATE_FORMAT)
+            self.enddate = datetime.datetime.strptime(self.safename[33:48],DEFAULT_DATE_FORMAT)
             self.absolute_orbit_number = self.safename[49:55]
             self.duration = (self.enddate - self.startdate).total_seconds()
             self.sensor = 'CbandRadar'
@@ -47,11 +47,9 @@ class ExplodeSAFE(object):
             self.duration = splitos[10]
             self.level = splitos[2]
             self.kind = None
-#             self.kind = self.safename[13]
             self.polarisation = None
-#             print splitos[7]
-            self.startdate = datetime.datetime.strptime(splitos[7],'%Y%m%dT%H%M%S')
-            self.enddate = datetime.datetime.strptime(splitos[9],'%Y%m%dT%H%M%S')
+            self.startdate = datetime.datetime.strptime(splitos[7],DEFAULT_DATE_FORMAT)
+            self.enddate = datetime.datetime.strptime(splitos[9],DEFAULT_DATE_FORMAT)
             self.absolute_orbit_number = None
             self.cycle_number = splitos[11]
             self.relative_orbit_number = splitos[12]
@@ -65,8 +63,7 @@ class ExplodeSAFE(object):
                                     }
             self.production_status = productions_status_code[splitos[19]]
     
-    def props(self):   
-        # return [i for i in self.__dict__.keys() if i[:1] != '_']
+    def props(self):
         return [i for i in self.__dict__.keys() if not i.startswith('_',0,1)]
     
     def get(self,info):
@@ -82,7 +79,6 @@ if __name__ == '__main__':
     if len(sys.argv)>1:
         safe = sys.argv[1]
     else:
-#     safe = 'S1A_WV_SLC__1SSV_20141113T141141_20141113T143623_003264_003C69_1CDB.SAFE'
         safe = 'S3A_SR_2_WAT____20170124T120058_20170124T121058_20170124T140548_0599_013_294______MAR_O_NR_002.SEN3' #attention fichiers coupe en demi orbit mais une seul numero de cycle
     logging.info('%s',safe)
     obj = ExplodeSAFE(safe)

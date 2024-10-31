@@ -47,7 +47,6 @@ def sync_safe(safe_fullpath,outputdir,remove_source_file=False):
     cmd = 'rsync -avz'+rsf+' %s %s'%(safe_fullpath,par_dest)
     logging.info('command to be executed: %s',cmd)
     status = subprocess.check_call(cmd,shell=True)
-    # status = -1
     logging.info('rsync status: %s',status)
     return status,cmd
 
