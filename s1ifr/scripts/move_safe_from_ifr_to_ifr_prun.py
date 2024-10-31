@@ -6,7 +6,7 @@ import sys
 print(sys.executable)
 import subprocess
 import logging,os
-# import getpass
+import getpass
 def main():
     root = logging.getLogger ()
     if root.handlers:
@@ -17,6 +17,8 @@ def main():
     parser.add_argument ('--verbose',action='store_true',default=False)
     parser.add_argument('--outputdir',help='outputdir destination',required=True)
     parser.add_argument('--listinginputsafe',help='listing containing paths of the safe to sync',required=True)
+    parser.add_argument('--removesource', required=False,
+             help='True->remove SAFE from source directory [default=False]',default=False,action='store_true')
     args = parser.parse_args ()
     if args.verbose:
         logging.basicConfig (level=logging.DEBUG,format='%(asctime)s %(levelname)-5s %(message)s',
@@ -25,14 +27,29 @@ def main():
         logging.basicConfig (level=logging.INFO,format='%(asctime)s %(levelname)-5s %(message)s',
                              datefmt='%d/%m/%Y %H:%M:%S')
     prunexe = '/appli/prun/bin/prun'
-    cpt = len(open(args.listinginputsafe).readlines())
+    lines = open(args.listinginputsafe).readlines()
+    cpt = len(lines)
+    new_lines = []
+    tmplisting = os.path.join('/home1/scratch/',getpass.getuser(),'temporary_listing_sync_safe_sentinel1.txt')
+    fud = open(tmplisting,'w')
+    for ll in lines:
+        if args.removesource is True:
+            ll2 = ll.replace('/n','')+' --outputdir '+args.outputdir+' --removesource'
+        else:
+            ll2 = ll.replace('/n','')+' --outputdir '+args.outputdir
+        # new_lines.append(ll2)
+        fud.write(ll2+'\n')
+    fud.close()
+    logging.info('temporary listing update : %s',tmplisting)
+
+
     #initial listing
     # current_directory = os.getcwd()
     pbs = os.path.join(os.path.dirname(__file__),'move_safe_from_ifr_to_ifr.pbs')
     # call prun
     opts = ' --split-max-jobs=700 --background -e '
     py2='/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python '
-    cmd = py2+prunexe+opts+pbs+' '+args.listinginputsafe
+    cmd = py2+prunexe+opts+pbs+' '+tmplisting
     logging.info('cmd to cast = %s',cmd)
     st = subprocess.check_call(cmd,shell=True)
     logging.info('status cmd = %s',st)
