@@ -41,7 +41,7 @@ repository = "https://gitlab.ifremer.fr/lops-wave/s1ifr"
 changelog = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io/en/latest/changelog.html"
 
 [project.scripts]
-
+syncsafe = "s1ifr.move_safe_from_ifr_to_ifr:main"
 
 [build-system]
 requires = ["setuptools>=64.0", "setuptools-scm"]

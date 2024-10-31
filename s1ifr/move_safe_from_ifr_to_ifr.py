@@ -9,9 +9,7 @@ import pdb
 import subprocess
 import logging
 import argparse
-import sys
-sys.path.append('/home1/datahome/agrouaze/git/mpc/data_collect')
-from explodesafename import ExplodeSAFE
+from s1ifr.explodesafename import ExplodeSAFE
 
 def add_trailing_slash(path):
     return path if path.endswith('/') else path + '/'
@@ -76,7 +74,7 @@ def main():
     args.input = args.input.rstrip('/') #remove trailing slash after .SAFE to be sure the rsync will also take the directory.
     if '.SAFE' not in args.input:
         raise ValueError
-    status,cmd = sync_safe(safe_fullpath=args.input,outputdir=args.outputdir,remove_source_file=args.removesource)
+    sync_safe(safe_fullpath=args.input,outputdir=args.outputdir,remove_source_file=args.removesource)
     logging.info('success')
 
 if __name__ == '__main__':
