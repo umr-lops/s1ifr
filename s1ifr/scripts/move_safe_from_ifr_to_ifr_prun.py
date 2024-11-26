@@ -1,13 +1,13 @@
 #!/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python
-# coding: utf-8
 """
 """
 import sys
 
 print(sys.executable)
-import subprocess
-import logging, os
 import getpass
+import logging
+import os
+import subprocess
 
 
 def main():
@@ -19,9 +19,13 @@ def main():
 
     parser = argparse.ArgumentParser(description="start prun")
     parser.add_argument("--verbose", action="store_true", default=False)
-    parser.add_argument("--outputdir", help="outputdir destination", required=True)
     parser.add_argument(
-        "--listinginputsafe", help="listing containing paths of the safe to sync", required=True
+        "--outputdir", help="outputdir destination", required=True
+    )
+    parser.add_argument(
+        "--listinginputsafe",
+        help="listing containing paths of the safe to sync",
+        required=True,
     )
     parser.add_argument(
         "--removesource",
@@ -48,12 +52,16 @@ def main():
     cpt = len(lines)
     logging.info("number of SAFE to be sync : %i", cpt)
     tmplisting = os.path.join(
-        "/home1/scratch/", getpass.getuser(), "temporary_listing_sync_safe_sentinel1.txt"
+        "/home1/scratch/",
+        getpass.getuser(),
+        "temporary_listing_sync_safe_sentinel1.txt",
     )
     fud = open(tmplisting, "w")
     for ll in lines:
         if args.removesource is True:
-            ll2 = ll.replace("\n", "") + " " + args.outputdir + " --removesource"
+            ll2 = (
+                ll.replace("\n", "") + " " + args.outputdir + " --removesource"
+            )
         else:
             ll2 = ll.replace("\n", "") + " " + args.outputdir
         # new_lines.append(ll2)
@@ -63,7 +71,9 @@ def main():
 
     # initial listing
     # current_directory = os.getcwd()
-    pbs = os.path.join(os.path.dirname(__file__), "move_safe_from_ifr_to_ifr.pbs")
+    pbs = os.path.join(
+        os.path.dirname(__file__), "move_safe_from_ifr_to_ifr.pbs"
+    )
     # call prun
     opts = " --split-max-jobs=700 --background -e "
     py2 = "/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python "
