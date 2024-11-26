@@ -102,7 +102,7 @@ def delete_corrupted_safe(corrupted_list, dirout) -> int:
     return cpt
 
 
-def checkNumberOfMeasurment(manifestpath):
+def check_number_of_measurment(manifestpath):
     """return true if the number of measurement is in line with manifest file"""
     logging.debug("manifest.safe : %s", manifestpath)
     try:
@@ -119,7 +119,7 @@ def checkNumberOfMeasurment(manifestpath):
                 res = False
             else:
                 pass
-    except Exception:
+    except OSError:
         logging.error("tracek %s", traceback.format_exc())
         logging.error("cant parse manifest %s ", manifestpath)
         res = False
@@ -228,9 +228,14 @@ def SAFE_checker(safe_path, logpath, enable_checksum=False, security_time=None) 
         if TestPresenceOfManifestFile(manifestpath) is False:
             write_to_log(logpath, "missingmanifest", safe_path)
             flag_ok_safe = False
-        #             return file_handler
         else:
             logging.info("manifest test: OK")
+
+        if check_number_of_measurment(manifestpath) is False:
+            write_to_log(logpath, "missingmeasurement", safe_path)
+            flag_ok_safe = False
+        else:
+            logging.info("measurement count test: OK")
 
         if TestPresenceOfSubDirectories(safe_path, level, typefile) is False:
             write_to_log(logpath, "missingsubdir", safe_path)
