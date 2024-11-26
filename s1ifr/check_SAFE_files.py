@@ -59,7 +59,7 @@ def check_safe_sentinel3(full_path_safe):
     return safe_is_ok
 
 
-def DeleteCorruptedSAFE(corrupted_list, dirout) -> int:
+def delete_corrupted_safe(corrupted_list, dirout) -> int:
     """
 
     :param corrupted_list: list
@@ -191,7 +191,7 @@ def write_to_log(logpath, test_name, safe_path):
         pass
 
 
-def SAFE_test(safe_path, logpath, enable_checksum=False, security_time=None):
+def SAFE_checker(safe_path, logpath, enable_checksum=False, security_time=None) -> bool:
     """
     test one given SAFE
     SAFE is ok by default to avoid lots of deletions (for examplt if the
@@ -200,7 +200,7 @@ def SAFE_test(safe_path, logpath, enable_checksum=False, security_time=None):
         file_handler (int): file handler to write logs
         security_time (int): nber of seconds to wait before checking [optional]
     Return:
-        flag_ok_safe (bool): True if the SAFE if ok False if it is corrupted
+        flag_ok_safe (bool): True if the SAFE is OK, False if it is corrupted
     """
     flag_ok_safe = True
     if safe_path[-1] == "/":
@@ -288,7 +288,7 @@ def MainLoop(
     #     flag_stop = False
     if unique_safe is not None:
 
-        flag_ok_safe = SAFE_test(unique_safe, list_safe_having_problem, enable_checksum)
+        flag_ok_safe = SAFE_checker(unique_safe, list_safe_having_problem, enable_checksum)
         status_quality[unique_safe] = flag_ok_safe
         cpt_checked += 1
     else:
@@ -297,7 +297,9 @@ def MainLoop(
                 safe_path = os.path.join(root, filename)
                 if os.path.isdir(safe_path):
                     cpt_checked += 1
-                    flag_ok_safe = SAFE_test(safe_path, list_safe_having_problem, enable_checksum)
+                    flag_ok_safe = SAFE_checker(
+                        safe_path, list_safe_having_problem, enable_checksum
+                    )
                     status_quality[safe_path] = flag_ok_safe
                     counters_internal["is_dir"] += 1
                     if counters_internal["is_dir"] % 20 == 1:
@@ -459,7 +461,7 @@ def main():
     else:
         raise Exception("this case does not exist")
     if suppression_flag is True and os.path.exists(list_safe_having_problem):
-        nb_safe_deleted = DeleteCorruptedSAFE(list_safe_having_problem, dirdeleted)
+        nb_safe_deleted = delete_corrupted_safe(list_safe_having_problem, dirdeleted)
         logging.info("Nber of SAFE deleted: %s", nb_safe_deleted)
     # avoid empty log file suspicious
     if os.path.exists(list_safe_having_problem):

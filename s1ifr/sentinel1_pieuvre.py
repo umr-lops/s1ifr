@@ -18,7 +18,7 @@ import subprocess
 import time
 import traceback
 
-from s1ifr.check_SAFE_files import SAFE_test
+from s1ifr.check_SAFE_files import SAFE_checker
 from s1ifr.clean_sentinel1_duplicates_function import CheckDuplicate
 from s1ifr.existence_safe import product_is_present_at_ifremer
 from s1ifr.quarantine_management import quarantine_ticket, remove_safe_from_disk
@@ -51,7 +51,7 @@ def finalize_archiving(archive_dir, unzipped_safe, final_place, ziptype="", arch
     doom_flag = NORMAL
     user_run = getpass.getuser()
     logpath = os.path.join("/home1/scratch", user_run, "sentinel1_quality_check_after_unzip.txt")
-    is_ok_safe = SAFE_test(unzipped_safe, logpath=logpath, security_time=0)
+    is_ok_safe = SAFE_checker(unzipped_safe, logpath=logpath, security_time=0)
 
     if is_ok_safe:
         cmd = "/bin/mv -f " + unzipped_safe + " " + archive_dir
