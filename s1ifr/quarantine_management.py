@@ -11,9 +11,7 @@ def quarantine_ticket(safe_full_path, other_archive):
     rm the corrupted safe and write into a ticket the date of the processing
     (add the date if the ticket already exists)
     """
-    safe_basename = os.path.basename(safe_full_path)
-    path_ticket = os.path.join(
-        whichquarantinedir(archive=other_archive))
+    path_ticket = os.path.join(whichquarantinedir(archive=other_archive))
     if os.path.exists(path_ticket):
         fid = open(path_ticket, "a")
 
@@ -40,9 +38,7 @@ def test_quarantine_before_download(safe_full_path, archive) -> bool:
     """
     flag_go_download = True
     safe = os.path.basename(safe_full_path)
-    associated_potential_quarantine_ticket = os.path.join(
-        whichquarantinedir(archive=archive), safe
-    )
+    associated_potential_quarantine_ticket = os.path.join(whichquarantinedir(archive=archive), safe)
     logging.debug("quarantine potential file %s", associated_potential_quarantine_ticket)
     if os.path.exists(associated_potential_quarantine_ticket):
         fid = open(associated_potential_quarantine_ticket)

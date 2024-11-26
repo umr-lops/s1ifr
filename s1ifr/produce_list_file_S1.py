@@ -7,12 +7,13 @@ creation: 2014
 
 import datetime
 import fnmatch
+import getpass
 import glob
 import logging
 import os
 
 from dateutil import rrule
-import getpass
+
 from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES
 from s1ifr.shared_information import sats_acro
 
@@ -46,7 +47,7 @@ def writeTheFileList(
         extension = "nc"
 
     user_run = getpass.getuser()
-    filout = os.path.join('/home1/scratch/',user_run)
+    filout = os.path.join("/home1/scratch/", user_run)
     pattern = satellite.lower() + "*" + format_file[0:3].lower() + "*." + extension
     # logging.debug('pattern sought %s',pattern)
     logname = (
@@ -213,7 +214,7 @@ def writeTheDirList(
         if logfile_path is None:
             if logdir_path is None:
                 user_run = getpass.getuser()
-                dirout = os.path.join("/home1/scratch/",user_run,"PRUN_workspace")
+                dirout = os.path.join("/home1/scratch/", user_run, "PRUN_workspace")
             else:
                 dirout = logdir_path
             logname = satellite + "_" + startdate + "_" + enddate + "_dirSAFE.lst"
@@ -253,7 +254,9 @@ def FindSARNetCDFDayBefore(nbdays, satellite, archive_name="mpc"):
     yerterday = now - datetime.timedelta(days=nbdays)
     dateyes = datetime.datetime.strftime(yerterday, "%Y%m%d")
     logging.info("find all the %s netCDF on day %s", satellite, dateyes)
-    pattern_nc = os.path.join(rep_data + "*","*","*","*","*","measurement","*ocn-*" + dateyes + "*.nc")
+    pattern_nc = os.path.join(
+        rep_data + "*", "*", "*", "*", "*", "measurement", "*ocn-*" + dateyes + "*.nc"
+    )
     logging.debug("pattern %s", pattern_nc)
     netCDF_list = glob.glob(pattern_nc)
     logging.info("number of netCDF found %s", len(netCDF_list))
@@ -429,27 +432,45 @@ def FindTiffFromDayBefore(
         )
         logging.info("number of tiff found for SM %s", len(files_SM))
     if "IW" in mode:
-        files_IW = glob.glob(os.path.join(
-            rep_data
-            , "IW"
-            , satellite+ "_IW_"+file_format.upper()+ "_"+ product_type
-            ,"*","*","*","measurement","*"+ file_format + "-*"+ dateyes+ "*."+ ext)
+        files_IW = glob.glob(
+            os.path.join(
+                rep_data,
+                "IW",
+                satellite + "_IW_" + file_format.upper() + "_" + product_type,
+                "*",
+                "*",
+                "*",
+                "measurement",
+                "*" + file_format + "-*" + dateyes + "*." + ext,
+            )
         )
         logging.info("number of tiff found for IW %s", len(files_IW))
     if "EW" in mode:
-        files_EW = glob.glob(os.path.join(
-            rep_data
-            , "EW"
-            , satellite+ "_EW_"+file_format.upper()+ "_"+ product_type
-            ,"*","*","*","measurement","*"+ file_format + "-*"+ dateyes+ "*."+ ext)
+        files_EW = glob.glob(
+            os.path.join(
+                rep_data,
+                "EW",
+                satellite + "_EW_" + file_format.upper() + "_" + product_type,
+                "*",
+                "*",
+                "*",
+                "measurement",
+                "*" + file_format + "-*" + dateyes + "*." + ext,
+            )
         )
         logging.info("number of tiff found for EW %s", len(files_EW))
     if "WV" in mode:
-        files_WV = glob.glob(os.path.join(
-            rep_data
-            , "WV"
-            , satellite+ "_WV_SLC__"+ product_type
-            ,"*","*","*","measurement","*-slc-*"+ dateyes+ "*."+ ext)
+        files_WV = glob.glob(
+            os.path.join(
+                rep_data,
+                "WV",
+                satellite + "_WV_SLC__" + product_type,
+                "*",
+                "*",
+                "*",
+                "measurement",
+                "*-slc-*" + dateyes + "*." + ext,
+            )
         )
         logging.info("number of tiff found for WV %s", len(files_WV))
     final_list = files_SM + files_IW + files_EW + files_WV
@@ -460,14 +481,14 @@ def FindTiffFromDayBefore(
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
-    type = "WV"
-    format = "slc"
-    startdate = "20141231"
-    enddate = "20160101"
-    extension = "tiff"
-    satellite = "S1A"
-    level = "L2"
-    write = False
+    # type = "WV"
+    # format = "slc"
+    # startdate = "20141231"
+    # enddate = "20160101"
+    # extension = "tiff"
+    # satellite = "S1A"
+    # level = "L2"
+    # write = False
 
     choice_usage = [
         "count_SAFE",
@@ -657,6 +678,7 @@ def main():
         print(len(listmesu))
     else:
         raise Exception("Bad argument usage")
+
 
 if __name__ == "__main__":
 

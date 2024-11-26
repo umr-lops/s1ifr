@@ -20,14 +20,12 @@ import traceback
 
 from s1ifr.check_SAFE_files import SAFE_test
 from s1ifr.clean_sentinel1_duplicates_function import CheckDuplicate
-from s1ifr.explodesafename import ExplodeSAFE
 from s1ifr.quarantine_management import quarantine_ticket, remove_safe_from_disk
 from s1ifr.SAFEsortingfunctions import (
     WhichArchiveDir,
     WhichSpoolDir,
 )
 from s1ifr.test_existence_safe import test_existance_of_product
-
 
 # SECURITY_SECONDS = 300
 UNEXISTANT = "unexistant"
@@ -85,7 +83,9 @@ def finalize_archiving(archive_dir, unzipped_safe, final_place, ziptype="", arch
     return doom_flag
 
 
-def sort_one_safe(full_path_safe, log_file_handler=None, other_archive="datarmor_mpc", security_second=600):
+def sort_one_safe(
+    full_path_safe, log_file_handler=None, other_archive="datarmor_mpc", security_second=600
+):
     """
     :input:
         full_path_safe (str): can be anywhere with or without .tar extension

@@ -10,7 +10,7 @@ import os
 
 from s1ifr.explodesafename import ExplodeSAFE
 from s1ifr.shared_information import QUARANTINE as quarantine_s1
-from s1ifr.shared_information import datarmor_archive_esa_ifremer,WORKING_DIR
+from s1ifr.shared_information import WORKING_DIR, datarmor_archive_esa_ifremer
 
 ADDITIONAL_ARCHIVES = {
     "datarmor_mpc": datarmor_archive_esa_ifremer,
@@ -29,7 +29,6 @@ def WhichWorkingDir(archive):
     """
     res = WORKING_DIR[archive]
     return res
-
 
 
 def WhichArchiveDir(safe):
