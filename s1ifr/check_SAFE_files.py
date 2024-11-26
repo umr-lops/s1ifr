@@ -67,7 +67,9 @@ def delete_corrupted_safe(corrupted_list, dirout) -> int:
     :return:
     """
     logging.info("read %s to delete spotted corrupted SAFE", corrupted_list)
-    current_time = datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d_%Hh%M")
+    current_time = datetime.datetime.strftime(
+        datetime.datetime.now(), "%Y%m%d_%Hh%M"
+    )
     logout = dirout + "deleted_" + current_time + ".lst"
     fod = open(corrupted_list)
     lines = fod.readlines()
@@ -91,12 +93,17 @@ def delete_corrupted_safe(corrupted_list, dirout) -> int:
                 #                     os.system('/bin/mv -f '+safe_path+' '+QUARANTINE) #put in quarantine rather than deletion
                 except OSError:
                     logging.info(
-                        "error during the suppression of the SAFE: %s", traceback.format_exc()
+                        "error during the suppression of the SAFE: %s",
+                        traceback.format_exc(),
                     )
-                    logging.info("impossible to delete this SAFE: %s", safe_path)
+                    logging.info(
+                        "impossible to delete this SAFE: %s", safe_path
+                    )
                 cpt += 1
             else:
-                logging.info("it seems that %s does not exist anymore", safe_path)
+                logging.info(
+                    "it seems that %s does not exist anymore", safe_path
+                )
             fid.write(safe_path + "\n")
         fid.close()
     return cpt
@@ -158,7 +165,10 @@ def exploitCheckSum(safepath):
         if md5 != md5_official:
             flag = False
             logging.debug(
-                "corruption checksum %s path %s, md5 got %s", md5_official, dat_file_path, md5
+                "corruption checksum %s path %s, md5 got %s",
+                md5_official,
+                dat_file_path,
+                md5,
             )
     logging.debug("exploitCheckSum %s", flag)
     return flag
@@ -188,7 +198,9 @@ def write_to_log(logpath, test_name, safe_path):
     file_handler.close()
 
 
-def SAFE_checker(safe_path, logpath, enable_checksum=False, security_time=None) -> bool:
+def SAFE_checker(
+    safe_path, logpath, enable_checksum=False, security_time=None
+) -> bool:
     """
     test one given SAFE
     SAFE is ok by default to avoid lots of deletions (for examplt if the
@@ -240,7 +252,9 @@ def SAFE_checker(safe_path, logpath, enable_checksum=False, security_time=None) 
         else:
             logging.info("sub dirs test: OK")
         if enable_checksum is True:
-            if exploitCheckSum(safe_path) is False:  # commented since I had memory error
+            if (
+                exploitCheckSum(safe_path) is False
+            ):  # commented since I had memory error
                 write_to_log(logpath, "checksum discrepancy", safe_path)
                 flag_ok_safe = False
         else:
@@ -250,7 +264,11 @@ def SAFE_checker(safe_path, logpath, enable_checksum=False, security_time=None) 
         else:
             logging.debug("%s is OK", filename)
     else:
-        logging.info("%s has been created less than %s seconds ago", filename, SECURITY_SECONDS)
+        logging.info(
+            "%s has been created less than %s seconds ago",
+            filename,
+            SECURITY_SECONDS,
+        )
     #     if dummy==True: #close log file only if it is a phoney one
     #         file_handler.close()
     #         file_handler = 666
@@ -290,7 +308,9 @@ def MainLoop(
     #     flag_stop = False
     if unique_safe is not None:
 
-        flag_ok_safe = SAFE_checker(unique_safe, list_safe_having_problem, enable_checksum)
+        flag_ok_safe = SAFE_checker(
+            unique_safe, list_safe_having_problem, enable_checksum
+        )
         status_quality[unique_safe] = flag_ok_safe
         cpt_checked += 1
     else:
@@ -309,7 +329,8 @@ def MainLoop(
                     if limit_nb_safe:
                         if counters_internal["is_dir"] > limit_nb_safe:
                             logging.info(
-                                "premature by purpose return with limit_nb_safe %s", limit_nb_safe
+                                "premature by purpose return with limit_nb_safe %s",
+                                limit_nb_safe,
                             )
                             return status_quality
                     if flag_ok_safe:
@@ -359,7 +380,12 @@ def main():
         dico_subparsers[mm].set_defaults(which=mm)
         if mm not in ["unique_safe", "one_safe_s3"]:
             dico_subparsers[mm].add_argument(
-                "-m", "--mode", default="*", type=str, choices=macro_MODES, help="IW EW SM WV "
+                "-m",
+                "--mode",
+                default="*",
+                type=str,
+                choices=macro_MODES,
+                help="IW EW SM WV ",
             )
             dico_subparsers[mm].add_argument(
                 "-t",
@@ -384,10 +410,16 @@ def main():
         "--safepath", help="full path of the SAFE", type=str
     )
     dico_subparsers["last_x_days"].add_argument(
-        "--days_back", help="Nber of days to analyse from date of run", type=int
+        "--days_back",
+        help="Nber of days to analyse from date of run",
+        type=int,
     )
-    dico_subparsers["between_2_dates"].add_argument("--start", help="start date YYYYMMDD", type=str)
-    dico_subparsers["between_2_dates"].add_argument("--stop", help="stop date YYYYMMDD", type=str)
+    dico_subparsers["between_2_dates"].add_argument(
+        "--start", help="start date YYYYMMDD", type=str
+    )
+    dico_subparsers["between_2_dates"].add_argument(
+        "--stop", help="stop date YYYYMMDD", type=str
+    )
     #     dico_subparsers['between_2_dates'].add_argument("-s","--satellite",default=['S1A','S1B'],type=str,
     #                         help="satellite S1A or/and ... ",nargs='*')
 
@@ -398,7 +430,9 @@ def main():
         logging.basicConfig(level=logging.INFO)
     suppression_flag = args.delete
     list_safe_having_problem = log_path()
-    logging.info("suppression of the suspicious SAFE is set to: %s", suppression_flag)
+    logging.info(
+        "suppression of the suspicious SAFE is set to: %s", suppression_flag
+    )
     if args.which == "last_x_days" or args.which == "between_2_dates":
         counters = collections.defaultdict(int)
         counters["total"] = 0
@@ -408,7 +442,9 @@ def main():
         satellites = args.satellite
         logging.info("satellites: %s", satellites)
         #     if options.exploitation is not None:
-        logging.info("exploit mode : check Sentinel1 SAFE product on the current month")
+        logging.info(
+            "exploit mode : check Sentinel1 SAFE product on the current month"
+        )
         for sat in satellites:
             if args.mode == "*":
                 typo = None
@@ -463,7 +499,9 @@ def main():
     else:
         raise Exception("this case does not exist")
     if suppression_flag is True and os.path.exists(list_safe_having_problem):
-        nb_safe_deleted = delete_corrupted_safe(list_safe_having_problem, dirdeleted)
+        nb_safe_deleted = delete_corrupted_safe(
+            list_safe_having_problem, dirdeleted
+        )
         logging.info("Nber of SAFE deleted: %s", nb_safe_deleted)
     # avoid empty log file suspicious
     if os.path.exists(list_safe_having_problem):

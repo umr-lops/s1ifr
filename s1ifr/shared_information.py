@@ -1,9 +1,15 @@
 import os
 
 macro_MODES = ["SM", "WV", "IW", "EW"]
-PROJECT_DIR_DATARMOR = "/home/datawork-cersat-public/cache/project/mpc-sentinel1/"
-PROJECT_DIR_DATARMOR_ALT = "/home/datawork-cersat-public/project/mpc-sentinel1/"
-datarmor_archive_esa_ifremer = os.path.join(PROJECT_DIR_DATARMOR_ALT, "data", "esa")
+PROJECT_DIR_DATARMOR = (
+    "/home/datawork-cersat-public/cache/project/mpc-sentinel1/"
+)
+PROJECT_DIR_DATARMOR_ALT = (
+    "/home/datawork-cersat-public/project/mpc-sentinel1/"
+)
+datarmor_archive_esa_ifremer = os.path.join(
+    PROJECT_DIR_DATARMOR_ALT, "data", "esa"
+)
 dir_suspect = "/home1/scratch/satwave"
 dirdeleted = "/home1/scratch/satwave"
 
@@ -37,4 +43,8 @@ def dir_data(satellite):
 
 WORKING_DIR = os.path.join(PROJECT_DIR_DATARMOR_ALT, "workspace")
 
-QUARANTINE = {"datarmor_mpc": os.path.join(PROJECT_DIR_DATARMOR, "workspace", "quarantine/")}
+QUARANTINE = {
+    "datarmor_mpc": os.path.join(
+        PROJECT_DIR_DATARMOR, "workspace", "quarantine/"
+    )
+}

@@ -21,9 +21,7 @@ from s1ifr.quarantine_management import quarantine_ticket
 
 
 def get_ending_processing_time(safe_full_path):
-    pattern = (
-        "/metadataObject/metadataWrap/xmlData/{http://www.esa.int/safe/sentinel-1.0}processing"
-    )
+    pattern = "/metadataObject/metadataWrap/xmlData/{http://www.esa.int/safe/sentinel-1.0}processing"
     path_manifest = os.path.join(safe_full_path, "manifest.safe")
     tmp = datetime.datetime(2014, 1, 1)  # dummy value
     if os.path.isfile(path_manifest) and os.path.getsize(path_manifest) > 0:
@@ -56,8 +54,8 @@ def spot_dupli_core(safebasename, repdata):
         for filename in fnmatch.filter(dirnames, begninig + "*.SAFE"):
             potentialoccurenceies.append(os.path.join(root, filename))
     if potentialoccurenceies is not None and len(potentialoccurenceies) > 1:
-        indice_latest_processing, potentialoccurenceies, stoptimes = latest_safe_processed(
-            potentialoccurenceies
+        indice_latest_processing, potentialoccurenceies, stoptimes = (
+            latest_safe_processed(potentialoccurenceies)
         )
     return indice_latest_processing, potentialoccurenceies, stoptimes
 
@@ -69,7 +67,10 @@ def latest_safe_processed(duplicates_list):
         tmp = get_ending_processing_time(pot)
         stoptimes = np.append(stoptimes, tmp)
     indice_latest_processing = np.argmax(stoptimes)
-    logging.debug("indice of the file with the latest processing date %s", indice_latest_processing)
+    logging.debug(
+        "indice of the file with the latest processing date %s",
+        indice_latest_processing,
+    )
     return indice_latest_processing, duplicates_list, stoptimes
 
 
@@ -88,11 +89,16 @@ def CheckDuplicate(fileTobechecked, archive="datarmor_mpc", dryrun=True):
         fileTobechecked = fileTobechecked.strip(".tar")
     tmpbase = os.path.basename(fileTobechecked)
     repdata = os.path.dirname(fileTobechecked)
-    indice_latest_processing, potentialoccurenceies, ending_processing_times = spot_dupli_core(
-        tmpbase, repdata
-    )
+    (
+        indice_latest_processing,
+        potentialoccurenceies,
+        ending_processing_times,
+    ) = spot_dupli_core(tmpbase, repdata)
     if potentialoccurenceies is not None and len(potentialoccurenceies) > 1:
-        logging.debug("%s duplicates found and will be removed", len(potentialoccurenceies))
+        logging.debug(
+            "%s duplicates found and will be removed",
+            len(potentialoccurenceies),
+        )
         for yy, pot in enumerate(potentialoccurenceies):
             if yy != indice_latest_processing:
                 cpt_deleted += 1
@@ -100,7 +106,9 @@ def CheckDuplicate(fileTobechecked, archive="datarmor_mpc", dryrun=True):
                 if dryrun is True:
                     pass
                 else:
-                    quarantine_ticket(pot, archive)  # added feb 2019 to delete purely the safe
+                    quarantine_ticket(
+                        pot, archive
+                    )  # added feb 2019 to delete purely the safe
 
     else:
         logging.debug("no duplicate found")
@@ -119,7 +127,9 @@ def main():
         default=False,
         help="[default = False], True -> data is not moved nor deleted",
     )
-    parser.add_argument("--safe", required=True, action="store", help="SAFE path to test")
+    parser.add_argument(
+        "--safe", required=True, action="store", help="SAFE path to test"
+    )
     args = parser.parse_args()
     if args.verbose:
         logging.basicConfig(

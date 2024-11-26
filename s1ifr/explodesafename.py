@@ -41,8 +41,12 @@ class ExplodeSAFE:
             self.level = self.safename[12]
             self.kind = self.safename[13]
             self.polarisation = self.safename[14:16]
-            self.startdate = datetime.datetime.strptime(self.safename[17:32], DEFAULT_DATE_FORMAT)
-            self.enddate = datetime.datetime.strptime(self.safename[33:48], DEFAULT_DATE_FORMAT)
+            self.startdate = datetime.datetime.strptime(
+                self.safename[17:32], DEFAULT_DATE_FORMAT
+            )
+            self.enddate = datetime.datetime.strptime(
+                self.safename[33:48], DEFAULT_DATE_FORMAT
+            )
             self.absolute_orbit_number = self.safename[49:55]
             self.duration = (self.enddate - self.startdate).total_seconds()
             self.sensor = "CbandRadar"
@@ -65,8 +69,12 @@ class ExplodeSAFE:
             self.level = splitos[2]
             self.kind = None
             self.polarisation = None
-            self.startdate = datetime.datetime.strptime(splitos[7], DEFAULT_DATE_FORMAT)
-            self.enddate = datetime.datetime.strptime(splitos[9], DEFAULT_DATE_FORMAT)
+            self.startdate = datetime.datetime.strptime(
+                splitos[7], DEFAULT_DATE_FORMAT
+            )
+            self.enddate = datetime.datetime.strptime(
+                splitos[9], DEFAULT_DATE_FORMAT
+            )
             self.absolute_orbit_number = None
             self.cycle_number = splitos[11]
             self.relative_orbit_number = splitos[12]

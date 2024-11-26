@@ -39,7 +39,9 @@ def WhichArchiveDir(safe):
     if safe[0:2] == "S1":
         firstdate = safe[17:25]
         year = firstdate[0:4]
-        doy = str(datetime.datetime.strptime(firstdate, "%Y%m%d").timetuple().tm_yday).zfill(3)
+        doy = str(
+            datetime.datetime.strptime(firstdate, "%Y%m%d").timetuple().tm_yday
+        ).zfill(3)
         sat = safe.split("_")[0]
         if sat == "S1A":
             satdir = "sentinel-1a"
@@ -55,7 +57,9 @@ def WhichArchiveDir(safe):
         repdata = WhichArchive_datatype()
         subname = safe[6:14]
         litlerep = sat + "_" + acqui + subname
-        gooddir = os.path.join(repdata, satdir, subproddir, acqui, litlerep, year, doy + "/")
+        gooddir = os.path.join(
+            repdata, satdir, subproddir, acqui, litlerep, year, doy + "/"
+        )
     elif safe[0:2] == "S3":  # sentinel-3 case
         inst = ExplodeSAFE(safe)
         year = inst.startdate.strftime("%Y")
@@ -83,7 +87,9 @@ def WhichSpoolDir(safe=None, archive="datarmor_mpc"):
         spooldir = os.path.join(WhichWorkingDir(archive), SPOOL_REP[archive])
     else:
         if safe[0:2] == "S1":
-            spooldir = os.path.join(WhichWorkingDir(archive), SPOOL_REP[archive])
+            spooldir = os.path.join(
+                WhichWorkingDir(archive), SPOOL_REP[archive]
+            )
             spooldir = os.path.join(
                 spooldir
             )  # change this to get a real spool where the product can be drop easily

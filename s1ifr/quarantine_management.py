@@ -38,8 +38,12 @@ def test_quarantine_before_download(safe_full_path, archive) -> bool:
     """
     flag_go_download = True
     safe = os.path.basename(safe_full_path)
-    associated_potential_quarantine_ticket = os.path.join(whichquarantinedir(archive=archive), safe)
-    logging.debug("quarantine potential file %s", associated_potential_quarantine_ticket)
+    associated_potential_quarantine_ticket = os.path.join(
+        whichquarantinedir(archive=archive), safe
+    )
+    logging.debug(
+        "quarantine potential file %s", associated_potential_quarantine_ticket
+    )
     if os.path.exists(associated_potential_quarantine_ticket):
         fid = open(associated_potential_quarantine_ticket)
         data = fid.readlines()
@@ -57,7 +61,10 @@ def main():
     parser = argparse.ArgumentParser(description="test product black list")
     parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument(
-        "--inputsafe", action="store", required=True, help="SAFE path to sort (could be SAFE.zip)"
+        "--inputsafe",
+        action="store",
+        required=True,
+        help="SAFE path to sort (could be SAFE.zip)",
     )
     args = parser.parse_args()
     if args.verbose:
@@ -73,7 +80,9 @@ def main():
             datefmt="%d/%m/%Y %H:%M:%S",
         )
 
-    flag_go_download = test_quarantine_before_download(args.inputsafe, archive="datarmor_mpc")
+    flag_go_download = test_quarantine_before_download(
+        args.inputsafe, archive="datarmor_mpc"
+    )
     logging.info("flag_go_download : %s", flag_go_download)
 
 

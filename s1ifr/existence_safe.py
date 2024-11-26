@@ -31,7 +31,9 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
         possible_storage = os.path.join(possible_archive, safe_basename)
         if os.path.exists(possible_storage) is True:
             existing_storage = possible_storage
-            logging.debug("%s is already in %s archive", possible_storage, archive)
+            logging.debug(
+                "%s is already in %s archive", possible_storage, archive
+            )
             flag_continue = False
             if full_path_safe is not None:
                 remove_file_already_in_archive(full_path_safe)
@@ -39,7 +41,9 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
             break
     # add a test to see if the product is black listed in quarantine
     if full_path_safe is not None:
-        flag_go_download = test_quarantine_before_download(full_path_safe, archive="datarmor_mpc")
+        flag_go_download = test_quarantine_before_download(
+            full_path_safe, archive="datarmor_mpc"
+        )
         if flag_go_download is False:
             logging.info("%s is blacklisted", full_path_safe)
             flag_continue = False

@@ -28,7 +28,9 @@ def get_parent_destination_safe_path(source_safe, outputdir):
     obj = ExplodeSAFE(os.path.basename(source_safe))
     obj.get("startdate")
     parent_dest_path = os.path.join(
-        outputdir, obj.get("startdate").strftime("%Y"), obj.get("startdate").strftime("%j")
+        outputdir,
+        obj.get("startdate").strftime("%Y"),
+        obj.get("startdate").strftime("%j"),
     )
     parent_dest_path = add_trailing_slash(parent_dest_path)
     logging.info("parent_dest_path : %s", parent_dest_path)
@@ -48,7 +50,9 @@ def sync_safe(safe_fullpath, outputdir, remove_source_file=False):
         rsf = "--remove-source-files"
     else:
         rsf = ""
-    par_dest = get_parent_destination_safe_path(source_safe=safe_fullpath, outputdir=outputdir)
+    par_dest = get_parent_destination_safe_path(
+        source_safe=safe_fullpath, outputdir=outputdir
+    )
     cmd = "rsync -avz" + rsf + f" {safe_fullpath} {par_dest}"
     logging.info("command to be executed: %s", cmd)
     status = subprocess.check_call(cmd, shell=True)
@@ -80,17 +84,27 @@ def main():
     fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
     if args.verbose:
         logging.basicConfig(
-            level=logging.DEBUG, format=fmt, datefmt="%d/%m/%Y %H:%M:%S", force=True
+            level=logging.DEBUG,
+            format=fmt,
+            datefmt="%d/%m/%Y %H:%M:%S",
+            force=True,
         )
     else:
-        logging.basicConfig(level=logging.INFO, format=fmt, datefmt="%d/%m/%Y %H:%M:%S", force=True)
+        logging.basicConfig(
+            level=logging.INFO,
+            format=fmt,
+            datefmt="%d/%m/%Y %H:%M:%S",
+            force=True,
+        )
     args.input = args.input.rstrip(
         "/"
     )  # remove trailing slash after .SAFE to be sure the rsync will also take the directory.
     if ".SAFE" not in args.input:
         raise ValueError
     sync_safe(
-        safe_fullpath=args.input, outputdir=args.outputdir, remove_source_file=args.removesource
+        safe_fullpath=args.input,
+        outputdir=args.outputdir,
+        remove_source_file=args.removesource,
     )
     logging.info("success")
 

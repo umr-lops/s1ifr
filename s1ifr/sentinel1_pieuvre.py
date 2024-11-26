@@ -21,7 +21,10 @@ import traceback
 from s1ifr.check_SAFE_files import SAFE_checker
 from s1ifr.clean_sentinel1_duplicates_function import CheckDuplicate
 from s1ifr.existence_safe import product_is_present_at_ifremer
-from s1ifr.quarantine_management import quarantine_ticket, remove_safe_from_disk
+from s1ifr.quarantine_management import (
+    quarantine_ticket,
+    remove_safe_from_disk,
+)
 from s1ifr.SAFEsortingfunctions import (
     WhichArchiveDir,
     WhichSpoolDir,
@@ -36,7 +39,9 @@ QUARANTINED = "quarantine"  # means that the data is not in the appropriate form
 FAILED = "failed"  # mean the script crash
 
 
-def finalize_archiving(archive_dir, unzipped_safe, final_place, ziptype="", archive_name="mpc"):
+def finalize_archiving(
+    archive_dir, unzipped_safe, final_place, ziptype="", archive_name="mpc"
+):
     """
     mv the safe to archive directory then chmod
     Args:
@@ -50,7 +55,9 @@ def finalize_archiving(archive_dir, unzipped_safe, final_place, ziptype="", arch
     # check that the SAFE uncompressed is not corrupted
     doom_flag = NORMAL
     user_run = getpass.getuser()
-    logpath = os.path.join("/home1/scratch", user_run, "sentinel1_quality_check_after_unzip.txt")
+    logpath = os.path.join(
+        "/home1/scratch", user_run, "sentinel1_quality_check_after_unzip.txt"
+    )
     is_ok_safe = SAFE_checker(unzipped_safe, logpath=logpath, security_time=0)
 
     if is_ok_safe:
@@ -67,7 +74,10 @@ def finalize_archiving(archive_dir, unzipped_safe, final_place, ziptype="", arch
         else:
             doom_flag = FAILED
     else:
-        logging.error("%s is corrupted, so we delete it to let it be re download", unzipped_safe)
+        logging.error(
+            "%s is corrupted, so we delete it to let it be re download",
+            unzipped_safe,
+        )
         quarantine_ticket(unzipped_safe, archive_name)
         doom_flag = QUARANTINED
     original_full_path = unzipped_safe + ziptype
@@ -83,7 +93,10 @@ def finalize_archiving(archive_dir, unzipped_safe, final_place, ziptype="", arch
 
 
 def sort_one_safe(
-    full_path_safe, log_file_handler=None, other_archive="datarmor_mpc", security_second=600
+    full_path_safe,
+    log_file_handler=None,
+    other_archive="datarmor_mpc",
+    security_second=600,
 ):
     """
     :input:
@@ -110,7 +123,9 @@ def sort_one_safe(
         elif ".zip" in full_path_safe:
             safe_basename = os.path.basename(full_path_safe.strip(".zip"))
         else:
-            safe_basename = os.path.basename(full_path_safe.replace(".SAFE/", ".SAFE"))
+            safe_basename = os.path.basename(
+                full_path_safe.replace(".SAFE/", ".SAFE")
+            )
         if safe_basename[0:2] == "S1":
             if safe_basename[-5:] != ".SAFE":
                 safe_basename = safe_basename + ".SAFE"
@@ -118,8 +133,8 @@ def sort_one_safe(
         archive_dir = WhichArchiveDir(safe_basename)
         final_place = os.path.join(archive_dir, safe_basename)
         logging.debug("final path should be %s", final_place)
-        flag_continue, existing_storage, archive = product_is_present_at_ifremer(
-            safe_basename, full_path_safe
+        flag_continue, existing_storage, archive = (
+            product_is_present_at_ifremer(safe_basename, full_path_safe)
         )
         if flag_continue is True:
             if not os.path.exists(archive_dir):
@@ -129,14 +144,16 @@ def sort_one_safe(
             nownow = datetime.datetime.today()
             seconds_since_creation = nownow - creation_date
             logging.debug(
-                "%1.2fseconds elapsed since file downloaded", seconds_since_creation.total_seconds()
+                "%1.2fseconds elapsed since file downloaded",
+                seconds_since_creation.total_seconds(),
             )
             # second security
             taille1 = os.path.getsize(full_path_safe)
             time.sleep(1)
             taille2 = os.path.getsize(full_path_safe)
             if (
-                seconds_since_creation >= datetime.timedelta(seconds=security_second)
+                seconds_since_creation
+                >= datetime.timedelta(seconds=security_second)
                 and taille1 == taille2
             ):
                 if log_file_handler is not None:
@@ -145,13 +162,17 @@ def sort_one_safe(
                     logging.debug(
                         "classical case",
                     )
-                    spool_dir = WhichSpoolDir(safe_basename, archive=other_archive)
+                    spool_dir = WhichSpoolDir(
+                        safe_basename, archive=other_archive
+                    )
                     os.chdir(spool_dir)
                     st = os.system("tar xf " + full_path_safe)
                     unziped_safe = full_path_safe.strip(".tar")
                     if st != 0 or os.path.exists(unziped_safe) is False:
                         logging.error(
-                            "uncompress operation on %s failed status = %s", full_path_safe, st
+                            "uncompress operation on %s failed status = %s",
+                            full_path_safe,
+                            st,
                         )
                         # in this case the tar is kept because we are not sure that the tar itself is broken => risk of stagging tar ??
                         #                         raise Exception('fail to uncompress %s so it will be removed from spool',full_path_safe)
@@ -174,7 +195,9 @@ def sort_one_safe(
                             archive_name=other_archive,
                         )
                 elif full_path_safe[-4:] == ".zip":
-                    spool_dir = WhichSpoolDir(safe_basename, archive=other_archive)
+                    spool_dir = WhichSpoolDir(
+                        safe_basename, archive=other_archive
+                    )
                     logging.debug("spool dir: %s", spool_dir)
                     logging.debug("pwd: %s %s", os.curdir, os.getcwd())
                     os.chdir(spool_dir)
@@ -187,7 +210,9 @@ def sort_one_safe(
                         if ".SAFE" not in unziped_safe:
                             unziped_safe += ".SAFE"
                     logging.debug(
-                        "unziped_safe: %s exist=%s", unziped_safe, os.path.exists(unziped_safe)
+                        "unziped_safe: %s exist=%s",
+                        unziped_safe,
+                        os.path.exists(unziped_safe),
                     )
                     if os.path.exists(unziped_safe):
                         doom_flag = finalize_archiving(
@@ -198,7 +223,10 @@ def sort_one_safe(
                             archive_name=other_archive,
                         )
                     else:
-                        logging.error("uncompress operation on %s failed ", full_path_safe)
+                        logging.error(
+                            "uncompress operation on %s failed ",
+                            full_path_safe,
+                        )
                         # in this case the tar is kept because we are not sure that the tar itself is broken => risk of stagging tar ??
                         #                         raise Exception('fail to uncompress %s so it will be removed from spool',full_path_safe)
                         logging.error("traceback %s", traceback.format_exc())
@@ -211,7 +239,10 @@ def sort_one_safe(
                 elif full_path_safe[-4:] in ["SAFE", "SEN3"]:
                     unziped_safe = full_path_safe
                     doom_flag = finalize_archiving(
-                        archive_dir, unziped_safe, final_place, archive_name=other_archive
+                        archive_dir,
+                        unziped_safe,
+                        final_place,
+                        archive_name=other_archive,
                     )
                 elif "tar." in full_path_safe:
                     logging.debug(
@@ -224,7 +255,8 @@ def sort_one_safe(
                     doom_flag = QUARANTINED
                 else:
                     logging.error(
-                        "sentinel1_pieuvre | the input : %s is not conventional", full_path_safe
+                        "sentinel1_pieuvre | the input : %s is not conventional",
+                        full_path_safe,
                     )
                 #                 if level != '2' and mode != 'WV':
                 if (
@@ -243,7 +275,9 @@ def sort_one_safe(
             # then I have to remove the SAFE from spool dir
             remove_safe_from_disk(full_path_safe)
     else:
-        logging.debug("sentinel1_pieuvre | %s doesnt exist anymore", full_path_safe)
+        logging.debug(
+            "sentinel1_pieuvre | %s doesnt exist anymore", full_path_safe
+        )
         doom_flag = UNEXISTANT
     logging.debug("final flag: %s", doom_flag)
     return doom_flag, cpt_dupli
@@ -277,10 +311,18 @@ def main():
     fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
     if args.verbose:
         logging.basicConfig(
-            level=logging.DEBUG, format=fmt, datefmt="%d/%m/%Y %H:%M:%S", force=True
+            level=logging.DEBUG,
+            format=fmt,
+            datefmt="%d/%m/%Y %H:%M:%S",
+            force=True,
         )
     else:
-        logging.basicConfig(level=logging.INFO, format=fmt, datefmt="%d/%m/%Y %H:%M:%S", force=True)
+        logging.basicConfig(
+            level=logging.INFO,
+            format=fmt,
+            datefmt="%d/%m/%Y %H:%M:%S",
+            force=True,
+        )
 
     user_run = getpass.getuser()
     t0 = time.time()
@@ -289,7 +331,9 @@ def main():
     logging.info("user : %s", user_run)
     archive_output = ["datarmor_mpc"]
     logging.info("the script will sort sentinel1 product : %s", args.safe)
-    sort_one_safe(args.safe, other_archive=archive_output[0], security_second=0)
+    sort_one_safe(
+        args.safe, other_archive=archive_output[0], security_second=0
+    )
     logging.info("time to sort the data %1.1f seconds", time.time() - t0)
 
 
