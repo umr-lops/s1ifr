@@ -25,7 +25,7 @@ from s1ifr.SAFEsortingfunctions import (
     WhichArchiveDir,
     WhichSpoolDir,
 )
-from s1ifr.test_existence_safe import test_existance_of_product
+from s1ifr.existence_safe import product_is_present_at_ifremer
 
 # SECURITY_SECONDS = 300
 UNEXISTANT = "unexistant"
@@ -119,7 +119,7 @@ def sort_one_safe(
         archive_dir = WhichArchiveDir(safe_basename)
         final_place = os.path.join(archive_dir, safe_basename)
         logging.debug("final path should be %s", final_place)
-        flag_continue, existing_storage, archive = test_existance_of_product(
+        flag_continue, existing_storage, archive = product_is_present_at_ifremer(
             safe_basename, full_path_safe
         )
         if flag_continue is True:

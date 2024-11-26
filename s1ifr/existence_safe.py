@@ -7,12 +7,12 @@ import logging
 import os
 import shutil
 
-from quarantine_management import test_quarantine_before_download
+from s1ifr.quarantine_management import test_quarantine_before_download
 
 from s1ifr.SAFEsortingfunctions import WhichArchiveDir
 
 
-def test_existance_of_product(safe_basename, full_path_safe=None):
+def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
     """
     check that the safe downloaded do not exist in other archive dirs
     and delete the one in spool_dir if yes
@@ -28,7 +28,7 @@ def test_existance_of_product(safe_basename, full_path_safe=None):
     else:
         raise Exception("product not handle by the poulpe")
     for archive in possible_archives:
-        possible_archive = WhichArchiveDir(safe_basename, archive)
+        possible_archive = WhichArchiveDir(safe=safe_basename)
         possible_storage = os.path.join(possible_archive, safe_basename)
         if os.path.exists(possible_storage) is True:
             existing_storage = possible_storage
@@ -57,14 +57,3 @@ def remove_file_already_in_archive(fulle_path_tar):
         shutil.rmtree(fulle_path_tar)
     logging.info("delete %s", fulle_path_tar)
     return
-
-
-if __name__ == "__main__":
-    test = "S1A_IW_GRDH_1SDH_20170503T103130_20170503T103158_016416_01B304_C899.SAFE"
-    test1 = "S1A_IW_GRDH_1SDH_20170503T103130_20170503T103158_016416_01B304_C899"
-    test2 = "S1B_IW_SLC__1SDV_20171103T020615_20171103T020642_008111_00E545_CAD9"
-    test3 = "S1B_IW_SLC__1SDV_20171103T020615_20171103T020642_008111_00E545_CAD9"
-    flag_continue, existing_storage, archive = test_existance_of_product(test1)
-    print("flag_continue", flag_continue)
-    print("existing_storage", existing_storage)
-    print("archive", archive)
