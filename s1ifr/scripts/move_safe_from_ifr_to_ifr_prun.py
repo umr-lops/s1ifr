@@ -1,13 +1,13 @@
 #!/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python
-# coding: utf-8
 """
 """
 import sys
 
 print(sys.executable)
-import subprocess
-import logging, os
 import getpass
+import logging
+import os
+import subprocess
 
 
 def main():
