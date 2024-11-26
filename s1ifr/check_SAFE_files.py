@@ -164,7 +164,7 @@ def exploitCheckSum(safepath):
     return flag
 
 
-def TestPresenceOfSubDirectories(safe_path, level, typefile):
+def check_sub_directories(safe_path, level, typefile):
     """return True if all sub dir are present"""
     res = True
 
@@ -183,12 +183,9 @@ def TestPresenceOfSubDirectories(safe_path, level, typefile):
 
 
 def write_to_log(logpath, test_name, safe_path):
-    if True:  # parfait
-        file_handler = open(logpath, "a")
-        file_handler.write(safe_path + " " + test_name + " \n")
-        file_handler.close()
-    else:  # autre maniere pour etre sur davoir des chose ecrite en cas de bug dans l execution et pas de close()
-        pass
+    file_handler = open(logpath, "a")
+    file_handler.write(safe_path + " " + test_name + " \n")
+    file_handler.close()
 
 
 def SAFE_checker(safe_path, logpath, enable_checksum=False, security_time=None) -> bool:
@@ -237,7 +234,7 @@ def SAFE_checker(safe_path, logpath, enable_checksum=False, security_time=None) 
         else:
             logging.info("measurement count test: OK")
 
-        if TestPresenceOfSubDirectories(safe_path, level, typefile) is False:
+        if check_sub_directories(safe_path, level, typefile) is False:
             write_to_log(logpath, "missingsubdir", safe_path)
             flag_ok_safe = False
         else:
