@@ -1,0 +1,18 @@
+#!/bin/bash
+#PBS -l walltime=0:45:00
+#PBS -l mem=500m
+#PBS -N archives1safe
+#PBS -j oe
+#PBS -m n
+echo 'script to archive Sentinel-1 in Ifremer database'
+echo "SAFE source: "$1
+
+. /appli/anaconda/2.7/etc/profile.d/conda.sh
+source /etc/profile.d/modules.sh #recommende par RIC mars 2020
+pythonbin=/home/datawork-cersat-public/cache/project/mpc-sentinel1/workspace/mamba/envs/imacs-l1c
+conda activate $pythonbin
+which python
+echo 'pybin:'$pybin
+
+archivesafe --input-safe $1
+

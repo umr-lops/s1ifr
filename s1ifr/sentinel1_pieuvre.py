@@ -293,17 +293,9 @@ def main():
     parser = argparse.ArgumentParser(description="sort SAFE @ Ifr")
     parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument(
-        "--overwrite",
-        action="store_true",
-        default=False,
-        help="overwrite the existing outputs [default=False]",
-        required=False,
-    )
-    parser.add_argument(
-        "-i",
+        # "-i",
         "--input-safe",
         action="store",
-        type="string",
         dest="safe",
         help="full path of a unique SAFE product to be sorted and stored",
     )

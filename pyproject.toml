@@ -4,7 +4,7 @@ requires-python = ">= 3.10"
 license = { text = "MIT" }
 description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
 readme = "README.md"
-dependencies = ["numpy", "xarray"]
+dependencies = ["numpy", "xarray","lxml"]
 keywords = [
   "earth-observation",
   "remote-sensing",
@@ -40,6 +40,7 @@ changelog = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io/en/latest/
 [project.scripts]
 syncsafe = "s1ifr.move_safe_from_ifr_to_ifr:main"
 syncsafebatch = "s1ifr.scripts.move_safe_from_ifr_to_ifr_prun:main"
+archivesafe = 's1ifr.sentinel1_pieuvre:main'
 
 
 [build-system]
