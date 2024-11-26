@@ -8,7 +8,6 @@ import os
 import shutil
 
 from s1ifr.quarantine_management import test_quarantine_before_download
-
 from s1ifr.SAFEsortingfunctions import WhichArchiveDir
 
 

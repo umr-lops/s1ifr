@@ -20,12 +20,12 @@ import traceback
 
 from s1ifr.check_SAFE_files import SAFE_test
 from s1ifr.clean_sentinel1_duplicates_function import CheckDuplicate
+from s1ifr.existence_safe import product_is_present_at_ifremer
 from s1ifr.quarantine_management import quarantine_ticket, remove_safe_from_disk
 from s1ifr.SAFEsortingfunctions import (
     WhichArchiveDir,
     WhichSpoolDir,
 )
-from s1ifr.existence_safe import product_is_present_at_ifremer
 
 # SECURITY_SECONDS = 300
 UNEXISTANT = "unexistant"
