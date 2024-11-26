@@ -33,6 +33,6 @@ sats_full = {
 def dir_data(satellite):
     satlong = sats_acro[satellite]
     return os.path.join(PROJECT_DIR_DATARMOR, "data", "esa", satlong)
-
+WORKING_DIR = os.path.join(PROJECT_DIR_DATARMOR_ALT,'workspace')
 
 QUARANTINE = {"datarmor_mpc": os.path.join(PROJECT_DIR_DATARMOR, "workspace", "quarantine/")}

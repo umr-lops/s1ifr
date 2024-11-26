@@ -10,13 +10,12 @@ import os
 
 from s1ifr.explodesafename import ExplodeSAFE
 from s1ifr.shared_information import QUARANTINE as quarantine_s1
-from s1ifr.shared_information import datarmor_archive_esa_ifremer
+from s1ifr.shared_information import datarmor_archive_esa_ifremer,WORKING_DIR
 
 ADDITIONAL_ARCHIVES = {
-    "s3sral": "/home/datawork-cersat-public/archive/provider/eumetsat/satellite/l2/sentinel-3/sral/data",
     "datarmor_mpc": datarmor_archive_esa_ifremer,
 }
-WORKING_DIR = {"datarmor_mpc": "/home/datawork-cersat-public/cache/project/mpc-sentinel1/workspace"}
+WORKING_DIR = {"datarmor_mpc": WORKING_DIR}
 SPOOL_REP = {  # deprecated
     "datarmor_mpc": "spool_datarmor/",
 }
@@ -31,18 +30,6 @@ def WhichWorkingDir(archive):
     res = WORKING_DIR[archive]
     return res
 
-
-def WhichFTPdir(safe):
-    """
-    input example : S1A_IW_RAW__0SDV_20140526T145627_20140526T145655_000770_000BAE_BC53.SAFE
-    """
-    satellite = safe[0:3]
-    url = "/data/" + satellite + "/"
-    acqui = safe.split("_")[1]
-    subprod = safe[0:14]
-    subdir = satellite + "_" + acqui + "/"
-    finalurl = os.path.join(url, subdir, subprod, "unsorted/")
-    return finalurl
 
 
 def WhichArchiveDir(safe):
@@ -107,7 +94,7 @@ def WhichSpoolDir(safe=None, archive="datarmor_mpc"):
     return spooldir
 
 
-def whichquarantinedir(safe, archive="datarmor_mpc"):
+def whichquarantinedir(archive="datarmor_mpc"):
     """
     Args:
         safe (str): safe basename with .SAFE extension
@@ -122,6 +109,5 @@ if __name__ == "__main__":
     test = "S1A_IW_RAW__0SDV_20140526T145627_20140526T145655_000770_000BAE_BC53.SAFE"
     print(test)
     print("spool", WhichSpoolDir(test))
-    print("ftp", WhichFTPdir(test))
     tmp = WhichArchiveDir(test)
     print("archive", tmp)

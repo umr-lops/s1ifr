@@ -12,7 +12,7 @@ import logging
 import os
 
 from dateutil import rrule
-
+import getpass
 from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES
 from s1ifr.shared_information import sats_acro
 
@@ -22,7 +22,7 @@ def writeTheFileList(
 ):
     """
     create a list of measurement file from mpc ifremer sentinel1 archive
-    type (str) aquisirion mode ex : WV
+    type (str) acquisition mode ex : WV
     format (str) ex:slc or grdh or grdm or ocn_
     repdata (str): path up to level directory (included)
     startdate endate (str): YYYYMMDD
@@ -32,12 +32,6 @@ def writeTheFileList(
     onlyonsea (bool) use landmask to keep only acquisition with a least one point on the sea
     write_to_file (bool):
     """
-    #     from ceraux.landmask import Landmask
-    #     from ceraux.landmask_resources import LAND_MASK_PATH
-    #     from cerbere.datamodel.grid import Grid
-    #     from cerbere.datamodel.image import Image
-    #     from sarimage import SARImage
-    #     from cerbere.mapper.safegeotifffile import SAFEGeoTiffFile
     if len(format) == 3:
         format_safe = format + "_"
     else:
@@ -50,7 +44,9 @@ def writeTheFileList(
         extension = "tiff"
     elif level == "L2":
         extension = "nc"
-    filout = "/tmp/"
+
+    user_run = getpass.getuser()
+    filout = os.path.join('/home1/scratch/',user_run)
     pattern = satellite.lower() + "*" + format_file[0:3].lower() + "*." + extension
     # logging.debug('pattern sought %s',pattern)
     logname = (
@@ -69,45 +65,25 @@ def writeTheFileList(
         + str(onlyonsea)
         + ".lst"
     )
-
     startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
     # logging.debug('type date %s',startdate)
     enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
     if startdate == enddate:
         enddate += datetime.timedelta(hours=24)
-    #     if onlyonsea:
-    #         #landmask
-    #     #     instanceLD = Landmask(filename=LAND_MASK_PATH+'NAVO-lsmask-world8-var.dist5.5.nc')
-    #         instanceLD = Landmask(filename=LAND_MASK_PATH+'mwf-ers-mask.nc')
-    #
     tifflist = []
     if write_to_file:
         logpath = filout + logname
         fid = open(logpath, "w")
     else:
         logpath = None
-    #     classinstance = PolygonIntersection()
-    #     year_start = startdate.year
-    #     year_end = enddate.year
-    #     vector_year = range(year_start,year_end+1)
-    #     startdoy = startdate.timetuple().tm_yday
-    #     enddoy = enddate.timetuple().tm_yday
-    #     logging.debug('startdoy %s enddoy %s ',startdoy,enddoy)
-    #     vector_doy = range(startdoy,enddoy+1)
-    #     logging.debug('vector doy: %s',vector_doy)
     for dd in rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate):
         yy = str(dd.year)
         doy = str(dd.timetuple().tm_yday).zfill(3)
-        #     for yy in vector_year:
-        #         for doy in vector_doy:
+
         repdatatype_date = os.path.join(repdatatype, yy, doy + "/")
-        # logging.debug('rep to search %s ',repdatatype_date)
         for root, dirnames, filenames in os.walk(repdatatype_date):
-            #                 logging.debug('filenames %s',filenames)
             for filename in fnmatch.filter(filenames, pattern):
                 fullpath = os.path.join(root, filename)
-                # logging.debug('path %s',fullpath)
-                #                 datesar = filename[15:23]
                 datesar = filename.split("-")[4]
                 # logging.debug('datesar : %s',datesar)
                 datesar = datetime.datetime.strptime(datesar, "%Y%m%dt%H%M%S")
@@ -236,7 +212,8 @@ def writeTheDirList(
     if write:
         if logfile_path is None:
             if logdir_path is None:
-                dirout = "/home1/datahome/agrouaze/PRUN_workspace/"
+                user_run = getpass.getuser()
+                dirout = os.path.join("/home1/scratch/",user_run,"PRUN_workspace")
             else:
                 dirout = logdir_path
             logname = satellite + "_" + startdate + "_" + enddate + "_dirSAFE.lst"
@@ -276,7 +253,7 @@ def FindSARNetCDFDayBefore(nbdays, satellite, archive_name="mpc"):
     yerterday = now - datetime.timedelta(days=nbdays)
     dateyes = datetime.datetime.strftime(yerterday, "%Y%m%d")
     logging.info("find all the %s netCDF on day %s", satellite, dateyes)
-    pattern_nc = rep_data + "*/*/*/*/*/measurement/*ocn-*" + dateyes + "*.nc"
+    pattern_nc = os.path.join(rep_data + "*","*","*","*","*","measurement","*ocn-*" + dateyes + "*.nc")
     logging.debug("pattern %s", pattern_nc)
     netCDF_list = glob.glob(pattern_nc)
     logging.info("number of netCDF found %s", len(netCDF_list))
@@ -294,12 +271,7 @@ def FindSARNetCDFBewteen2Dates(start, stop, satellite, mode="*", archive_name="d
     netCDF_list = []
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     rep_data = os.path.join(root_archive, satellite, "L2/")
-    #     if isinstance(start,str):
-    #         current_date = datetime.datetime.strptime(start,'%Y%m%d')
-    #         last_date = datetime.datetime.strptime(stop,'%Y%m%d')
-    #     else:
-    #         current_date = start
-    #         last_date = stop
+
     start_rule = start - datetime.timedelta(
         days=1
     )  # added 26 nov 2021, because some nc are in SAF that belongs to previous day
@@ -317,12 +289,11 @@ def FindSARNetCDFBewteen2Dates(start, stop, satellite, mode="*", archive_name="d
         pattern_nc = os.path.join(
             rep_data, mode, "*", year, doy, "*" + dateyes + "*.SAFE", "measurement", "*ocn-*.nc"
         )
-        # pattern_nc = os.path.join(rep_data,mode,'*',year,doy,'*'+dateyes+'*.SAFE','measurement','*ocn-*'+dateyes+'*.nc')
         if cpt == 0:
             logging.debug("first pattern tested = %s", pattern_nc)
         tmp = glob.glob(pattern_nc)
         logging.debug("pattern %s : %s", pattern_nc, len(tmp))
-        # netCDF_list = netCDF_list+tmp
+
         for ff in tmp:
             datestartdt = datetime.datetime.strptime(
                 os.path.basename(ff).split("-")[4], "%Y%m%dt%H%M%S"
@@ -331,7 +302,6 @@ def FindSARNetCDFBewteen2Dates(start, stop, satellite, mode="*", archive_name="d
                 netCDF_list.append(ff)
             else:
                 cpt_out_of_bounds += 1
-        #         current_date = current_date + datetime.timedelta(days=1)
         cpt += 1
     logging.debug("number of netCDF found %s", len(netCDF_list))
     logging.debug("cpt_out_of_bounds : %s", cpt_out_of_bounds)
@@ -395,16 +365,8 @@ def FindSARtiffBewteen2Dates(
     tiff_list = []
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     rep_data = os.path.join(root_archive, satellite, "L1")
-    #     if isinstance(start,str):
-    #         current_date = datetime.datetime.strptime(start,'%Y%m%d')
-    #         last_date = datetime.datetime.strptime(stop,'%Y%m%d')
-    #     else:
-    #         current_date = start
-    #         last_date = stop
     if start > stop:
         raise Exception("start date is > stop date")
-    #     if current_date == last_date:
-    #         last_date = current_date+datetime.timedelta(days=1)
     for dd in rrule.rrule(rrule.DAILY, dtstart=start, until=stop):
         year = str(dd.year)
         doy = str(dd.timetuple().tm_yday).zfill(3)
@@ -447,7 +409,6 @@ def FindTiffFromDayBefore(
     yerterday = now - datetime.timedelta(days=nbdays)
     dateyes = datetime.datetime.strftime(yerterday, "%Y%m%d")
     logging.info("find all the %s tiff on day %s", satellite, dateyes)
-    #     tiff_list = glob.glob(rep_data+'*/*/*/*/*/measurement/*grd-*'+dateyes+'*.tiff')
     files_SM = []
     files_IW = []
     files_EW = []
@@ -468,65 +429,37 @@ def FindTiffFromDayBefore(
         )
         logging.info("number of tiff found for SM %s", len(files_SM))
     if "IW" in mode:
-        files_IW = glob.glob(
+        files_IW = glob.glob(os.path.join(
             rep_data
-            + "IW/"
-            + satellite
-            + "_IW_"
-            + file_format.upper()
-            + "_"
-            + product_type
-            + "/*/*/*/measurement/*"
-            + file_format
-            + "-*"
-            + dateyes
-            + "*."
-            + ext
+            , "IW"
+            , satellite+ "_IW_"+file_format.upper()+ "_"+ product_type
+            ,"*","*","*","measurement","*"+ file_format + "-*"+ dateyes+ "*."+ ext)
         )
         logging.info("number of tiff found for IW %s", len(files_IW))
     if "EW" in mode:
-        files_EW = glob.glob(
+        files_EW = glob.glob(os.path.join(
             rep_data
-            + "EW/"
-            + satellite
-            + "_EW_"
-            + file_format.upper()
-            + "_"
-            + product_type
-            + "/*/*/*/measurement/*"
-            + file_format
-            + "-*"
-            + dateyes
-            + "*."
-            + ext
+            , "EW"
+            , satellite+ "_EW_"+file_format.upper()+ "_"+ product_type
+            ,"*","*","*","measurement","*"+ file_format + "-*"+ dateyes+ "*."+ ext)
         )
         logging.info("number of tiff found for EW %s", len(files_EW))
     if "WV" in mode:
-        #         if level == 'L1':
-        files_WV = glob.glob(
+        files_WV = glob.glob(os.path.join(
             rep_data
-            + "WV/"
-            + satellite
-            + "_WV_SLC__"
-            + product_type
-            + "/*/*/*/measurement/*slc-*"
-            + dateyes
-            + "*."
-            + ext
+            , "WV"
+            , satellite+ "_WV_SLC__"+ product_type
+            ,"*","*","*","measurement","*-slc-*"+ dateyes+ "*."+ ext)
         )
         logging.info("number of tiff found for WV %s", len(files_WV))
-    #         elif level == 'L2':
-    #             files_WV = glob.glob(rep_data+'WV/'+satellite+'_WV_OCN__'+product_type+'/*/*/*/measurement/*ocn-*'+dateyes+'*.'+ext)
-    #             logging.info('number of tiff found for WV %s',len(files_WV))
     final_list = files_SM + files_IW + files_EW + files_WV
     #     logging.debug('%s',files_list)
     logging.info("number of tiff found %s", len(final_list))
     return final_list
 
 
-if __name__ == "__main__":
+def main():
     logging.basicConfig(level=logging.DEBUG)
-    #     repdata = '/home/cercache/project/mpc-sentinel1/data/esa/sentinel-1a/L1/'
     type = "WV"
     format = "slc"
     startdate = "20141231"
@@ -535,10 +468,7 @@ if __name__ == "__main__":
     satellite = "S1A"
     level = "L2"
     write = False
-    #     logpath = writeTheFileList(type,format,repdata,startdate,enddate,extension)
-    #     writeTheFileList(type,format,repdata,startdate,enddate,extension,onlyonsea=False)
-    #     writeTheDirList(type,format,repdata,startdate,enddate)
-    #     writeTheDirList(startdate,enddate,satellite,level,write=write,type='WV',format='OCN_')
+
     choice_usage = [
         "count_SAFE",
         "count_measurement",
@@ -727,3 +657,7 @@ if __name__ == "__main__":
         print(len(listmesu))
     else:
         raise Exception("Bad argument usage")
+
+if __name__ == "__main__":
+
+    main()
