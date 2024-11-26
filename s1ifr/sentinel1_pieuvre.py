@@ -28,11 +28,7 @@ from s1ifr.SAFEsortingfunctions import (
 )
 from s1ifr.test_existence_safe import test_existance_of_product
 
-SAT_DIRS = {"S1A": "sentinel-1a", "S1B": "sentinel-1b"}
 
-# FILE_TYPE = ["SLC_", "GRDH", "GRDM", "GRDF", "RAW_", "OCN_"]
-# SUB_PROD = ["A" ,"S", "C", "N"]
-MODES = ["WV", "S1", "S2", "S3", "S4", "S5", "S6", "EW", "IW"]
 # SECURITY_SECONDS = 300
 UNEXISTANT = "unexistant"
 NORMAL = "normal"
@@ -89,7 +85,7 @@ def finalize_archiving(archive_dir, unzipped_safe, final_place, ziptype="", arch
     return doom_flag
 
 
-def sort_one_safe(full_path_safe, log_file_handler=None, other_archive="mpc", security_second=600):
+def sort_one_safe(full_path_safe, log_file_handler=None, other_archive="datarmor_mpc", security_second=600):
     """
     :input:
         full_path_safe (str): can be anywhere with or without .tar extension
@@ -120,13 +116,7 @@ def sort_one_safe(full_path_safe, log_file_handler=None, other_archive="mpc", se
             if safe_basename[-5:] != ".SAFE":
                 safe_basename = safe_basename + ".SAFE"
         logging.debug("basename : %s", safe_basename)
-        inst = ExplodeSAFE(safe_basename)
-        level = inst.get("level")
-        if level == "2":
-            storage_archive = "mpc"  # je force cercache tant que les L2 sont sur cercache
-        else:
-            storage_archive = other_archive
-        archive_dir = WhichArchiveDir(safe_basename, storage_archive)
+        archive_dir = WhichArchiveDir(safe_basename)
         final_place = os.path.join(archive_dir, safe_basename)
         logging.debug("final path should be %s", final_place)
         flag_continue, existing_storage, archive = test_existance_of_product(
