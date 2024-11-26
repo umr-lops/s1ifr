@@ -99,7 +99,9 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         safe = sys.argv[1]
     else:
-        safe = "S3A_SR_2_WAT____20170124T120058_20170124T121058_20170124T140548_0599_013_294______MAR_O_NR_002.SEN3"  # attention fichiers coupe en demi orbit mais une seul numero de cycle
+        # attention fichiers coupe en demi orbit mais une seul numero de cycle
+        safe = "S3A_SR_2_WAT____20170124T120058_20170124T121058_20170124T140548_0599_013_294______MAR_O_NR_002.SEN3"
+
     logging.info("%s", safe)
     obj = ExplodeSAFE(safe)
     print(obj.get("startdate"))

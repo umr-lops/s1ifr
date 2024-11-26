@@ -48,6 +48,7 @@ def sync_safe(safe_fullpath, outputdir, remove_source_file=False):
     else:
         rsf = ""
     par_dest = get_parent_destination_safe_path(source_safe=safe_fullpath, outputdir=outputdir)
+    os.makedirs(par_dest,exist_ok=True)
     cmd = "rsync -avz" + rsf + " %s %s" % (safe_fullpath, par_dest)
     logging.info("command to be executed: %s", cmd)
     status = subprocess.check_call(cmd, shell=True)
@@ -66,7 +67,7 @@ def main():
     parser.add_argument(
         "--outputdir",
         required=True,
-        help="SAFE where to store the SAFE (destination), it should stops at the last subdir before date YYYY/JJJ/...SAFE, for instancecache/project/sarwave/data/products/tests2/slc/iw/l1b/  ",
+        help="SAFE where to store the SAFE (destination), it should stops at the last subdir before date YYYY/JJJ/...SAFE, for instance cache/project/sarwave/data/products/tests2/slc/iw/l1b/  ",
     )
     parser.add_argument(
         "--removesource",
