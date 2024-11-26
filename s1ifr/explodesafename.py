@@ -5,9 +5,10 @@
     Arguments: basename SAFE directory
     note: valid also for Sentinel3 SRAL data
 """
-import sys
-import logging
+
 import datetime
+import logging
+import sys
 
 fields = [
     "satellite",
@@ -25,7 +26,7 @@ fields = [
 DEFAULT_DATE_FORMAT = "%Y%m%dT%H%M%S"
 
 
-class ExplodeSAFE(object):
+class ExplodeSAFE:
     """input basename_safe (str) SAFE name
     only (no parent directories before neitheir children files)"""
 
