@@ -49,10 +49,9 @@ def finalize_archiving(archive_dir, unzipped_safe, final_place, ziptype="", arch
     #     unziped_safe = full_path_safe.strip('.tar')
     # check that the SAFE uncompressed is not corrupted
     doom_flag = NORMAL
-
-    is_ok_safe = SAFE_test(
-        unzipped_safe, logpath="/tmp/sentinel1_quality_check_after_unzip.txt", security_time=0
-    )
+    user_run = getpass.getuser()
+    logpath = os.path.join("/home1/scratch", user_run, "sentinel1_quality_check_after_unzip.txt")
+    is_ok_safe = SAFE_test(unzipped_safe, logpath=logpath, security_time=0)
 
     if is_ok_safe:
         cmd = "/bin/mv -f " + unzipped_safe + " " + archive_dir
