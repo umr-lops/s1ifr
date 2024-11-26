@@ -17,12 +17,12 @@ import shutil
 import traceback
 import datetime
 import getpass
-from test_existence_safe import test_existance_of_product
-from clean_sentinel1_duplicates_function import CheckDuplicate
-from SAFEsortingfunctions import WhichArchiveDir,WhichSpoolDir,whichquarantinedir
-from explodesafename import ExplodeSAFE
+from s1ifr.test_existence_safe import test_existance_of_product
+from s1ifr.clean_sentinel1_duplicates_function import CheckDuplicate
+from s1ifr.SAFEsortingfunctions import WhichArchiveDir,WhichSpoolDir,whichquarantinedir
+from s1ifr.explodesafename import ExplodeSAFE
 import subprocess
-from quarantine_management import quarantine_ticket,remove_safe_from_disk
+from s1ifr.quarantine_management import quarantine_ticket,remove_safe_from_disk
 SAT_DIRS = {'S1A':'sentinel-1a',
             'S1B':'sentinel-1b'}
 

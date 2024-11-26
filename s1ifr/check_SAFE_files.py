@@ -11,21 +11,11 @@ import logging
 from xml.dom import minidom
 import datetime
 import collections
-try:
-    import gdal
-    from gdalconst import GA_ReadOnly
-    flag_gdal_present = True
-except:
-    flag_gdal_present = False
-    print('no gdal in this env the check_SAFE_files.py wont be complete')
-import netCDF4
-import sys
 import shutil
 import traceback
 import hashlib
-# from optparse import OptionParser
-from produce_list_file_S1 import writeTheDirList
-from shared_information import macro_MODES,give_me_level_from_type,TYPES,QUARANTINE
+from s1ifr.produce_list_file_S1 import writeTheDirList
+from s1ifr.shared_information import macro_MODES,give_me_level_from_type,TYPES,QUARANTINE
 
 sat_dir = {"S1A":'sentinel-1a',
            "S1B":'sentinel-1b',}
@@ -40,8 +30,8 @@ table_subdir_subprod={
                       'L2A':('annotation','preview','support'),
                       'L2S':('measurement','preview','support'),
                       }
-dirdeleted = '/home/cercache/project/mpc-sentinel1/workspace/temporary_deleted_SAFE_because_corruption/'
-dirsuspect = '/home/cercache/project/mpc-sentinel1/workspace/list_product_suspected_of_corruption/'
+# dirdeleted = '/home/cercache/project/mpc-sentinel1/workspace/temporary_deleted_SAFE_because_corruption/'
+# dirsuspect = '/home/cercache/project/mpc-sentinel1/workspace/list_product_suspected_of_corruption/'
 
 def check_safe_sentinel3(full_path_safe):
     """
@@ -103,29 +93,7 @@ def DeleteCorruptedSAFE(corrupted_list,dirout):
         fid.close()
     return cpt
 
-# def FindIfremerSAFEPath(safe_basename):
-#     """ not used at all: why??
-#     redundant with produce_list_file_S1.py
-#     """
-#     rootrep = '/home/cercache/project/mpc-sentinel1/data/esa/'
-#     satellite_letter = safe_basename[2]
-#     satellite_name_dir = 'sentinel-1'+satellite_letter.lower()
-#     datefirst = safe_basename[17:25]
-#     year = datefirst[0:4]
-#     month = datefirst[5:6]
-#     day = datefirst[7:8]
-#     datetime_date1 = datetime.datetime(int(year),int(month),int(day))
-#     day_of_year = datetime_date1.timetuple().tm_yday
-#     acqui = safe_basename.split('_')[1]
-#     if acqui[0] == 'S':
-#         acqui='SM'
-#     level=safe_basename[12]
-#     subproddir='L'+level
-#     missionid = safe_basename[0:4]
-#     subname=safe_basename[6:14]
-#     litlerep=missionid+acqui+subname
-#     path = rootrep+satellite_name_dir+'/'+subproddir+'/'+acqui+'/'+litlerep+'/'+year+'/'+str(day_of_year)+'/'
-#     return path
+
 
 def checkNumberOfMeasurment(manifestpath):
     """return true if the number of measurement is in line with manifest file"""
@@ -197,7 +165,7 @@ def TestPresenceOfSubDirectories(safe_path,level,typefile):
     list_of_dir_mandatory = tmp
     for dir in list_of_dir_mandatory:
         logging.debug('dir %s',dir)
-        if os.path.exists(safe_path+'/'+dir) == False:
+        if not os.path.exists(os.path.join(safe_path,dir)):
             logging.info('directory %s doesnt exist in %s',dir,safe_path)
             res=False
     logging.debug('test subdirs %s',res)
@@ -246,36 +214,38 @@ def SAFE_test(safe_path,logpath,enable_checksum=False,security_time=None):
         logging.debug('level %s',level)
         manifestpath = safe_path+'/manifest.safe'
         
-        if TestPresenceOfManifestFile(manifestpath) == False:
+        if TestPresenceOfManifestFile(manifestpath) is False:
             write_to_log(logpath,'missingmanifest',safe_path)
             flag_ok_safe=False
 #             return file_handler
+        else:
+            logging.info('manifest test: OK')
             
-        if TestPresenceOfSubDirectories(safe_path,level,typefile) == False:
+        if TestPresenceOfSubDirectories(safe_path,level,typefile) is False:
             write_to_log(logpath,'missingsubdir',safe_path)
             flag_ok_safe=False
 #             return file_handler
 #       
-        if level == '0' and typefile == 'S' and TestPresenceOfManifestFile(manifestpath):
-            if checkNumberOfMeasurment(manifestpath) == False:
-                flag_ok_safe=False
-                write_to_log(logpath,'missingdat',safe_path)
-#                 return file_handler
-        elif level == '1' and typefile == 'S' and TestPresenceOfManifestFile(manifestpath):
-            if Open_measurement(manifestpath) == False:
-                write_to_log(logpath,'corrupted measurement',safe_path)
-                flag_ok_safe=False
-        elif level == '2' and typefile == 'S' and TestPresenceOfManifestFile(manifestpath):
-            if Open_measurement(manifestpath) == False:
-                write_to_log(logpath,'corrupted measurement',safe_path)
-                flag_ok_safe = False
-#                 return file_handler
-        if enable_checksum == True:
-            if exploitCheckSum(safe_path) == False: #commented since I had memory error
+#         if level == '0' and typefile == 'S' and TestPresenceOfManifestFile(manifestpath):
+#             if checkNumberOfMeasurment(manifestpath) == False:
+#                 flag_ok_safe=False
+#                 write_to_log(logpath,'missingdat',safe_path)
+# #                 return file_handler
+#         elif level == '1' and typefile == 'S' and TestPresenceOfManifestFile(manifestpath):
+#             if Open_measurement(manifestpath) == False:
+#                 write_to_log(logpath,'corrupted measurement',safe_path)
+#                 flag_ok_safe=False
+#         elif level == '2' and typefile == 'S' and TestPresenceOfManifestFile(manifestpath):
+#             if Open_measurement(manifestpath) == False:
+#                 write_to_log(logpath,'corrupted measurement',safe_path)
+#                 flag_ok_safe = False
+# #                 return file_handler
+        if enable_checksum is True:
+            if exploitCheckSum(safe_path) is False: #commented since I had memory error
                 write_to_log(logpath,'checksum discrepancy',safe_path)
                 flag_ok_safe = False
 #             return file_handler
-        if flag_ok_safe == False:
+        if flag_ok_safe is False:
             logging.info('%s is KO',filename)
         else:
             logging.debug('%s is OK',filename)
@@ -338,45 +308,43 @@ def MainLoop(suppression_flag,repdata=None,pattern=None,unique_safe=None,enable_
     logging.debug('output %s',list_safe_having_problem)
     return status_quality
 
-if __name__ == '__main__':
-    repdata = '/home/cercache/project/mpc-sentinel1/data/esa/'
-#     logging.basicConfig(level=logging.INFO,format='%(levelname)s - %(message)s')
-    
+def main():
     import argparse
     parser = argparse.ArgumentParser(description='quality check S1 SAFE')
-    parser.add_argument('--verbose', action='store_true',default=False)
-    parser.add_argument("-c","--checksum",
-                        action="store_true", dest="checksum",default=False,
+    parser.add_argument('--verbose', action='store_true', default=False)
+    parser.add_argument("-c", "--checksum",
+                        action="store_true", dest="checksum", default=False,
                         help="enable the md5 checksum  ")
-    parser.add_argument("-d","--delete",
-                        action="store_true", dest="delete",default=False,
+    parser.add_argument("-d", "--delete",
+                        action="store_true", dest="delete", default=False,
                         help="delete corrupted product ")
     subparsers = parser.add_subparsers()
-    modes = {'unique_safe':'analyse a single sentinel-1 SAFE',
-            'last_x_days':'analyse the last X days from the current date'
-             ,'between_2_dates':'analyse all the SAFE in a given period',
-             'one_safe_s3':'analyse a given sentinel-3 sral safe'
-#              ,'pattern':'browse and analyse all the SAFE matching a given pattern'
-    }
+    modes = {'unique_safe': 'analyse a single sentinel-1 SAFE',
+             'last_x_days': 'analyse the last X days from the current date'
+        , 'between_2_dates': 'analyse all the SAFE in a given period',
+             'one_safe_s3': 'analyse a given sentinel-3 sral safe'
+             #              ,'pattern':'browse and analyse all the SAFE matching a given pattern'
+             }
     dico_subparsers = {}
     for mm in modes:
-        dico_subparsers[mm] = subparsers.add_parser(mm, help='%s'%modes[mm])
+        dico_subparsers[mm] = subparsers.add_parser(mm, help='%s' % modes[mm])
         dico_subparsers[mm].set_defaults(which=mm)
-        if mm not in ['unique_safe','one_safe_s3']:
-            dico_subparsers[mm].add_argument("-m","--mode",default='*',type=str,choices=macro_MODES,
-                        help="IW EW SM WV ")
-            dico_subparsers[mm].add_argument("-t","--producttype",type=str,choices=TYPES,
-                        help="SLC_ GRDH GRDM GRDF OCN_ RAW_",required=True)
-            dico_subparsers[mm].add_argument("--satellite",default=['S1A','S1B'],type=str,
-                        help="satellite S1A or/and ... ",nargs='*')
-#     dico_subparsers['pattern'].add_argument('--pattern',help='pattern of the SAFEs you want to analyse',type=str)
-    dico_subparsers['unique_safe'].add_argument('--safepath',help='full path of the SAFE',type=str)
-    dico_subparsers['one_safe_s3'].add_argument('--safepath',help='full path of the SAFE',type=str)
-    dico_subparsers['last_x_days'].add_argument('--days_back',help='Nber of days to analyse from date of run',type=int)
-    dico_subparsers['between_2_dates'].add_argument('--start',help='start date YYYYMMDD',type=str)
-    dico_subparsers['between_2_dates'].add_argument('--stop',help='stop date YYYYMMDD',type=str)
-#     dico_subparsers['between_2_dates'].add_argument("-s","--satellite",default=['S1A','S1B'],type=str,
-#                         help="satellite S1A or/and ... ",nargs='*')
+        if mm not in ['unique_safe', 'one_safe_s3']:
+            dico_subparsers[mm].add_argument("-m", "--mode", default='*', type=str, choices=macro_MODES,
+                                             help="IW EW SM WV ")
+            dico_subparsers[mm].add_argument("-t", "--producttype", type=str, choices=TYPES,
+                                             help="SLC_ GRDH GRDM GRDF OCN_ RAW_", required=True)
+            dico_subparsers[mm].add_argument("--satellite", default=['S1A', 'S1B'], type=str,
+                                             help="satellite S1A or/and ... ", nargs='*')
+    #     dico_subparsers['pattern'].add_argument('--pattern',help='pattern of the SAFEs you want to analyse',type=str)
+    dico_subparsers['unique_safe'].add_argument('--safepath', help='full path of the SAFE', type=str)
+    dico_subparsers['one_safe_s3'].add_argument('--safepath', help='full path of the SAFE', type=str)
+    dico_subparsers['last_x_days'].add_argument('--days_back', help='Nber of days to analyse from date of run',
+                                                type=int)
+    dico_subparsers['between_2_dates'].add_argument('--start', help='start date YYYYMMDD', type=str)
+    dico_subparsers['between_2_dates'].add_argument('--stop', help='stop date YYYYMMDD', type=str)
+    #     dico_subparsers['between_2_dates'].add_argument("-s","--satellite",default=['S1A','S1B'],type=str,
+    #                         help="satellite S1A or/and ... ",nargs='*')
 
     args = parser.parse_args()
     if args.verbose:
@@ -385,16 +353,16 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
     suppression_flag = args.delete
     list_safe_having_problem = log_path()
-    logging.info('suppression of the suspicious SAFE is set to: %s',suppression_flag)
-    if args.which == 'last_x_days' or args.which=='between_2_dates':
+    logging.info('suppression of the suspicious SAFE is set to: %s', suppression_flag)
+    if args.which == 'last_x_days' or args.which == 'between_2_dates':
         counters = collections.defaultdict(int)
         counters['total'] = 0
         counters['ok'] = 0
         counters['ko'] = 0
-        
+
         satellites = args.satellite
-        logging.info('satellites: %s',satellites)
-#     if options.exploitation is not None:
+        logging.info('satellites: %s', satellites)
+        #     if options.exploitation is not None:
         logging.info('exploit mode : check Sentinel1 SAFE product on the current month')
         for sat in satellites:
             if args.mode == '*':
@@ -405,52 +373,60 @@ if __name__ == '__main__':
                 formato = None
             else:
                 formato = args.producttype
-            if args.which=='last_x_days':
+            if args.which == 'last_x_days':
                 stop = datetime.datetime.today()
-                number_of_days_back = int(args.days_back) #5 days previously
+                number_of_days_back = int(args.days_back)  # 5 days previously
                 start = stop - datetime.timedelta(days=number_of_days_back)
-            elif args.which=='between_2_dates':
-                start = datetime.datetime.strptime(args.start,'%Y%m%d')
-                stop = datetime.datetime.strptime(args.stop,'%Y%m%d')
-            logging.info('start: %s stop: %s',start,stop)
+            elif args.which == 'between_2_dates':
+                start = datetime.datetime.strptime(args.start, '%Y%m%d')
+                stop = datetime.datetime.strptime(args.stop, '%Y%m%d')
+            logging.info('start: %s stop: %s', start, stop)
             level = give_me_level_from_type(formato)
-            list_safe,_ = writeTheDirList(start.strftime('%Y%m%d'),stop.strftime('%Y%m%d'),satellite=sat,level=level,write=False,typo=typo,formato=formato)
+            list_safe, _ = writeTheDirList(start.strftime('%Y%m%d'), stop.strftime('%Y%m%d'), satellite=sat,
+                                           level=level, write=False, typo=typo, formato=formato)
             counters['total'] += len(list_safe)
             for sasa in list_safe:
-                status = MainLoop(suppression_flag,unique_safe=sasa,enable_checksum=args.checksum,list_safe_having_problem=list_safe_having_problem)
+                status = MainLoop(suppression_flag, unique_safe=sasa, enable_checksum=args.checksum,
+                                  list_safe_having_problem=list_safe_having_problem)
                 if status[sasa]:
-                    counters['ok'] +=1
+                    counters['ok'] += 1
                 else:
-                    counters['ko'] +=1
-        logging.info('counters: %s',counters)
-    elif args.which=='unique_safe':
-        logging.info('check %s ',args.safepath)
-        MainLoop(suppression_flag,unique_safe=args.safepath,enable_checksum=args.checksum,list_safe_having_problem=list_safe_having_problem)
-#     elif args.which == 'pattern':
-#         pattern = args.pattern
-#         if 'S1A' in pattern:
-#             sat = 'S1A'
-#         elif 'S1B' in pattern:
-#             sat = 'S1B'
-#         else:
-#             logging.error('no satellite specified in pattern (ex: S1A_...)')
-#             raise
-#         logging.info('satellite %s',sat)
-#         repsat = os.path.join(repdata,sat_dir[sat]+'/')
-# #         pattern = 'S1A*'+sys.argv[1]+'*.SAFE'
-#         logging.info('pattern of the files to check: %s',pattern)
-#         MainLoop(suppression_flag=suppression_flag,repdata=repsat,pattern=pattern,enable_checksum=args.checksum)
-    elif args.which=='one_safe_s3':
+                    counters['ko'] += 1
+        logging.info('counters: %s', counters)
+    elif args.which == 'unique_safe':
+        logging.info('check %s ', args.safepath)
+        MainLoop(suppression_flag, unique_safe=args.safepath, enable_checksum=args.checksum,
+                 list_safe_having_problem=list_safe_having_problem)
+    #     elif args.which == 'pattern':
+    #         pattern = args.pattern
+    #         if 'S1A' in pattern:
+    #             sat = 'S1A'
+    #         elif 'S1B' in pattern:
+    #             sat = 'S1B'
+    #         else:
+    #             logging.error('no satellite specified in pattern (ex: S1A_...)')
+    #             raise
+    #         logging.info('satellite %s',sat)
+    #         repsat = os.path.join(repdata,sat_dir[sat]+'/')
+    # #         pattern = 'S1A*'+sys.argv[1]+'*.SAFE'
+    #         logging.info('pattern of the files to check: %s',pattern)
+    #         MainLoop(suppression_flag=suppression_flag,repdata=repsat,pattern=pattern,enable_checksum=args.checksum)
+    elif args.which == 'one_safe_s3':
         res = check_safe_sentinel3(full_path_safe=args.safepath)
-        logging.info('the safe is OK = %s',res)
+        logging.info('the safe is OK = %s', res)
     else:
         raise Exception('this case does not exist')
     if suppression_flag == True and os.path.exists(list_safe_having_problem):
-        nb_safe_deleted = DeleteCorruptedSAFE(list_safe_having_problem,dirdeleted)
-        logging.info('Nber of SAFE deleted: %s',nb_safe_deleted)
-    #avoid empty log file suspicious
+        nb_safe_deleted = DeleteCorruptedSAFE(list_safe_having_problem, dirdeleted)
+        logging.info('Nber of SAFE deleted: %s', nb_safe_deleted)
+    # avoid empty log file suspicious
     if os.path.exists(list_safe_having_problem):
         if os.stat(list_safe_having_problem).st_size == 0:
             os.remove(list_safe_having_problem)
             logging.debug('remove empty log')
     logging.info('check complete')
+
+
+if __name__ == '__main__':
+
+    main()
