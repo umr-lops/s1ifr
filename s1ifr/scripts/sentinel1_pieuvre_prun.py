@@ -45,7 +45,7 @@ def main():
 
     # initial listing
     pbs = os.path.join(
-        os.path.dirname(__file__), "sentinel1_prieuvre.pbs"
+        os.path.dirname(__file__), "sentinel1_pieuvre.pbs"
     )
     # call prun
     opts = " --split-max-jobs=700 --background -e "
