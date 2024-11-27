@@ -9,7 +9,7 @@ echo "SAFE source: "$1
 
 . /appli/anaconda/2.7/etc/profile.d/conda.sh
 source /etc/profile.d/modules.sh #recommende par RIC mars 2020
-pythonbin=/home/datawork-cersat-public/cache/project/mpc-sentinel1/workspace/mamba/envs/imacs-l1c
+pythonbin=/home/datawork-cersat-public/cache/project/mpc-sentinel1/workspace/mamba/envs/l1bAdev
 conda activate $pythonbin
 which python
 echo 'pybin:'$pybin
