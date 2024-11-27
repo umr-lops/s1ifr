@@ -13,6 +13,7 @@ import logging
 import os
 
 from dateutil import rrule
+from tqdm import tqdm
 
 from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES
 from s1ifr.shared_information import sats_acro
@@ -118,10 +119,20 @@ def writeTheFileList(
     return logpath, tifflist
 
 
-def _writeTheDirList_subsub(
-    repdata, startdate, enddate, satellite, level, type, format
+def list_safe_s1_ifr_fs_precision2(
+    repdata, startdate, enddate, satellite, format
 ):
-    """everything is known"""
+    """
+
+    list SAFE for a specific format (ie product type + mode + product category)
+
+    :param repdata: str
+    :param startdate: str YYYYMMDD
+    :param enddate: str YYYYMMDD
+    :param satellite: str eg s1a
+    :param format:
+    :return:
+    """
     repdatatype = os.path.join(repdata, format + "/")
     logging.info("rep %s", repdatatype)
     extension = "SAFE"
@@ -130,7 +141,7 @@ def _writeTheDirList_subsub(
     startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
     enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
     listSAFE = []
-    for d in rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate):
+    for d in tqdm(rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate)):
         year_str = str(d.year)
         doy = str(d.timetuple().tm_yday).zfill(3)
         rep_dated = os.path.join(repdatatype, year_str, doy + "/")
@@ -139,7 +150,7 @@ def _writeTheDirList_subsub(
     return listSAFE
 
 
-def _writeTheDirList_sub(
+def list_safe_s1_ifr_fs_precision1(
     repdata,
     startdate,
     enddate,
@@ -172,13 +183,11 @@ def _writeTheDirList_sub(
 
             listSAFE = []
             for known_format in real_standard_list:
-                listSAFE = listSAFE + _writeTheDirList_subsub(
+                listSAFE = listSAFE + list_safe_s1_ifr_fs_precision2(
                     repdatatype,
                     startdate,
                     enddate,
                     satellite,
-                    level,
-                    type,
                     known_format,
                 )
         else:
@@ -194,13 +203,11 @@ def _writeTheDirList_sub(
                     + level[1]
                     + cat
                 )
-                listSAFE = listSAFE + _writeTheDirList_subsub(
+                listSAFE = listSAFE + list_safe_s1_ifr_fs_precision2(
                     repdatatype,
                     startdate,
                     enddate,
                     satellite,
-                    level,
-                    type,
                     known_format,
                 )
     else:
@@ -208,7 +215,7 @@ def _writeTheDirList_sub(
     return listSAFE
 
 
-def writeTheDirList(
+def list_safe_s1_ifr_fs(
     startdate,
     enddate,
     satellite,
@@ -240,11 +247,11 @@ def writeTheDirList(
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     repdata = os.path.join(root_archive, sats_acro[satellite], level + "/")
     logging.debug("repdata= %s", repdata)
-    logging.debug("writeTheDirList | typo=%s", typo)
+    logging.debug("typo=%s", typo)
     if typo is None:
         list_safe = []
         for typo_known in ["IW", "EW", "SM", "WV"]:
-            list_safe = list_safe + _writeTheDirList_sub(
+            list_safe = list_safe + list_safe_s1_ifr_fs_precision1(
                 repdata,
                 startdate,
                 enddate,
@@ -255,7 +262,7 @@ def writeTheDirList(
                 category=category,
             )
     else:
-        list_safe = _writeTheDirList_sub(
+        list_safe = list_safe_s1_ifr_fs_precision1(
             repdata,
             startdate,
             enddate,
@@ -397,13 +404,15 @@ def FindSARNetCDFBewteen2Dates(
 
 def find_s1_measurement_between_2_dates(
     start, stop, product_type, archive_name="datarmor_mpc"
-):
+) -> list:
     """
 
     nouvelle mouture de FindSARNetCDFBewteen2Dates plus generique et plus specifique en terme de recherche
     Args:
         start,stop (datetime):
         product_type (str): ex S1A_WV_SLC__1S
+    :Returns
+        netCDF_list (list)
     """
     netCDF_list = []
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
@@ -425,7 +434,7 @@ def find_s1_measurement_between_2_dates(
     logging.debug("start: %s,stop: %s", start, stop)
     #     if current_date == last_date:
     #         last_date = current_date+datetime.timedelta(days=1)
-    for dd in rrule.rrule(rrule.DAILY, dtstart=start, until=stop):
+    for dd in tqdm(rrule.rrule(rrule.DAILY, dtstart=start, until=stop)):
         year = str(dd.year)
         doy = str(dd.timetuple().tm_yday).zfill(3)
         patho = os.path.join(
@@ -718,7 +727,7 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
     if options.usage == "count_SAFE":
-        writeTheDirList(
+        list_safe_s1_ifr_fs(
             options.startdate,
             options.enddate,
             options.satellite,
