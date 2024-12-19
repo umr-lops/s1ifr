@@ -205,8 +205,8 @@ def sort_one_safe(
                     cmd = "unzip -o " + full_path_safe
                     #                     cmd = 'unzip -o -f -v '+full_path_safe+' -d '+spool_dir+'/'
                     logging.debug("command: %s", cmd)
-                    # st = os.system(cmd)
                     st = subprocess.check_output(cmd, shell=True)
+                    logging.debug("status unzip : %s", st)
                     unziped_safe = full_path_safe.strip(".zip")
                     unziped_safe = unziped_safe.replace(
                         os.path.dirname(full_path_safe), spool_dir
@@ -325,7 +325,6 @@ def main():
     user_run = getpass.getuser()
     t0 = time.time()
     if user_run != "satwave":
-        # raise Exception('you must run this script with user "satwave".')
         logging.warning('you must run this script with user "satwave".')
     logging.info("user : %s", user_run)
     archive_output = ["datarmor_mpc"]

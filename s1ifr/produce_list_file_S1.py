@@ -119,41 +119,6 @@ def writeTheFileList(
     return logpath, tifflist
 
 
-def list_safe_s1_ifr_fs_precision2(
-    repdata, startdate, enddate, satellite, format
-):
-    """
-
-    list SAFE for a specific format (ie product type + mode + product category)
-
-    :param repdata: str
-    :param startdate: str YYYYMMDD
-    :param enddate: str YYYYMMDD
-    :param satellite: str eg s1a
-    :param format:
-    :return:
-    """
-    repdatatype = os.path.join(repdata, format + "/")
-    logging.info("rep %s", repdatatype)
-    extension = "SAFE"
-    pattern = satellite + "*." + extension
-    logging.debug("pattern: %s", pattern)
-    startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
-    enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
-    listSAFE = []
-    dates_to_parse = [
-        dd for dd in rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate)
-    ]
-    for di in tqdm(range(len(dates_to_parse))):
-        d = dates_to_parse[di]
-        year_str = str(d.year)
-        doy = str(d.timetuple().tm_yday).zfill(3)
-        rep_dated = os.path.join(repdatatype, year_str, doy + "/")
-        logging.debug("rep_dated %s", rep_dated)
-        listSAFE = listSAFE + glob.glob(rep_dated + pattern)
-    return listSAFE
-
-
 def list_safe_s1_ifr_fs_precision1(
     repdata,
     startdate,
@@ -164,38 +129,34 @@ def list_safe_s1_ifr_fs_precision1(
     format=None,
     category=None,
 ):
-    """the type is known and the format can be not known
+    """
+
+    the type is known and the format,category can be unknown
+
     Args:
-        repdata (str):
-        startdate
-        enddate
+        repdata (str): path where the products are stored
+        startdate (str): YYYYMMDD
+        enddate (str): YYYYMMDD
         satellite (str): S1A
         level (str): L0
         type (str): WV IW ...
         format (str): GRDH  ...
+        category (str): S (standard) N (noise) A (annotation)
     """
     if category is None:
         category = ["S"]
     repdatatype = os.path.join(repdata, type + "/")
     if os.path.exists(repdatatype):
-        if format is None:
+        real_standard_list = []
+        if (
+            format is None
+        ):  # we don't know whether the list of product should contain SLC or GRD for instance -> test all format for the mode and level given
             list_format = os.listdir(repdatatype)
-            real_standard_list = []
+
             for uu in list_format:
                 if uu[-1] in category:
                     real_standard_list.append(uu)
-
-            listSAFE = []
-            for known_format in real_standard_list:
-                listSAFE = listSAFE + list_safe_s1_ifr_fs_precision2(
-                    repdatatype,
-                    startdate,
-                    enddate,
-                    satellite,
-                    known_format,
-                )
         else:
-            listSAFE = []
             for cat in category:
                 known_format = (
                     satellite
@@ -207,13 +168,29 @@ def list_safe_s1_ifr_fs_precision1(
                     + level[1]
                     + cat
                 )
-                listSAFE = listSAFE + list_safe_s1_ifr_fs_precision2(
-                    repdatatype,
-                    startdate,
-                    enddate,
-                    satellite,
-                    known_format,
+                real_standard_list.append(known_format)
+        listSAFE = []
+        for one_format in real_standard_list:
+            repdatatype = os.path.join(repdata, one_format + "/")
+            logging.info("rep %s", repdatatype)
+            extension = "SAFE"
+            pattern = satellite + "*." + extension
+            logging.debug("pattern: %s", pattern)
+            startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
+            enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
+            dates_to_parse = [
+                dd
+                for dd in rrule.rrule(
+                    rrule.DAILY, dtstart=startdate, until=enddate
                 )
+            ]
+            for di in tqdm(range(len(dates_to_parse))):
+                d = dates_to_parse[di]
+                year_str = str(d.year)
+                doy = str(d.timetuple().tm_yday).zfill(3)
+                rep_dated = os.path.join(repdatatype, year_str, doy + "/")
+                logging.debug("rep_dated %s", rep_dated)
+                listSAFE = listSAFE + glob.glob(rep_dated + pattern)
     else:
         listSAFE = []
     return listSAFE
@@ -239,9 +216,9 @@ def list_safe_s1_ifr_fs(
         startdate (str) YYYYMMDD
         level (str): L1 or L2 or L0
         write (bool):
-        enddate (str) YYYYMMDD
-        typo (str) IW EW SM WV
-        formato (str) OCN_ SLC_ RAW_
+        enddate (str): YYYYMMDD
+        typo (str): IW EW SM WV
+        formato (str): OCN_ SLC_ RAW_
         logfile_path (str):
         logdir_path (str):
     Returns:
@@ -253,29 +230,22 @@ def list_safe_s1_ifr_fs(
     logging.debug("repdata= %s", repdata)
     logging.debug("typo=%s", typo)
     if typo is None:
-        list_safe = []
-        for typo_known in ["IW", "EW", "SM", "WV"]:
-            list_safe = list_safe + list_safe_s1_ifr_fs_precision1(
-                repdata,
-                startdate,
-                enddate,
-                satellite,
-                level,
-                typo_known,
-                formato,
-                category=category,
-            )
+        modes = ["IW", "EW", "SM", "WV"]
     else:
-        list_safe = list_safe_s1_ifr_fs_precision1(
+        modes = [typo]
+    list_safe = []
+    for typo_known in modes:
+        list_safe = list_safe + list_safe_s1_ifr_fs_precision1(
             repdata,
             startdate,
             enddate,
             satellite,
             level,
-            typo,
+            typo_known,
             formato,
             category=category,
         )
+
     list_safe.sort()
     if write:
         if logfile_path is None:
