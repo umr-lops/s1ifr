@@ -141,7 +141,9 @@ def list_safe_s1_ifr_fs_precision2(
     startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
     enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
     listSAFE = []
-    dates_to_parse = [dd for dd in rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate)]
+    dates_to_parse = [
+        dd for dd in rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate)
+    ]
     for di in tqdm(range(len(dates_to_parse))):
         d = dates_to_parse[di]
         year_str = str(d.year)

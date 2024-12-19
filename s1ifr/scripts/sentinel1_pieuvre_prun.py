@@ -4,7 +4,6 @@
 import sys
 
 print(sys.executable)
-import getpass
 import logging
 import os
 import subprocess
@@ -42,11 +41,8 @@ def main():
     cpt = len(lines)
     logging.info("number of SAFE to be archive : %i", cpt)
 
-
     # initial listing
-    pbs = os.path.join(
-        os.path.dirname(__file__), "sentinel1_pieuvre.pbs"
-    )
+    pbs = os.path.join(os.path.dirname(__file__), "sentinel1_pieuvre.pbs")
     # call prun
     opts = " --split-max-jobs=700 --background -e "
     py2 = "/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python "
