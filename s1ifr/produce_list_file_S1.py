@@ -150,7 +150,7 @@ def list_safe_s1_ifr_fs_precision1(
         real_standard_list = []
         if (
             format is None
-        ):  # we don't know whether the list of product should contain SLC or GRD for instance -> test all format for the mode and level given
+        ):  # case SLC or GRD (for instance) -> test all format for mode/level
             list_format = os.listdir(repdatatype)
 
             for uu in list_format:
