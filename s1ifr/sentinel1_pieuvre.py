@@ -13,6 +13,7 @@ import datetime
 import getpass
 import logging
 import os
+import pdb
 import shutil
 import subprocess
 import time
@@ -113,6 +114,7 @@ def sort_one_safe(
     logging.debug("sentinel1_pieuvre | start analysis of %s", full_path_safe)
     doom_flag = FAILED
     cpt_dupli = 0
+    final_place = None
     if os.path.exists(full_path_safe):
         if log_file_handler is None:
             logging.debug(
@@ -204,8 +206,10 @@ def sort_one_safe(
                     cmd = "unzip -o " + full_path_safe
                     #                     cmd = 'unzip -o -f -v '+full_path_safe+' -d '+spool_dir+'/'
                     logging.debug("command: %s", cmd)
-                    st = os.system(cmd)
+                    # st = os.system(cmd)
+                    st = subprocess.check_output(cmd,shell=True)
                     unziped_safe = full_path_safe.strip(".zip")
+                    unziped_safe = unziped_safe.replace(os.path.dirname(full_path_safe),spool_dir)
                     if safe_basename[0:2] == "S1":
                         if ".SAFE" not in unziped_safe:
                             unziped_safe += ".SAFE"
@@ -280,6 +284,7 @@ def sort_one_safe(
         )
         doom_flag = UNEXISTANT
     logging.debug("final flag: %s", doom_flag)
+    logging.info('final path where the product is stored : %s',final_place)
     return doom_flag, cpt_dupli
 
 
@@ -319,7 +324,8 @@ def main():
     user_run = getpass.getuser()
     t0 = time.time()
     if user_run != "satwave":
-        raise Exception('you must run this script with user "satwave".')
+        # raise Exception('you must run this script with user "satwave".')
+        logging.warning('you must run this script with user "satwave".')
     logging.info("user : %s", user_run)
     archive_output = ["datarmor_mpc"]
     logging.info("the script will sort sentinel1 product : %s", args.safe)

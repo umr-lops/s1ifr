@@ -15,7 +15,7 @@ import shutil
 import traceback
 from xml.dom import minidom
 
-from s1ifr.produce_list_file_S1 import writeTheDirList
+from s1ifr.produce_list_file_S1 import list_safe_s1_ifr_fs
 from s1ifr.shared_information import (
     TYPES,
     dir_suspect,
@@ -463,7 +463,7 @@ def main():
                 stop = datetime.datetime.strptime(args.stop, "%Y%m%d")
             logging.info("start: %s stop: %s", start, stop)
             level = give_me_level_from_type(formato)
-            list_safe, _ = writeTheDirList(
+            list_safe, _ = list_safe_s1_ifr_fs(
                 start.strftime("%Y%m%d"),
                 stop.strftime("%Y%m%d"),
                 satellite=sat,

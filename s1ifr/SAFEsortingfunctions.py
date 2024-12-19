@@ -10,7 +10,7 @@ import os
 
 from s1ifr.explodesafename import ExplodeSAFE
 from s1ifr.shared_information import QUARANTINE as quarantine_s1
-from s1ifr.shared_information import WORKING_DIR, datarmor_archive_esa_ifremer
+from s1ifr.shared_information import WORKING_DIR, datarmor_archive_esa_ifremer, sats_acro
 
 ADDITIONAL_ARCHIVES = {
     "datarmor_mpc": datarmor_archive_esa_ifremer,
@@ -43,12 +43,7 @@ def WhichArchiveDir(safe):
             datetime.datetime.strptime(firstdate, "%Y%m%d").timetuple().tm_yday
         ).zfill(3)
         sat = safe.split("_")[0]
-        if sat == "S1A":
-            satdir = "sentinel-1a"
-        elif sat == "S1B":
-            satdir = "sentinel-1b"
-        else:
-            logging.error("%s is not a  good satellite name", sat)
+        satdir = sats_acro[sat]
         acqui = safe.split("_")[1]
         if acqui[0] == "S":
             acqui = "SM"
