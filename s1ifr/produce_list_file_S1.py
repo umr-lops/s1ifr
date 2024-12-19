@@ -16,7 +16,7 @@ from dateutil import rrule
 from tqdm import tqdm
 
 from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES
-from s1ifr.shared_information import sats_acro
+from s1ifr.shared_information import sats_acro,EXTENSIONS
 
 
 def write_measurement_list(
@@ -44,10 +44,7 @@ def write_measurement_list(
         onlyonsea (bool): use landmask to keep only acquisition with at least one point on the sea
         write_to_file (bool): [default True]
     """
-    if len(format) == 3:
-        format_safe = format + "_"
-    else:
-        format_safe = format
+    format_safe = format.rjust(4, "_")
     format_file = format
     subtype = (
         satellite
@@ -61,19 +58,12 @@ def write_measurement_list(
     )
     repdatatype = os.path.join(repdata, type, subtype)
     logging.debug("rep %s", repdatatype)
-    if level == "L1":
-        extension = "tiff"
-    elif level == "L2":
-        extension = "nc"
-    else:
-        raise ValueError("level is not L1 nor L2")
-
+    extension = EXTENSIONS[level]
     user_run = getpass.getuser()
     filout = os.path.join("/home1/scratch/", user_run)
     pattern = (
         satellite.lower() + "*" + format_file[0:3].lower() + "*." + extension
     )
-    # logging.debug('pattern sought %s',pattern)
     logname = (
         satellite
         + "_"
@@ -91,33 +81,27 @@ def write_measurement_list(
         + ".lst"
     )
     startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
-    # logging.debug('type date %s',startdate)
     enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
     if startdate == enddate:
         enddate += datetime.timedelta(hours=24)
     tifflist = []
-    if write_to_file is True:
-        logpath = filout + logname
-        fid = open(logpath, "w")
-    else:
-        logpath = None
+    logpath = None
     for dd in rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate):
         yy = str(dd.year)
         doy = str(dd.timetuple().tm_yday).zfill(3)
-
         repdatatype_date = os.path.join(repdatatype, yy, doy + "/")
         for root, dirnames, filenames in os.walk(repdatatype_date):
             for filename in fnmatch.filter(filenames, pattern):
                 fullpath = os.path.join(root, filename)
                 datesar = filename.split("-")[4]
-                # logging.debug('datesar : %s',datesar)
                 datesar = datetime.datetime.strptime(datesar, "%Y%m%dt%H%M%S")
-                # logging.debug('datesar %s',datesar)
                 if datesar >= startdate and datesar <= enddate:
                     tifflist.append(fullpath)
-                    if write_to_file is True:
-                        fid.write(fullpath + "\n")
     if write_to_file is True:
+        logpath = filout + logname
+        fid = open(logpath, "w")
+        for uu in tifflist:
+            fid.write(uu + "\n")
         fid.close()
         logging.info("output %s", logpath)
     return logpath, tifflist
