@@ -469,7 +469,7 @@ def main():
                 satellite=sat,
                 level=level,
                 write=False,
-                typo=typo,
+                mode=typo,
                 formato=formato,
             )
             counters["total"] += len(list_safe)
