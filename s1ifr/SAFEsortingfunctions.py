@@ -25,17 +25,7 @@ SPOOL_REP = {  # deprecated
 }
 
 
-def WhichWorkingDir(archive):
-    """
-
-    :param archive:
-    :return:
-    """
-    res = WORKING_DIR[archive]
-    return res
-
-
-def WhichArchiveDir(safe):
+def which_archive_dir(safe):
     """
     Args:
         safe (str): safe base name
@@ -53,7 +43,7 @@ def WhichArchiveDir(safe):
             acqui = "SM"
         level = safe[12:13]
         subproddir = "L" + level
-        repdata = WhichArchive_datatype()
+        repdata = ADDITIONAL_ARCHIVES["datarmor_mpc"]
         subname = safe[6:14]
         litlerep = sat + "_" + acqui + subname
         gooddir = os.path.join(
@@ -65,17 +55,11 @@ def WhichArchiveDir(safe):
         doy = inst.startdate.strftime("%j")
         gooddir = os.path.join(ADDITIONAL_ARCHIVES["s3sral"], year, doy)
     else:
-        raise Exception("no handled case")
+        raise ValueError("no handled product mission")
     return gooddir
 
 
-def WhichArchive_datatype():
-    """ """
-    repdata = ADDITIONAL_ARCHIVES["datarmor_mpc"]
-    return repdata
-
-
-def WhichSpoolDir(safe=None, archive="datarmor_mpc"):
+def which_spool_dir(safe=None, archive="datarmor_mpc"):
     """
     Args:
         safe (str): safe basename with .SAFE extension
@@ -83,18 +67,18 @@ def WhichSpoolDir(safe=None, archive="datarmor_mpc"):
     """
     if safe is None:
         # default is spool sentinel1
-        spooldir = os.path.join(WhichWorkingDir(archive), SPOOL_REP[archive])
+        spooldir = os.path.join(WORKING_DIR[archive], SPOOL_REP[archive])
     else:
         if safe[0:2] == "S1":
             spooldir = os.path.join(
-                WhichWorkingDir(archive), SPOOL_REP[archive]
+                WORKING_DIR[archive], SPOOL_REP[archive]
             )
             spooldir = os.path.join(
                 spooldir
             )  # change this to get a real spool where the product can be drop easily
 
         else:
-            raise Exception(f"safe {safe} doesnt start with S1")
+            raise ValueError(f"safe {safe} doesnt start with S1")
     return spooldir
 
 
@@ -112,6 +96,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     test = "S1A_IW_RAW__0SDV_20140526T145627_20140526T145655_000770_000BAE_BC53.SAFE"
     print(test)
-    print("spool", WhichSpoolDir(test))
-    tmp = WhichArchiveDir(test)
+    print("spool", which_spool_dir(test))
+    tmp = which_archive_dir(test)
     print("archive", tmp)
