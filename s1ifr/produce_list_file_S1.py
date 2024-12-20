@@ -18,6 +18,7 @@ from tqdm import tqdm
 from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES
 from s1ifr.shared_information import EXTENSIONS, sats_acro
 
+ERROR_DATES = "start date is > stop date"
 
 def write_measurement_list(
     type,
@@ -112,11 +113,11 @@ def list_safe_s1_ifr_fs(
     enddate,
     satellite,
     level,
-    write=True,
-    mode=None,
-    formato=None,
+    mode,
+    formato,
     archive_name="datarmor_mpc",
-    categories=["S"],
+    category="S",
+    write=True,
     logfile_path=None,
     logdir_path=None,
 ):
@@ -126,12 +127,12 @@ def list_safe_s1_ifr_fs(
         satellite (str): S1A or S1B
         startdate (str): YYYYMMDD
         level (str): L1 or L2 or L0
-        write (bool): True -> write product list to a file
         enddate (str): YYYYMMDD
-        mode (str): IW EW SM or WV [optional, default all modes "IW", "EW", "SM", "WV"]
-        formato (str): e.g. OCN_ SLC_ GRDH RAW_ [optional, default all product types tested]
+        mode (str): IW EW SM or WV
+        formato (str): e.g. OCN_ SLC_ GRDH or RAW_, could be GRD*
         archive_name (str): "datarmor_mpc" for instance
-        categories (list):  of string 'S', 'A'  or 'N' [default is S=standard]
+        category (str): 'S', 'A'  or 'N' [default is S=standard]
+        write (bool): True -> write product list to a file
         logfile_path (str): [optional]
         logdir_path (str): [optional]
     Returns:
@@ -139,105 +140,75 @@ def list_safe_s1_ifr_fs(
         logpath (str):
     """
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
+    logpath = None
     repdata = os.path.join(root_archive, sats_acro[satellite], level + "/")
     logging.debug("repdata= %s", repdata)
     logging.debug("mode=%s", mode)
-    if mode is None:
-        modes = ["IW", "EW", "SM", "WV"]
-    else:
-        modes = [mode]
     list_safe = []
-    for mode_known in modes:
-        repdatatype = os.path.join(repdata, mode_known + "/")
-        if os.path.exists(repdatatype):
-            for cat in categories:
-                prodtype_list = []
-                if (
-                    formato is None
-                ):  # case SLC or GRD (for instance) -> test all format for mode/level
-                    list_format = os.listdir(repdatatype)
+    repdatamode = os.path.join(repdata, mode + "/")
 
-                    for uu in list_format:
-                        if uu[-1] in cat:
-                            prodtype_list.append(uu)
-                else:
-
-                    known_format = (
-                        satellite
-                        + "_"
-                        + mode_known
-                        + "_"
-                        + format
-                        + "_"
-                        + level[1]
-                        + cat
-                    )
-                    prodtype_list.append(known_format)
-                for one_format in prodtype_list:
-                    repdatatype = os.path.join(repdata, one_format + "/")
-                    logging.info("rep %s", repdatatype)
-                    extension = "SAFE"
-                    pattern = satellite + "*." + extension
-                    logging.debug("pattern: %s", pattern)
-                    startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
-                    enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
-                    dates_to_parse = [
-                        dd
-                        for dd in rrule.rrule(
-                            rrule.DAILY, dtstart=startdate, until=enddate
-                        )
-                    ]
-                    for di in tqdm(range(len(dates_to_parse))):
-                        d = dates_to_parse[di]
-                        year_str = str(d.year)
-                        doy = str(d.timetuple().tm_yday).zfill(3)
-                        rep_dated = os.path.join(
-                            repdatatype, year_str, doy + "/"
-                        )
-                        logging.debug("rep_dated %s", rep_dated)
-                        list_safe = list_safe + glob.glob(rep_dated + pattern)
-        else:
-            raise OSError(
-                f"{repdatatype} path doesnt exist or is not reachable"
-            )
+    known_format = (
+        satellite
+        + "_"
+        + mode
+        + "_"
+        + formato
+        + "_"
+        + level[1]
+        + category
+    )
+    repdatatype = os.path.join(repdatamode, known_format + "/")
+    logging.info("rep %s", repdatatype)
+    extension = "SAFE"
+    pattern = satellite + "*." + extension
+    logging.debug("pattern: %s", pattern)
+    startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
+    enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
+    dates_to_parse = [
+        dd
+        for dd in rrule.rrule(
+            rrule.DAILY, dtstart=startdate, until=enddate
+        )
+    ]
+    for di in tqdm(range(len(dates_to_parse))):
+        d = dates_to_parse[di]
+        year_str = str(d.year)
+        doy = str(d.timetuple().tm_yday).zfill(3)
+        rep_dated = os.path.join(
+            repdatatype, year_str, doy + "/"
+        )
+        logging.debug("rep_dated %s", rep_dated)
+        list_safe = list_safe + glob.glob(rep_dated + pattern)
 
     list_safe.sort()
     if write:
-        if logfile_path is None:
-            if logdir_path is None:
-                user_run = getpass.getuser()
-                dirout = os.path.join(
-                    "/home1/scratch/", user_run, "PRUN_workspace"
-                )
-            else:
-                dirout = logdir_path
-            logname = (
-                satellite + "_" + startdate + "_" + enddate + "_dirSAFE.lst"
-            )
-            logpath = os.path.join(dirout, logname)
-        else:
-            if logdir_path is None:
-                logpath = logfile_path
-            else:
-                logname = (
-                    satellite
-                    + "_"
-                    + startdate
-                    + "_"
-                    + enddate
-                    + "_dirSAFE.lst"
-                )
-                logpath = os.path.join(logdir_path, logname)
-        fid = open(logpath, "w")
-        for safe in list_safe:
-            fid.write(safe + "\n")
-        fid.close()
-        logging.info("output %s", logpath)
-    else:
-        logpath = None
+        logpath = write_safe_to_file_list(satellite,startdate,enddate,list_safe,
+            logfile_path=logfile_path,logdir_path=logdir_path)
     logging.info("%s SAFE found", len(list_safe))
     return list_safe, logpath
 
+def write_safe_to_file_list(satellite,startdate,enddate,list_safe,logfile_path=None,logdir_path=None):
+    if logdir_path is None:
+        user_run = getpass.getuser()
+        dirout = os.path.join(
+            "/home1/scratch/", user_run, "PRUN_workspace"
+        )
+    else:
+        dirout = logdir_path
+    if logfile_path is None:
+        logname = (
+            satellite + "_" + startdate + "_" + enddate + "_dirSAFE.lst"
+        )
+    else:
+        logname = logfile_path
+
+    logpath = os.path.join(dirout, logname)
+    fid = open(logpath, "w")
+    for safe in list_safe:
+        fid.write(safe + "\n")
+    fid.close()
+    logging.info("output %s", logpath)
+    return logpath
 
 def find_netcdf_day_before(nbdays, satellite, archive_name="mpc"):
     """
@@ -294,7 +265,7 @@ def find_netcdf_between_2_dates(
         days=1
     )  # added 26 nov 2021, because some nc are in SAF that belongs to previous day
     if start > stop:
-        raise ValueError("start date is > stop date")
+        raise ValueError(ERROR_DATES)
     if start == stop:
         stop = stop + datetime.timedelta(days=1)
     cpt = 0
@@ -360,7 +331,7 @@ def find_s1_measurement_between_2_dates(
     elif level == "L0":
         ext = "*.dat"
     if start > stop:
-        raise ValueError("start date is > stop date")
+        raise ValueError(ERROR_DATES)
     logging.debug("start: %s,stop: %s", start, stop)
     #     if current_date == last_date:
     #         last_date = current_date+datetime.timedelta(days=1)
@@ -403,7 +374,7 @@ def find_sar_tiff_between_2_dates(
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     rep_data = os.path.join(root_archive, satellite, "L1")
     if start > stop:
-        raise ValueError("start date is > stop date")
+        raise ValueError(ERROR_DATES)
     for dd in rrule.rrule(rrule.DAILY, dtstart=start, until=stop):
         year = str(dd.year)
         doy = str(dd.timetuple().tm_yday).zfill(3)
