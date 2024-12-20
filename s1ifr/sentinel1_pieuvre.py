@@ -39,6 +39,7 @@ FAILED = "failed"  # mean the script crash
 
 EXTENSION_SAFE = ".SAFE"
 
+
 def finalize_archiving(
     archive_dir, unzipped_safe, final_place, ziptype="", archive_name="mpc"
 ):
@@ -133,12 +134,12 @@ def sort_one_safe(
         archive_dir = which_archive_dir(safe_basename)
         final_place = os.path.join(archive_dir, safe_basename)
         logging.debug("final path should be %s", final_place)
-        flag_continue, _, _ = (
-            product_is_present_at_ifremer(safe_basename, full_path_safe)
+        flag_continue, _, _ = product_is_present_at_ifremer(
+            safe_basename, full_path_safe
         )
         if flag_continue is True:
 
-            os.makedirs(archive_dir, 0o0775,exist_ok=True)
+            os.makedirs(archive_dir, 0o0775, exist_ok=True)
             t = os.path.getctime(full_path_safe)
             creation_date = datetime.datetime.fromtimestamp(t)
             nownow = datetime.datetime.today()

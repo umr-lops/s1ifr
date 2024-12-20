@@ -19,10 +19,10 @@ from s1ifr.produce_list_file_S1 import list_safe_s1_ifr_fs
 from s1ifr.shared_information import (
     TYPES,
     dir_suspect,
-    sats_acro,
     dirdeleted,
     give_me_level_from_type,
     macro_MODES,
+    sats_acro,
 )
 
 SECURITY_SECONDS = 300
@@ -110,7 +110,7 @@ def delete_corrupted_safe(corrupted_list, dirout) -> int:
     return cpt
 
 
-def check_number_of_measurment(manifestpath)->bool:
+def check_number_of_measurment(manifestpath) -> bool:
     """
     return true if the number of measurement is in line with manifest file
 

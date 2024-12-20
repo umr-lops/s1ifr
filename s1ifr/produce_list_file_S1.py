@@ -20,6 +20,7 @@ from s1ifr.shared_information import EXTENSIONS, sats_acro
 
 ERROR_DATES = "start date is > stop date"
 
+
 def write_measurement_list(
     type,
     format,
@@ -148,14 +149,7 @@ def list_safe_s1_ifr_fs(
     repdatamode = os.path.join(repdata, mode + "/")
 
     known_format = (
-        satellite
-        + "_"
-        + mode
-        + "_"
-        + formato
-        + "_"
-        + level[1]
-        + category
+        satellite + "_" + mode + "_" + formato + "_" + level[1] + category
     )
     repdatatype = os.path.join(repdatamode, known_format + "/")
     logging.info("rep %s", repdatatype)
@@ -165,40 +159,45 @@ def list_safe_s1_ifr_fs(
     startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
     enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
     dates_to_parse = [
-        dd
-        for dd in rrule.rrule(
-            rrule.DAILY, dtstart=startdate, until=enddate
-        )
+        dd for dd in rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate)
     ]
     for di in tqdm(range(len(dates_to_parse))):
         d = dates_to_parse[di]
         year_str = str(d.year)
         doy = str(d.timetuple().tm_yday).zfill(3)
-        rep_dated = os.path.join(
-            repdatatype, year_str, doy + "/"
-        )
+        rep_dated = os.path.join(repdatatype, year_str, doy + "/")
         logging.debug("rep_dated %s", rep_dated)
         list_safe = list_safe + glob.glob(rep_dated + pattern)
 
     list_safe.sort()
     if write:
-        logpath = write_safe_to_file_list(satellite,startdate,enddate,list_safe,
-            logfile_path=logfile_path,logdir_path=logdir_path)
+        logpath = write_safe_to_file_list(
+            satellite,
+            startdate,
+            enddate,
+            list_safe,
+            logfile_path=logfile_path,
+            logdir_path=logdir_path,
+        )
     logging.info("%s SAFE found", len(list_safe))
     return list_safe, logpath
 
-def write_safe_to_file_list(satellite,startdate,enddate,list_safe,logfile_path=None,logdir_path=None):
+
+def write_safe_to_file_list(
+    satellite,
+    startdate,
+    enddate,
+    list_safe,
+    logfile_path=None,
+    logdir_path=None,
+):
     if logdir_path is None:
         user_run = getpass.getuser()
-        dirout = os.path.join(
-            "/home1/scratch/", user_run, "PRUN_workspace"
-        )
+        dirout = os.path.join("/home1/scratch/", user_run, "PRUN_workspace")
     else:
         dirout = logdir_path
     if logfile_path is None:
-        logname = (
-            satellite + "_" + startdate + "_" + enddate + "_dirSAFE.lst"
-        )
+        logname = satellite + "_" + startdate + "_" + enddate + "_dirSAFE.lst"
     else:
         logname = logfile_path
 
@@ -209,6 +208,7 @@ def write_safe_to_file_list(satellite,startdate,enddate,list_safe,logfile_path=N
     fid.close()
     logging.info("output %s", logpath)
     return logpath
+
 
 def find_netcdf_day_before(nbdays, satellite, archive_name="mpc"):
     """

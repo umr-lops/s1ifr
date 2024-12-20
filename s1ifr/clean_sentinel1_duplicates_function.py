@@ -142,7 +142,9 @@ def main():
     cpt = collections.defaultdict(int)
     logging.info("start the check")
     # for safefull in sys.stdin:
-    cpt_deleted = check_duplicate(file_to_be_checked=args.safe, dryrun=args.dryrun)
+    cpt_deleted = check_duplicate(
+        file_to_be_checked=args.safe, dryrun=args.dryrun
+    )
     cpt["total_safe_analysed"] += 1
     cpt["total_safe_removed"] += cpt_deleted
     if cpt_deleted == 0:

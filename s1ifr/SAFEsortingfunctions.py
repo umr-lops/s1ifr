@@ -70,9 +70,7 @@ def which_spool_dir(safe=None, archive="datarmor_mpc"):
         spooldir = os.path.join(WORKING_DIR[archive], SPOOL_REP[archive])
     else:
         if safe[0:2] == "S1":
-            spooldir = os.path.join(
-                WORKING_DIR[archive], SPOOL_REP[archive]
-            )
+            spooldir = os.path.join(WORKING_DIR[archive], SPOOL_REP[archive])
             spooldir = os.path.join(
                 spooldir
             )  # change this to get a real spool where the product can be drop easily
