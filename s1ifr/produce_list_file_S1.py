@@ -16,7 +16,7 @@ from dateutil import rrule
 from tqdm import tqdm
 
 from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES
-from s1ifr.shared_information import sats_acro,EXTENSIONS
+from s1ifr.shared_information import EXTENSIONS, sats_acro
 
 
 def write_measurement_list(
