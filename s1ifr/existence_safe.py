@@ -8,13 +8,22 @@ import os
 import shutil
 
 from s1ifr.quarantine_management import test_quarantine_before_download
-from s1ifr.SAFEsortingfunctions import WhichArchiveDir
+from s1ifr.SAFEsortingfunctions import which_archive_dir
 
 
 def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
     """
     check that the safe downloaded do not exist in other archive dirs
     and delete the one in spool_dir if yes
+
+    Arguments:
+        safe_basename (str):
+        full_path_safe (str): [optional]
+
+    Returns:
+        flag_continue (bool): True -> continue archiving process
+        existing_storage (str): could be 'quarantine' or 'datarmor_mpc' or ...
+        archive (str): name of the Ifremer archive where the product is stored
     """
     flag_continue = True
     existing_storage = None
@@ -25,9 +34,9 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
     elif safe_basename[0:2] == "S3":
         possible_archives = ["s3sral"]
     else:
-        raise Exception("product not handle by the poulpe")
+        raise ValueError("product not handle by the poulpe")
     for archive in possible_archives:
-        possible_archive = WhichArchiveDir(safe=safe_basename)
+        possible_archive = which_archive_dir(safe=safe_basename)
         possible_storage = os.path.join(possible_archive, safe_basename)
         if os.path.exists(possible_storage) is True:
             existing_storage = possible_storage
@@ -39,7 +48,7 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
                 remove_file_already_in_archive(full_path_safe)
 
             break
-    # add a test to see if the product is black listed in quarantine
+    # add a test to see if the product is black-listed in quarantine
     if full_path_safe is not None:
         flag_go_download = test_quarantine_before_download(
             full_path_safe, archive="datarmor_mpc"
@@ -53,10 +62,13 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
 
 
 def remove_file_already_in_archive(fulle_path_tar):
-    """delete SAFE.tar files from spool when already in archive"""
+    """
+
+    delete SAFE.tar files from spool when already in archive
+
+    """
     if os.path.isfile(fulle_path_tar):
         os.remove(fulle_path_tar)
     else:
         shutil.rmtree(fulle_path_tar)
     logging.info("delete %s", fulle_path_tar)
-    return

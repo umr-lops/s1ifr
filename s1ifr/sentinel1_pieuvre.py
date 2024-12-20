@@ -18,25 +18,26 @@ import subprocess
 import time
 import traceback
 
-from s1ifr.check_SAFE_files import SAFE_checker
-from s1ifr.clean_sentinel1_duplicates_function import CheckDuplicate
+from s1ifr.check_SAFE_files import safe_checker
+from s1ifr.clean_sentinel1_duplicates_function import check_duplicate
 from s1ifr.existence_safe import product_is_present_at_ifremer
 from s1ifr.quarantine_management import (
     quarantine_ticket,
     remove_safe_from_disk,
 )
 from s1ifr.SAFEsortingfunctions import (
-    WhichArchiveDir,
-    WhichSpoolDir,
+    which_archive_dir,
+    which_spool_dir,
 )
 
-# SECURITY_SECONDS = 300
 UNEXISTANT = "unexistant"
 NORMAL = "normal"
 ALREADY = "already_in"
 TOORECENT = "too_recent"
 QUARANTINED = "quarantine"  # means that the data is not in the appropriate format and then it is moved to quaarantine
 FAILED = "failed"  # mean the script crash
+
+EXTENSION_SAFE = ".SAFE"
 
 
 def finalize_archiving(
@@ -58,7 +59,7 @@ def finalize_archiving(
     logpath = os.path.join(
         "/home1/scratch", user_run, "sentinel1_quality_check_after_unzip.txt"
     )
-    is_ok_safe = SAFE_checker(unzipped_safe, logpath=logpath, security_time=0)
+    is_ok_safe = safe_checker(unzipped_safe, logpath=logpath, security_time=0)
 
     if is_ok_safe:
         cmd = "/bin/mv -f " + unzipped_safe + " " + archive_dir
@@ -113,6 +114,7 @@ def sort_one_safe(
     logging.debug("sentinel1_pieuvre | start analysis of %s", full_path_safe)
     doom_flag = FAILED
     cpt_dupli = 0
+    final_place = None
     if os.path.exists(full_path_safe):
         if log_file_handler is None:
             logging.debug(
@@ -124,21 +126,20 @@ def sort_one_safe(
             safe_basename = os.path.basename(full_path_safe.strip(".zip"))
         else:
             safe_basename = os.path.basename(
-                full_path_safe.replace(".SAFE/", ".SAFE")
+                full_path_safe.replace(".SAFE/", EXTENSION_SAFE)
             )
-        if safe_basename[0:2] == "S1":
-            if safe_basename[-5:] != ".SAFE":
-                safe_basename = safe_basename + ".SAFE"
+        if safe_basename[0:2] == "S1" and safe_basename[-5:] != EXTENSION_SAFE:
+            safe_basename = safe_basename + EXTENSION_SAFE
         logging.debug("basename : %s", safe_basename)
-        archive_dir = WhichArchiveDir(safe_basename)
+        archive_dir = which_archive_dir(safe_basename)
         final_place = os.path.join(archive_dir, safe_basename)
         logging.debug("final path should be %s", final_place)
-        flag_continue, existing_storage, archive = (
-            product_is_present_at_ifremer(safe_basename, full_path_safe)
+        flag_continue, _, _ = product_is_present_at_ifremer(
+            safe_basename, full_path_safe
         )
         if flag_continue is True:
-            if not os.path.exists(archive_dir):
-                os.makedirs(archive_dir, 0o0775)
+
+            os.makedirs(archive_dir, 0o0775, exist_ok=True)
             t = os.path.getctime(full_path_safe)
             creation_date = datetime.datetime.fromtimestamp(t)
             nownow = datetime.datetime.today()
@@ -158,11 +159,11 @@ def sort_one_safe(
             ):
                 if log_file_handler is not None:
                     log_file_handler.write(full_path_safe + "\n")
-                if full_path_safe[-4:] == ".tar":
+                if full_path_safe.endswith(".tar"):
                     logging.debug(
                         "classical case",
                     )
-                    spool_dir = WhichSpoolDir(
+                    spool_dir = which_spool_dir(
                         safe_basename, archive=other_archive
                     )
                     os.chdir(spool_dir)
@@ -185,8 +186,8 @@ def sort_one_safe(
                         logging.debug("untar seemed to work")
 
                         if safe_basename[0:2] == "S1":
-                            if ".SAFE" not in unziped_safe:
-                                unziped_safe += ".SAFE"
+                            if EXTENSION_SAFE not in unziped_safe:
+                                unziped_safe += EXTENSION_SAFE
                         doom_flag = finalize_archiving(
                             archive_dir,
                             unziped_safe,
@@ -194,21 +195,24 @@ def sort_one_safe(
                             ".tar",
                             archive_name=other_archive,
                         )
-                elif full_path_safe[-4:] == ".zip":
-                    spool_dir = WhichSpoolDir(
+                elif full_path_safe.endswith(".zip"):
+                    spool_dir = which_spool_dir(
                         safe_basename, archive=other_archive
                     )
                     logging.debug("spool dir: %s", spool_dir)
                     logging.debug("pwd: %s %s", os.curdir, os.getcwd())
                     os.chdir(spool_dir)
                     cmd = "unzip -o " + full_path_safe
-                    #                     cmd = 'unzip -o -f -v '+full_path_safe+' -d '+spool_dir+'/'
                     logging.debug("command: %s", cmd)
-                    st = os.system(cmd)
+                    st = subprocess.check_output(cmd, shell=True)
+                    logging.debug("status unzip : %s", st)
                     unziped_safe = full_path_safe.strip(".zip")
+                    unziped_safe = unziped_safe.replace(
+                        os.path.dirname(full_path_safe), spool_dir
+                    )
                     if safe_basename[0:2] == "S1":
-                        if ".SAFE" not in unziped_safe:
-                            unziped_safe += ".SAFE"
+                        if EXTENSION_SAFE not in unziped_safe:
+                            unziped_safe += EXTENSION_SAFE
                     logging.debug(
                         "unziped_safe: %s exist=%s",
                         unziped_safe,
@@ -263,7 +267,7 @@ def sort_one_safe(
                     safe_basename[0:2] == "S1" and doom_flag == NORMAL
                 ):  # specific behavior for sentinel-1 data
                     # march 2018, decision to remove duplicate also for WV since it gives us issues in the indexes and statistics of processing
-                    cpt_dupli = CheckDuplicate(final_place, other_archive)
+                    cpt_dupli = check_duplicate(final_place, other_archive)
             else:
                 doom_flag = TOORECENT
                 logging.debug(
@@ -280,6 +284,7 @@ def sort_one_safe(
         )
         doom_flag = UNEXISTANT
     logging.debug("final flag: %s", doom_flag)
+    logging.info("final path where the product is stored : %s", final_place)
     return doom_flag, cpt_dupli
 
 
@@ -293,17 +298,9 @@ def main():
     parser = argparse.ArgumentParser(description="sort SAFE @ Ifr")
     parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument(
-        "--overwrite",
-        action="store_true",
-        default=False,
-        help="overwrite the existing outputs [default=False]",
-        required=False,
-    )
-    parser.add_argument(
-        "-i",
+        # "-i",
         "--input-safe",
         action="store",
-        type="string",
         dest="safe",
         help="full path of a unique SAFE product to be sorted and stored",
     )
@@ -327,7 +324,7 @@ def main():
     user_run = getpass.getuser()
     t0 = time.time()
     if user_run != "satwave":
-        raise Exception('you must run this script with user "satwave".')
+        logging.warning('you must run this script with user "satwave".')
     logging.info("user : %s", user_run)
     archive_output = ["datarmor_mpc"]
     logging.info("the script will sort sentinel1 product : %s", args.safe)

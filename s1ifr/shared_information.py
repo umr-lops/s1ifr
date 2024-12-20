@@ -13,6 +13,8 @@ datarmor_archive_esa_ifremer = os.path.join(
 dir_suspect = "/home1/scratch/satwave"
 dirdeleted = "/home1/scratch/satwave"
 
+EXTENSIONS = {"L1": "tiff", "L2": "nc"}
+
 
 def give_me_level_from_type(type_format):
     """
@@ -48,3 +50,4 @@ QUARANTINE = {
         PROJECT_DIR_DATARMOR, "workspace", "quarantine/"
     )
 }
+DIR_SATWWAVE_SCRATCH = "/home1/scratch/satwave/"

@@ -50,7 +50,6 @@ def spot_dupli_core(safebasename, repdata):
     potentialoccurenceies = []
     stoptimes = None
     for root, dirnames, filenames in os.walk(repdata):
-        # print filenames
         for filename in fnmatch.filter(dirnames, begninig + "*.SAFE"):
             potentialoccurenceies.append(os.path.join(root, filename))
     if potentialoccurenceies is not None and len(potentialoccurenceies) > 1:
@@ -74,7 +73,7 @@ def latest_safe_processed(duplicates_list):
     return indice_latest_processing, duplicates_list, stoptimes
 
 
-def CheckDuplicate(fileTobechecked, archive="datarmor_mpc", dryrun=True):
+def check_duplicate(file_to_be_checked, archive="datarmor_mpc", dryrun=True):
     """
     delete SAFE with same acquisition dates and oldest processing time
     @input:
@@ -84,11 +83,10 @@ def CheckDuplicate(fileTobechecked, archive="datarmor_mpc", dryrun=True):
 
     """
     cpt_deleted = 0
-    logging.debug("test duplication of %s", fileTobechecked)
-    if ".tar" in fileTobechecked:
-        fileTobechecked = fileTobechecked.strip(".tar")
-    tmpbase = os.path.basename(fileTobechecked)
-    repdata = os.path.dirname(fileTobechecked)
+    logging.debug("test duplication of %s", file_to_be_checked)
+    file_to_be_checked = file_to_be_checked.rstrip(".tar")
+    tmpbase = os.path.basename(file_to_be_checked)
+    repdata = os.path.dirname(file_to_be_checked)
     (
         indice_latest_processing,
         potentialoccurenceies,
@@ -103,9 +101,7 @@ def CheckDuplicate(fileTobechecked, archive="datarmor_mpc", dryrun=True):
             if yy != indice_latest_processing:
                 cpt_deleted += 1
                 logging.debug("to delete %s", pot)
-                if dryrun is True:
-                    pass
-                else:
+                if dryrun is False:
                     quarantine_ticket(
                         pot, archive
                     )  # added feb 2019 to delete purely the safe
@@ -146,7 +142,9 @@ def main():
     cpt = collections.defaultdict(int)
     logging.info("start the check")
     # for safefull in sys.stdin:
-    cpt_deleted = CheckDuplicate(fileTobechecked=args.safe, dryrun=args.dryrun)
+    cpt_deleted = check_duplicate(
+        file_to_be_checked=args.safe, dryrun=args.dryrun
+    )
     cpt["total_safe_analysed"] += 1
     cpt["total_safe_removed"] += cpt_deleted
     if cpt_deleted == 0:

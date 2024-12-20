@@ -13,12 +13,15 @@ import logging
 import os
 
 from dateutil import rrule
+from tqdm import tqdm
 
 from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES
-from s1ifr.shared_information import sats_acro
+from s1ifr.shared_information import EXTENSIONS, sats_acro
+
+ERROR_DATES = "start date is > stop date"
 
 
-def writeTheFileList(
+def write_measurement_list(
     type,
     format,
     repdata,
@@ -31,20 +34,19 @@ def writeTheFileList(
 ):
     """
     create a list of measurement file from mpc ifremer sentinel1 archive
-    type (str) acquisition mode ex : WV
-    format (str) ex:slc or grdh or grdm or ocn_
-    repdata (str): path up to level directory (included)
-    startdate endate (str): YYYYMMDD
-    extension (str) ex: tiff
-    satellite (str): S1A or S1B
-    level (str) L1 or L2
-    onlyonsea (bool) use landmask to keep only acquisition with a least one point on the sea
-    write_to_file (bool):
+
+    Args:
+        type (str): acquisition mode ex : WV
+        format (str): ex:slc or grdh or grdm or ocn_
+        repdata (str): path up to level directory (included)
+        startdate (str): YYYYMMDD
+        enddate (str): YYYYMMDD
+        satellite (str): S1A or S1B
+        level (str): L1 or L2
+        onlyonsea (bool): True->keep measu. with at least one ocean point
+        write_to_file (bool): [default True]
     """
-    if len(format) == 3:
-        format_safe = format + "_"
-    else:
-        format_safe = format
+    format_safe = format.rjust(4, "_")
     format_file = format
     subtype = (
         satellite
@@ -58,17 +60,12 @@ def writeTheFileList(
     )
     repdatatype = os.path.join(repdata, type, subtype)
     logging.debug("rep %s", repdatatype)
-    if level == "L1":
-        extension = "tiff"
-    elif level == "L2":
-        extension = "nc"
-
+    extension = EXTENSIONS[level]
     user_run = getpass.getuser()
     filout = os.path.join("/home1/scratch/", user_run)
     pattern = (
         satellite.lower() + "*" + format_file[0:3].lower() + "*." + extension
     )
-    # logging.debug('pattern sought %s',pattern)
     logname = (
         satellite
         + "_"
@@ -86,233 +83,142 @@ def writeTheFileList(
         + ".lst"
     )
     startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
-    # logging.debug('type date %s',startdate)
     enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
     if startdate == enddate:
         enddate += datetime.timedelta(hours=24)
     tifflist = []
-    if write_to_file:
-        logpath = filout + logname
-        fid = open(logpath, "w")
-    else:
-        logpath = None
+    logpath = None
     for dd in rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate):
         yy = str(dd.year)
         doy = str(dd.timetuple().tm_yday).zfill(3)
-
         repdatatype_date = os.path.join(repdatatype, yy, doy + "/")
         for root, dirnames, filenames in os.walk(repdatatype_date):
             for filename in fnmatch.filter(filenames, pattern):
                 fullpath = os.path.join(root, filename)
                 datesar = filename.split("-")[4]
-                # logging.debug('datesar : %s',datesar)
                 datesar = datetime.datetime.strptime(datesar, "%Y%m%dt%H%M%S")
-                # logging.debug('datesar %s',datesar)
                 if datesar >= startdate and datesar <= enddate:
                     tifflist.append(fullpath)
-                    if write_to_file:
-                        fid.write(fullpath + "\n")
-    if write_to_file:
+    if write_to_file is True:
+        logpath = filout + logname
+        fid = open(logpath, "w")
+        for uu in tifflist:
+            fid.write(uu + "\n")
         fid.close()
         logging.info("output %s", logpath)
     return logpath, tifflist
 
 
-def _writeTheDirList_subsub(
-    repdata, startdate, enddate, satellite, level, type, format
-):
-    """everything is known"""
-    repdatatype = os.path.join(repdata, format + "/")
-    logging.info("rep %s", repdatatype)
-    extension = "SAFE"
-    pattern = satellite + "*." + extension
-    logging.debug("pattern: %s", pattern)
-    startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
-    enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
-    listSAFE = []
-    for d in rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate):
-        year_str = str(d.year)
-        doy = str(d.timetuple().tm_yday).zfill(3)
-        rep_dated = os.path.join(repdatatype, year_str, doy + "/")
-        logging.debug("rep_dated %s", rep_dated)
-        listSAFE = listSAFE + glob.glob(rep_dated + pattern)
-    return listSAFE
-
-
-def _writeTheDirList_sub(
-    repdata,
+def list_safe_s1_ifr_fs(
     startdate,
     enddate,
     satellite,
     level,
-    type,
-    format=None,
-    category=None,
-):
-    """the type is known and the format can be not known
-    Args:
-        repdata (str):
-        startdate
-        enddate
-        satellite (str): S1A
-        level (str): L0
-        type (str): WV IW ...
-        format (str): GRDH  ...
-    """
-    if category is None:
-        category = ["S"]
-    repdatatype = os.path.join(repdata, type + "/")
-    if os.path.exists(repdatatype):
-        if format is None:
-            list_format = os.listdir(repdatatype)
-            real_standard_list = []
-            for uu in list_format:
-                if uu[-1] in category:
-                    real_standard_list.append(uu)
-
-            listSAFE = []
-            for known_format in real_standard_list:
-                listSAFE = listSAFE + _writeTheDirList_subsub(
-                    repdatatype,
-                    startdate,
-                    enddate,
-                    satellite,
-                    level,
-                    type,
-                    known_format,
-                )
-        else:
-            listSAFE = []
-            for cat in category:
-                known_format = (
-                    satellite
-                    + "_"
-                    + type
-                    + "_"
-                    + format
-                    + "_"
-                    + level[1]
-                    + cat
-                )
-                listSAFE = listSAFE + _writeTheDirList_subsub(
-                    repdatatype,
-                    startdate,
-                    enddate,
-                    satellite,
-                    level,
-                    type,
-                    known_format,
-                )
-    else:
-        listSAFE = []
-    return listSAFE
-
-
-def writeTheDirList(
-    startdate,
-    enddate,
-    satellite,
-    level,
-    write=True,
-    typo=None,
-    formato=None,
+    mode,
+    formato,
     archive_name="datarmor_mpc",
-    category=["S"],
+    category="S",
+    write=True,
     logfile_path=None,
     logdir_path=None,
 ):
     """
     create a list of SAFE directories (basename of the SAFE only)
     Args:
-        satellite (str) S1A or S1B
-        startdate (str) YYYYMMDD
+        satellite (str): S1A or S1B
+        startdate (str): YYYYMMDD
         level (str): L1 or L2 or L0
-        write (bool):
-        enddate (str) YYYYMMDD
-        typo (str) IW EW SM WV
-        formato (str) OCN_ SLC_ RAW_
-        logfile_path (str):
-        logdir_path (str):
+        enddate (str): YYYYMMDD
+        mode (str): IW EW SM or WV
+        formato (str): e.g. OCN_ SLC_ GRDH or RAW_, could be GRD*
+        archive_name (str): "datarmor_mpc" for instance
+        category (str): 'S', 'A'  or 'N' [default is S=standard]
+        write (bool): True -> write product list to a file
+        logfile_path (str): [optional]
+        logdir_path (str): [optional]
     Returns:
         list_safe (list):
         logpath (str):
     """
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
+    logpath = None
     repdata = os.path.join(root_archive, sats_acro[satellite], level + "/")
     logging.debug("repdata= %s", repdata)
-    logging.debug("writeTheDirList | typo=%s", typo)
-    if typo is None:
-        list_safe = []
-        for typo_known in ["IW", "EW", "SM", "WV"]:
-            list_safe = list_safe + _writeTheDirList_sub(
-                repdata,
-                startdate,
-                enddate,
-                satellite,
-                level,
-                typo_known,
-                formato,
-                category=category,
-            )
-    else:
-        list_safe = _writeTheDirList_sub(
-            repdata,
-            startdate,
-            enddate,
-            satellite,
-            level,
-            typo,
-            formato,
-            category=category,
-        )
+    logging.debug("mode=%s", mode)
+    list_safe = []
+    repdatamode = os.path.join(repdata, mode + "/")
+
+    known_format = (
+        satellite + "_" + mode + "_" + formato + "_" + level[1] + category
+    )
+    repdatatype = os.path.join(repdatamode, known_format + "/")
+    logging.info("rep %s", repdatatype)
+    extension = "SAFE"
+    pattern = satellite + "*." + extension
+    logging.debug("pattern: %s", pattern)
+    startdate = datetime.datetime.strptime(startdate, "%Y%m%d")
+    enddate = datetime.datetime.strptime(enddate, "%Y%m%d")
+    dates_to_parse = [
+        dd for dd in rrule.rrule(rrule.DAILY, dtstart=startdate, until=enddate)
+    ]
+    for di in tqdm(range(len(dates_to_parse))):
+        d = dates_to_parse[di]
+        year_str = str(d.year)
+        doy = str(d.timetuple().tm_yday).zfill(3)
+        rep_dated = os.path.join(repdatatype, year_str, doy + "/")
+        logging.debug("rep_dated %s", rep_dated)
+        list_safe = list_safe + glob.glob(rep_dated + pattern)
+
     list_safe.sort()
     if write:
-        if logfile_path is None:
-            if logdir_path is None:
-                user_run = getpass.getuser()
-                dirout = os.path.join(
-                    "/home1/scratch/", user_run, "PRUN_workspace"
-                )
-            else:
-                dirout = logdir_path
-            logname = (
-                satellite + "_" + startdate + "_" + enddate + "_dirSAFE.lst"
-            )
-            logpath = os.path.join(dirout, logname)
-        else:
-            if logdir_path is None:
-                logpath = logfile_path
-            else:
-                logname = (
-                    satellite
-                    + "_"
-                    + startdate
-                    + "_"
-                    + enddate
-                    + "_dirSAFE.lst"
-                )
-                logpath = os.path.join(logdir_path, logname)
-        fid = open(logpath, "w")
-        for safe in list_safe:
-            fid.write(safe + "\n")
-        fid.close()
-        logging.info("output %s", logpath)
-    else:
-        logpath = None
+        logpath = write_safe_to_file_list(
+            satellite,
+            startdate,
+            enddate,
+            list_safe,
+            logfile_path=logfile_path,
+            logdir_path=logdir_path,
+        )
     logging.info("%s SAFE found", len(list_safe))
     return list_safe, logpath
 
 
-def FindSARNetCDFDayBefore(nbdays, satellite, archive_name="mpc"):
+def write_safe_to_file_list(
+    satellite,
+    startdate,
+    enddate,
+    list_safe,
+    logfile_path=None,
+    logdir_path=None,
+):
+    if logdir_path is None:
+        user_run = getpass.getuser()
+        dirout = os.path.join("/home1/scratch/", user_run, "PRUN_workspace")
+    else:
+        dirout = logdir_path
+    if logfile_path is None:
+        logname = satellite + "_" + startdate + "_" + enddate + "_dirSAFE.lst"
+    else:
+        logname = logfile_path
+
+    logpath = os.path.join(dirout, logname)
+    fid = open(logpath, "w")
+    for safe in list_safe:
+        fid.write(safe + "\n")
+    fid.close()
+    logging.info("output %s", logpath)
+    return logpath
+
+
+def find_netcdf_day_before(nbdays, satellite, archive_name="mpc"):
     """
-    browse the mpc repositories to find the netCDF data from the X past days
+    browse Ifremer repositories to find the netCDF data from the X past days
     Args:
         nbdays (int): number of days to take into account before the present day
         satellite (str): sentinel-1a
         archive (str): mpc or benguela or canaries or swarp
     Returns:
-        netCDF_list (list):
-    NOT CALLED IN MAIN BUT USED ELSEWHERE
+        netcdf_list (list):
     """
     logging.info("coloc for a given date %s days back", nbdays)
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
@@ -331,24 +237,27 @@ def FindSARNetCDFDayBefore(nbdays, satellite, archive_name="mpc"):
         "*ocn-*" + dateyes + "*.nc",
     )
     logging.debug("pattern %s", pattern_nc)
-    netCDF_list = glob.glob(pattern_nc)
-    logging.info("number of netCDF found %s", len(netCDF_list))
-    return netCDF_list
+    netcdf_list = glob.glob(pattern_nc)
+    logging.info("number of netCDF found %s", len(netcdf_list))
+    return netcdf_list
 
 
-def FindSARNetCDFBewteen2Dates(
+def find_netcdf_between_2_dates(
     start, stop, satellite, mode="*", archive_name="datarmor_mpc"
-):
+) -> list:
     """
     start,stop (datetime)
     satellite (str) sentinel-1a or 1b
     mode (str): WV IW EW SM [default all]
     archive (str): mpc or benguela or canaries or swarp
+
+    :returns
+        netcdf_list (list):
     """
     logging.debug(
         "looking for SAR netcdf files between %s-%s dates", start, stop
     )
-    netCDF_list = []
+    netcdf_list = []
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     rep_data = os.path.join(root_archive, satellite, "L2/")
 
@@ -356,7 +265,7 @@ def FindSARNetCDFBewteen2Dates(
         days=1
     )  # added 26 nov 2021, because some nc are in SAF that belongs to previous day
     if start > stop:
-        raise Exception("start date is > stop date")
+        raise ValueError(ERROR_DATES)
     if start == stop:
         stop = stop + datetime.timedelta(days=1)
     cpt = 0
@@ -386,26 +295,29 @@ def FindSARNetCDFBewteen2Dates(
                 os.path.basename(ff).split("-")[4], "%Y%m%dt%H%M%S"
             )
             if datestartdt >= start and datestartdt <= stop:
-                netCDF_list.append(ff)
+                netcdf_list.append(ff)
             else:
                 cpt_out_of_bounds += 1
         cpt += 1
-    logging.debug("number of netCDF found %s", len(netCDF_list))
+    logging.debug("number of netCDF found %s", len(netcdf_list))
     logging.debug("cpt_out_of_bounds : %s", cpt_out_of_bounds)
-    return netCDF_list
+    return netcdf_list
 
 
 def find_s1_measurement_between_2_dates(
     start, stop, product_type, archive_name="datarmor_mpc"
-):
+) -> list:
     """
 
-    nouvelle mouture de FindSARNetCDFBewteen2Dates plus generique et plus specifique en terme de recherche
+    list the S1 products in ifremer archive for a time span
+
     Args:
         start,stop (datetime):
         product_type (str): ex S1A_WV_SLC__1S
+    :Returns
+        netcdf_list (list)
     """
-    netCDF_list = []
+    netcdf_list = []
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     satellite = product_type[0:3]
     fs = sats_acro[satellite]
@@ -418,14 +330,12 @@ def find_s1_measurement_between_2_dates(
         ext = "measurement/*.nc"
     elif level == "L0":
         ext = "*.dat"
-    if start == stop:
-        pass
-    elif start > stop:
-        raise Exception("start date is > stop date")
+    if start > stop:
+        raise ValueError(ERROR_DATES)
     logging.debug("start: %s,stop: %s", start, stop)
     #     if current_date == last_date:
     #         last_date = current_date+datetime.timedelta(days=1)
-    for dd in rrule.rrule(rrule.DAILY, dtstart=start, until=stop):
+    for dd in tqdm(rrule.rrule(rrule.DAILY, dtstart=start, until=stop)):
         year = str(dd.year)
         doy = str(dd.timetuple().tm_yday).zfill(3)
         patho = os.path.join(
@@ -436,12 +346,12 @@ def find_s1_measurement_between_2_dates(
             pattern = os.path.join(patho, "*.SAFE", ext)
             logging.debug("pattern: %s", pattern)
             tmp = glob.glob(pattern)
-            netCDF_list = netCDF_list + tmp
-    logging.debug("number of netCDF found %s", len(netCDF_list))
-    return netCDF_list
+            netcdf_list = netcdf_list + tmp
+    logging.debug("number of netCDF found %s", len(netcdf_list))
+    return netcdf_list
 
 
-def FindSARtiffBewteen2Dates(
+def find_sar_tiff_between_2_dates(
     start,
     stop,
     satellite,
@@ -464,7 +374,7 @@ def FindSARtiffBewteen2Dates(
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     rep_data = os.path.join(root_archive, satellite, "L1")
     if start > stop:
-        raise Exception("start date is > stop date")
+        raise ValueError(ERROR_DATES)
     for dd in rrule.rrule(rrule.DAILY, dtstart=start, until=stop):
         year = str(dd.year)
         doy = str(dd.timetuple().tm_yday).zfill(3)
@@ -483,22 +393,24 @@ def FindSARtiffBewteen2Dates(
             tmp = glob.glob(pattern)
             logging.debug("pattern %s : %s", pattern, len(tmp))
             tiff_list = tiff_list + tmp
-    #         current_date = current_date + datetime.timedelta(days=1)
     logging.debug("number of tiff found %s", len(tiff_list))
     return tiff_list
 
 
-def FindTiffFromDayBefore(
+def findtifffromdaybefore(
     nbdays,
     satellite,
-    mode=["SM", "IW", "EW", "WV"],
+    mode=None,
     archive_name="datarmor_mpc",
 ):
     """
     browse the mpc repositories to find the tiff data from last days
-    mode (list) EW IW SM WV
-    NOT CALLED IN MAIN BUT USED ELSEWHERE
+    mode (str): EW IW SM or WV
     """
+    if mode is None:
+        modes = ["SM", "IW", "EW", "WV"]
+    else:
+        modes = [mode]
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     sat_dir = sats_acro[satellite]
     rep_data = os.path.join(root_archive, sat_dir, "L1/")
@@ -510,12 +422,12 @@ def FindTiffFromDayBefore(
     yerterday = now - datetime.timedelta(days=nbdays)
     dateyes = datetime.datetime.strftime(yerterday, "%Y%m%d")
     logging.info("find all the %s tiff on day %s", satellite, dateyes)
-    files_SM = []
-    files_IW = []
-    files_EW = []
-    files_WV = []
-    if "SM" in mode:
-        files_SM = glob.glob(
+    files_sm = []
+    files_iw = []
+    files_ew = []
+    files_wv = []
+    if "SM" in modes:
+        files_sm = glob.glob(
             rep_data
             + "SM/"
             + satellite
@@ -528,9 +440,9 @@ def FindTiffFromDayBefore(
             + "*."
             + ext
         )
-        logging.info("number of tiff found for SM %s", len(files_SM))
-    if "IW" in mode:
-        files_IW = glob.glob(
+        logging.info("number of tiff found for SM %s", len(files_sm))
+    if "IW" in modes:
+        files_iw = glob.glob(
             os.path.join(
                 rep_data,
                 "IW",
@@ -542,9 +454,9 @@ def FindTiffFromDayBefore(
                 "*" + file_format + "-*" + dateyes + "*." + ext,
             )
         )
-        logging.info("number of tiff found for IW %s", len(files_IW))
-    if "EW" in mode:
-        files_EW = glob.glob(
+        logging.info("number of tiff found for IW %s", len(files_iw))
+    if "EW" in modes:
+        files_ew = glob.glob(
             os.path.join(
                 rep_data,
                 "EW",
@@ -556,9 +468,9 @@ def FindTiffFromDayBefore(
                 "*" + file_format + "-*" + dateyes + "*." + ext,
             )
         )
-        logging.info("number of tiff found for EW %s", len(files_EW))
-    if "WV" in mode:
-        files_WV = glob.glob(
+        logging.info("number of tiff found for EW %s", len(files_ew))
+    if "WV" in modes:
+        files_wv = glob.glob(
             os.path.join(
                 rep_data,
                 "WV",
@@ -570,8 +482,8 @@ def FindTiffFromDayBefore(
                 "*-slc-*" + dateyes + "*." + ext,
             )
         )
-        logging.info("number of tiff found for WV %s", len(files_WV))
-    final_list = files_SM + files_IW + files_EW + files_WV
+        logging.info("number of tiff found for WV %s", len(files_wv))
+    final_list = files_sm + files_iw + files_ew + files_wv
     #     logging.debug('%s',files_list)
     logging.info("number of tiff found %s", len(final_list))
     return final_list
@@ -579,15 +491,6 @@ def FindTiffFromDayBefore(
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
-    # type = "WV"
-    # format = "slc"
-    # startdate = "20141231"
-    # enddate = "20160101"
-    # extension = "tiff"
-    # satellite = "S1A"
-    # level = "L2"
-    # write = False
-
     choice_usage = [
         "count_SAFE",
         "count_measurement",
@@ -598,16 +501,15 @@ def main():
     format_choice = ["SLC_", "GRDH", "GRDF", "GRDM", "OCN_", "RAW_"]
     satellite_choice = ["S1A", "S1B", "S1C"]
     mode_choice = ["WV", "EW", "IW", "SM"]
-    from optparse import OptionParser
+    import argparse
 
     root = logging.getLogger()
     if root.handlers:
         for handler in root.handlers:
             root.removeHandler(handler)
-    #     possibles_archives = ADDITIONAL_ARCHIVES.keys()
     possibles_archives = [rere for rere in ADDITIONAL_ARCHIVES]
-    parser = OptionParser()
-    parser.add_option(
+    parser = argparse.ArgumentParser(description="listS1Products@Ifr")
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -615,165 +517,165 @@ def main():
         default=False,
         help="verbose mode",
     )
-    parser.add_option(
+    parser.add_argument(
         "-b",
         "--begining",
         action="store",
-        type="string",
         dest="startdate",
         metavar="string",
+        required=True,
         help="starting date YYYYMMDD",
     )
-    parser.add_option(
+    parser.add_argument(
         "-e",
         "--enddate",
         action="store",
-        type="string",
         dest="enddate",
         metavar="string",
+        required=True,
         help="stoping date YYYYMMDD",
     )
-    parser.add_option(
+    parser.add_argument(
         "-u",
         "--usage",
         action="store",
-        type="choice",
         choices=choice_usage,
         dest="usage",
         metavar="string",
         help=f"what do you want: {choice_usage} ?",
     )
-    parser.add_option(
+    parser.add_argument(
         "-l",
         "--level",
         action="store",
-        type="choice",
         choices=level_choice,
         dest="level",
         metavar="string",
+        required=True,
         help=f"which level do you want: {level_choice} ?",
     )
-    parser.add_option(
+    parser.add_argument(
         "-f",
         "--format",
         action="store",
-        type="choice",
         choices=format_choice,
         dest="format",
         metavar="string",
         help=f"which format do you want: {format_choice} ?",
     )
-    parser.add_option(
+    parser.add_argument(
         "-o",
         "--outputlisting",
         action="store",
-        type="string",
         dest="outputlisting",
         metavar="string",
         help="file where to write result",
     )
-    parser.add_option(
+    parser.add_argument(
         "-s",
         "--satellite",
         action="store",
-        type="choice",
         choices=satellite_choice,
         dest="satellite",
         metavar="string",
         help=f"which satellite do you want: {satellite_choice} ?",
     )
-    parser.add_option(
+    parser.add_argument(
         "-m",
         "--mode",
         action="store",
-        type="choice",
         choices=mode_choice,
         dest="mode",
         metavar="string",
         help=f"which mode do you want: {mode_choice} ?",
     )
-    parser.add_option(
+    parser.add_argument(
         "-a",
         "--archive",
         action="store",
-        type="choice",
         choices=possibles_archives,
         dest="archive",
         metavar="string",
         help=f"which archive do you want: {ADDITIONAL_ARCHIVES.keys()} ? [optional, default is datarmor_mpc ]",
     )
-    (options, args) = parser.parse_args()
-    if options.startdate is None or options.enddate is None:
-        raise Exception("you have to specify -e and -s args")
-    startdt = datetime.datetime.strptime(options.startdate, "%Y%m%d")
-    stopdt = datetime.datetime.strptime(options.enddate, "%Y%m%d")
-    if options.level is None:
-        raise Exception("you have to specify --level args")
-    if options.archive is None:
+    args = parser.parse_args()
+
+    startdt = datetime.datetime.strptime(args.startdate, "%Y%m%d")
+    stopdt = datetime.datetime.strptime(args.enddate, "%Y%m%d")
+    if args.archive is None:
         archive_name = "datarmor_mpc"
     else:
-        archive_name = options.archive
-    if options.verbose is True:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    if options.usage == "count_SAFE":
-        writeTheDirList(
-            options.startdate,
-            options.enddate,
-            options.satellite,
-            level=options.level,
-            typo=options.mode,
-            formato=options.format,
-            archive_name=archive_name,
-            logfile_path=options.outputlisting,
+        archive_name = args.archive
+    fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
+    if args.verbose:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format=fmt,
+            datefmt="%d/%m/%Y %H:%M:%S",
+            force=True,
         )
-    elif options.usage == "count_measurement":
-        if options.level == "L1":
-            tiff_list = FindSARtiffBewteen2Dates(
+    else:
+        logging.basicConfig(
+            level=logging.INFO,
+            format=fmt,
+            datefmt="%d/%m/%Y %H:%M:%S",
+            force=True,
+        )
+    if args.usage == "count_SAFE":
+        list_safe_s1_ifr_fs(
+            args.startdate,
+            args.enddate,
+            args.satellite,
+            level=args.level,
+            mode=args.mode,
+            formato=args.format,
+            archive_name=archive_name,
+            logfile_path=args.outputlisting,
+        )
+    elif args.usage == "count_measurement":
+        if args.level == "L1":
+            tiff_list = find_sar_tiff_between_2_dates(
                 startdt,
                 stopdt,
-                sats_acro[options.satellite],
-                [options.mode],
+                sats_acro[args.satellite],
+                [args.mode],
                 archive_name=archive_name,
-                processing_format=options.format,
+                processing_format=args.format,
             )
             logging.info("Nber of measurement: %s", len(tiff_list))
-        elif options.level == "L2":
-            netCDF_list = FindSARNetCDFBewteen2Dates(
+        elif args.level == "L2":
+            netcdf_list = find_netcdf_between_2_dates(
                 startdt,
                 stopdt,
-                sats_acro[options.satellite],
-                options.mode,
+                sats_acro[args.satellite],
+                args.mode,
                 archive_name=archive_name,
             )
-            logging.info("Nber of measurement: %s", len(netCDF_list))
-    elif options.usage == "write_measurment_list":
-        sat_dir = sats_acro[options.satellite]
+            logging.info("Nber of measurement: %s", len(netcdf_list))
+    elif args.usage == "write_measurment_list":
+        sat_dir = sats_acro[args.satellite]
         root_archive = ADDITIONAL_ARCHIVES[archive_name]
-        rep_data = os.path.join(root_archive, sat_dir, options.level)
-        writeTheFileList(
-            options.mode,
-            options.format,
+        rep_data = os.path.join(root_archive, sat_dir, args.level)
+        write_measurement_list(
+            args.mode,
+            args.format,
             rep_data,
-            options.startdate,
-            options.enddate,
-            options.satellite,
-            options.level,
+            args.startdate,
+            args.enddate,
+            args.satellite,
+            args.level,
             onlyonsea=False,
             write_to_file=True,
         )
-    elif (
-        options.usage == "count_measurementv2"
-    ):  # not better simply more rafined
+    elif args.usage == "count_measurementv2":  # not better simply more rafined
         product_type = (
-            options.satellite
+            args.satellite
             + "_"
-            + options.mode
+            + args.mode
             + "_"
-            + options.format
+            + args.format
             + "_"
-            + options.level[1]
+            + args.level[1]
             + "S"
         )
         logging.info("product type: %s", product_type)
@@ -782,7 +684,7 @@ def main():
         )
         print(len(listmesu))
     else:
-        raise Exception("Bad argument usage")
+        raise ValueError("Bad argument usage")
 
 
 if __name__ == "__main__":

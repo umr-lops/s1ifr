@@ -15,13 +15,14 @@ import shutil
 import traceback
 from xml.dom import minidom
 
-from s1ifr.produce_list_file_S1 import writeTheDirList
+from s1ifr.produce_list_file_S1 import list_safe_s1_ifr_fs
 from s1ifr.shared_information import (
     TYPES,
     dir_suspect,
     dirdeleted,
     give_me_level_from_type,
     macro_MODES,
+    sats_acro,
 )
 
 SECURITY_SECONDS = 300
@@ -109,33 +110,39 @@ def delete_corrupted_safe(corrupted_list, dirout) -> int:
     return cpt
 
 
-def check_number_of_measurment(manifestpath):
-    """return true if the number of measurement is in line with manifest file"""
+def check_number_of_measurment(manifestpath) -> bool:
+    """
+    return true if the number of measurement is in line with manifest file
+
+    Arguments:
+        manifestpath (str): full path of the manifest.safe file
+
+    :returns:
+        all_measu_present (bool): True -> valid product
+    """
     logging.debug("manifest.safe : %s", manifestpath)
     try:
         xmlcontent = minidom.parse(manifestpath)
         dir_name = os.path.dirname(manifestpath)
         meas = xmlcontent.getElementsByTagName("fileLocation")
-        res = True
+        all_measu_present = True
         for occur in meas:
             dat_file_name = occur.getAttribute("href")
             meas_path = os.path.join(dir_name, dat_file_name)
             logging.debug("measurement file to read %s", meas_path)
-            if os.path.exists(meas_path) is False:
+            if not os.path.exists(meas_path):
                 logging.debug("file  %s doesnt exist", meas_path)
-                res = False
-            else:
-                pass
+                all_measu_present = False
     except OSError:
         logging.error("tracek %s", traceback.format_exc())
         logging.error("cant parse manifest %s ", manifestpath)
-        res = False
+        all_measu_present = False
 
-    logging.debug("test number of tiff: %s", res)
-    return res
+    logging.debug("test number of tiff: %s", all_measu_present)
+    return all_measu_present
 
 
-def TestPresenceOfManifestFile(manifestpath):
+def check_presence_of_manifest_file(manifestpath):
     """return True if the manifest is present"""
     if os.path.exists(manifestpath) is False:
         logging.info("manifest.safe %s doesnt exist", manifestpath)
@@ -146,12 +153,11 @@ def TestPresenceOfManifestFile(manifestpath):
     return res
 
 
-def exploitCheckSum(safepath):
+def exploit_check_sum(safepath):
     """use the checksum value of manifest file to control that the data is not corrupted"""
 
     flag = True
     manifestpath = os.path.join(safepath, "manifest.safe")
-    #     dir_name = os.path.dirname(manifestpath)
     xmlcontent = minidom.parse(manifestpath)
     check_sums_values = xmlcontent.getElementsByTagName("checksum")
     files_path = xmlcontent.getElementsByTagName("fileLocation")
@@ -170,7 +176,7 @@ def exploitCheckSum(safepath):
                 dat_file_path,
                 md5,
             )
-    logging.debug("exploitCheckSum %s", flag)
+    logging.debug("exploit_check_sum %s", flag)
     return flag
 
 
@@ -198,8 +204,8 @@ def write_to_log(logpath, test_name, safe_path):
     file_handler.close()
 
 
-def SAFE_checker(
-    safe_path, logpath, enable_checksum=False, security_time=None
+def safe_checker(
+    safe_path, logpath, enable_checksum=False, security_time=SECURITY_SECONDS
 ) -> bool:
     """
     test one given SAFE
@@ -212,29 +218,20 @@ def SAFE_checker(
         flag_ok_safe (bool): True if the SAFE is OK, False if it is corrupted
     """
     flag_ok_safe = True
-    if safe_path[-1] == "/":
-        safe_path = safe_path[0:-1]
-    #     if file_handler is None:
-    #         dummy = True
-    #         file_handler = open('/tmp/checksafe_dummy.txt','w')
-    #     else:
-    #         dummy = False
+
+    safe_path = safe_path.rstrip("/")
     t = os.path.getctime(safe_path)
     filename = os.path.basename(safe_path)
     logging.debug("test %s", filename)
     nownow = datetime.datetime.today()
     creation_date = datetime.datetime.fromtimestamp(t)
-    if security_time is not None:
-        secu_t = security_time
-    else:
-        secu_t = SECURITY_SECONDS
-    if nownow - creation_date > datetime.timedelta(seconds=secu_t):
+    if nownow - creation_date > datetime.timedelta(seconds=security_time):
         level = os.path.basename(safe_path)[12:13]
         typefile = os.path.basename(safe_path)[13:14]
         logging.debug("level %s", level)
         manifestpath = os.path.join(safe_path, "manifest.safe")
 
-        if TestPresenceOfManifestFile(manifestpath) is False:
+        if check_presence_of_manifest_file(manifestpath) is False:
             write_to_log(logpath, "missingmanifest", safe_path)
             flag_ok_safe = False
         else:
@@ -253,7 +250,7 @@ def SAFE_checker(
             logging.info("sub dirs test: OK")
         if enable_checksum is True:
             if (
-                exploitCheckSum(safe_path) is False
+                exploit_check_sum(safe_path) is False
             ):  # commented since I had memory error
                 write_to_log(logpath, "checksum discrepancy", safe_path)
                 flag_ok_safe = False
@@ -269,9 +266,6 @@ def SAFE_checker(
             filename,
             SECURITY_SECONDS,
         )
-    #     if dummy==True: #close log file only if it is a phoney one
-    #         file_handler.close()
-    #         file_handler = 666
     return flag_ok_safe
 
 
@@ -284,8 +278,7 @@ def log_path():
     return list_safe_having_problem
 
 
-def MainLoop(
-    suppression_flag,
+def main_loop(
     repdata=None,
     pattern=None,
     unique_safe=None,
@@ -295,6 +288,10 @@ def MainLoop(
 ):
     """browse the whole archive to find the pattern
     :args:
+        repdata (str):
+        pattern (str):
+        unique_safe (str):
+        enable_checksum (bool):
         limit_nb_safe (int): optional, give the max number of safe analyzed before stoping
         list_safe_having_problem (str): full path
 
@@ -305,10 +302,9 @@ def MainLoop(
         list_safe_having_problem = log_path()
     logging.debug("writing suspicious SAFE in %s", list_safe_having_problem)
     cpt_checked = 0
-    #     flag_stop = False
     if unique_safe is not None:
 
-        flag_ok_safe = SAFE_checker(
+        flag_ok_safe = safe_checker(
             unique_safe, list_safe_having_problem, enable_checksum
         )
         status_quality[unique_safe] = flag_ok_safe
@@ -319,7 +315,7 @@ def MainLoop(
                 safe_path = os.path.join(root, filename)
                 if os.path.isdir(safe_path):
                     cpt_checked += 1
-                    flag_ok_safe = SAFE_checker(
+                    flag_ok_safe = safe_checker(
                         safe_path, list_safe_having_problem, enable_checksum
                     )
                     status_quality[safe_path] = flag_ok_safe
@@ -397,12 +393,11 @@ def main():
             )
             dico_subparsers[mm].add_argument(
                 "--satellite",
-                default=["S1A", "S1B"],
+                default=list(sats_acro.keys()),
                 type=str,
                 help="satellite S1A or/and ... ",
                 nargs="*",
             )
-    #     dico_subparsers['pattern'].add_argument('--pattern',help='pattern of the SAFEs you want to analyse',type=str)
     dico_subparsers["unique_safe"].add_argument(
         "--safepath", help="full path of the SAFE", type=str
     )
@@ -420,19 +415,14 @@ def main():
     dico_subparsers["between_2_dates"].add_argument(
         "--stop", help="stop date YYYYMMDD", type=str
     )
-    #     dico_subparsers['between_2_dates'].add_argument("-s","--satellite",default=['S1A','S1B'],type=str,
-    #                         help="satellite S1A or/and ... ",nargs='*')
 
     args = parser.parse_args()
+    suppression_flag = args.delete
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-    suppression_flag = args.delete
     list_safe_having_problem = log_path()
-    logging.info(
-        "suppression of the suspicious SAFE is set to: %s", suppression_flag
-    )
     if args.which == "last_x_days" or args.which == "between_2_dates":
         counters = collections.defaultdict(int)
         counters["total"] = 0
@@ -463,19 +453,18 @@ def main():
                 stop = datetime.datetime.strptime(args.stop, "%Y%m%d")
             logging.info("start: %s stop: %s", start, stop)
             level = give_me_level_from_type(formato)
-            list_safe, _ = writeTheDirList(
+            list_safe, _ = list_safe_s1_ifr_fs(
                 start.strftime("%Y%m%d"),
                 stop.strftime("%Y%m%d"),
                 satellite=sat,
                 level=level,
                 write=False,
-                typo=typo,
+                mode=typo,
                 formato=formato,
             )
             counters["total"] += len(list_safe)
             for sasa in list_safe:
-                status = MainLoop(
-                    suppression_flag,
+                status = main_loop(
                     unique_safe=sasa,
                     enable_checksum=args.checksum,
                     list_safe_having_problem=list_safe_having_problem,
@@ -487,8 +476,7 @@ def main():
         logging.info("counters: %s", counters)
     elif args.which == "unique_safe":
         logging.info("check %s ", args.safepath)
-        MainLoop(
-            suppression_flag,
+        main_loop(
             unique_safe=args.safepath,
             enable_checksum=args.checksum,
             list_safe_having_problem=list_safe_having_problem,
@@ -497,7 +485,7 @@ def main():
         res = check_safe_sentinel3(full_path_safe=args.safepath)
         logging.info("the safe is OK = %s", res)
     else:
-        raise Exception("this case does not exist")
+        raise ValueError("this case does not exist")
     if suppression_flag is True and os.path.exists(list_safe_having_problem):
         nb_safe_deleted = delete_corrupted_safe(
             list_safe_having_problem, dirdeleted
