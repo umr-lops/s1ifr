@@ -21,8 +21,8 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
         full_path_safe (str): [optional]
 
     Returns:
-        flag_continue (bool): True -> continue to do the archiving process of the product considered
-        existing_storage (str): could be 'quarantine' or 'datarmor_mpc' or ..
+        flag_continue (bool): True -> continue archiving process
+        existing_storage (str): could be 'quarantine' or 'datarmor_mpc' or ...
         archive (str): name of the Ifremer archive where the product is stored
     """
     flag_continue = True

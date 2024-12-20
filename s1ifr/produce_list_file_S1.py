@@ -43,7 +43,7 @@ def write_measurement_list(
         enddate (str): YYYYMMDD
         satellite (str): S1A or S1B
         level (str): L1 or L2
-        onlyonsea (bool): use landmask to keep only acquisition with at least one point on the sea
+        onlyonsea (bool): True->keep measu. with at least one ocean point
         write_to_file (bool): [default True]
     """
     format_safe = format.rjust(4, "_")
