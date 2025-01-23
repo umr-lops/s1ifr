@@ -1,5 +1,6 @@
 #!/bin/bash
 # sort WV data
+module load singularity/3.6.4
 img=/home/datawork-cersat-public/cache/project/mpc-sentinel1/workspace/singularity/s1ifr/s1ifr.sif
 #cmd="micromamba activate /opt/app-s1ifr/envs/envs1ifr && archivesafe -s S1C --mode WV -p OCN_"
 #cmd="micromamba activate /opt/app-s1ifr/envs/envs1ifr && archivesafe -h"
