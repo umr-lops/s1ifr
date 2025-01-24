@@ -378,7 +378,7 @@ def main():
             dico_subparsers[mm].add_argument(
                 "-m",
                 "--mode",
-                default="*",
+                required=True,
                 type=str,
                 choices=macro_MODES,
                 help="IW EW SM WV ",
@@ -436,14 +436,9 @@ def main():
             "exploit mode : check Sentinel1 SAFE product on the current month"
         )
         for sat in satellites:
-            if args.mode == "*":
-                typo = None
-            else:
-                typo = args.mode
-            if args.producttype == "*":
-                formato = None
-            else:
-                formato = args.producttype
+
+            typo = args.mode
+            formato = args.producttype
             if args.which == "last_x_days":
                 stop = datetime.datetime.today()
                 number_of_days_back = int(args.days_back)  # 5 days previously
