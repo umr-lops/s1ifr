@@ -1,5 +1,7 @@
-import pytest
 import datetime
+
+import pytest
+
 from s1ifr.explodesafename import ExplodeSAFE
 
 references = {

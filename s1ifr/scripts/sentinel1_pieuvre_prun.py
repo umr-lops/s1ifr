@@ -4,7 +4,6 @@
 import sys
 
 print(sys.executable)
-import getpass
 import logging
 import os
 import subprocess
@@ -20,19 +19,9 @@ def main():
     parser = argparse.ArgumentParser(description="start prun")
     parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument(
-        "--outputdir", help="outputdir destination", required=True
-    )
-    parser.add_argument(
         "--listinginputsafe",
         help="listing containing paths of the safe to sync",
         required=True,
-    )
-    parser.add_argument(
-        "--removesource",
-        required=False,
-        help="True->remove SAFE from source directory [default=False]",
-        default=False,
-        action="store_true",
     )
     args = parser.parse_args()
     if args.verbose:
@@ -50,34 +39,15 @@ def main():
     prunexe = "/appli/prun/bin/prun"
     lines = open(args.listinginputsafe).readlines()
     cpt = len(lines)
-    logging.info("number of SAFE to be sync : %i", cpt)
-    tmplisting = os.path.join(
-        "/home1/scratch/",
-        getpass.getuser(),
-        "temporary_listing_sync_safe_sentinel1.txt",
-    )
-    fud = open(tmplisting, "w")
-    for ll in lines:
-        if args.removesource is True:
-            ll2 = (
-                ll.replace("\n", "") + " " + args.outputdir + " --removesource"
-            )
-        else:
-            ll2 = ll.replace("\n", "") + " " + args.outputdir
-        # new_lines.append(ll2)
-        fud.write(ll2 + "\n")
-    fud.close()
-    logging.info("temporary listing update : %s", tmplisting)
+    logging.info("number of SAFE to be archive : %i", cpt)
 
     # initial listing
-    # current_directory = os.getcwd()
-    pbs = os.path.join(
-        os.path.dirname(__file__), "move_safe_from_ifr_to_ifr.pbs"
-    )
+    # pbs = os.path.join(os.path.dirname(__file__), "sentinel1_pieuvre.pbs") # conda env classic
+    pbs = os.path.join(os.path.dirname(__file__), "sentinel1_pieuvre_singularity.pbs") # using a singularity image
     # call prun
-    opts = " --split-max-jobs=50 --background -e "
+    opts = " --split-max-jobs=700 --background -e "
     py2 = "/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python "
-    cmd = py2 + prunexe + opts + pbs + " " + tmplisting
+    cmd = py2 + prunexe + opts + pbs + " " + args.listinginputsafe
     logging.info("cmd to cast = %s", cmd)
     st = subprocess.check_call(cmd, shell=True)
     logging.info("status cmd = %s", st)

@@ -3,7 +3,9 @@ include:
   - component: $CI_SERVER_FQDN/dev-ops/templates/automatisation/ci-cd/pipeline-python@~latest
 
 variables:
-   CONTAINER_IMAGE_BUILD_ENABLE_LAYER_DEVELOPMENT: "false"  # pour désactiver la construction de la couche de development
-   CONTAINER_IMAGE_BUILD_ENABLE_LAYER_RUNTIME: "false"  # pour désactiver la construction de la couche de runtime
-   CONTAINER_IMAGE_BUILD_ENABLE_LAYER_UNLAYERED: "false"  # pour désactiver la construction de l'image sans couche
-   DOCUMENTATION_PYTHON_REQUIREMENTS: 'requirements_doc.txt'
+  CONTAINER_IMAGE_BUILD_ENABLE_LAYER_DEVELOPMENT: "false" # pour désactiver la construction de la couche de development
+  CONTAINER_IMAGE_BUILD_ENABLE_LAYER_RUNTIME: "false" # pour désactiver la construction de la couche de runtime
+  CONTAINER_IMAGE_BUILD_ENABLE_LAYER_UNLAYERED: "false" # pour désactiver la construction de l'image sans couche
+  DOCUMENTATION_PYTHON_REQUIREMENTS: "requirements_doc.txt"
+  PUBLISH_POETRY_ENABLE: "true"  # pour désactiver la publication du module Python sur un registre
+  PUBLISH_POETRY_RELEASE: other-public-release  # pour modifier la release d'un module sur un registre
