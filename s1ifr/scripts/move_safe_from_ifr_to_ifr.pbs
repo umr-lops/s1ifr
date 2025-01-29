@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l walltime=0:45:00
+#PBS -l walltime=50:45:00
 #PBS -l mem=500m
 #PBS -N movesafes1
 #PBS -j oe

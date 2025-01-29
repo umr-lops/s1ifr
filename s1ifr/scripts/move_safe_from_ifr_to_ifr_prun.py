@@ -75,7 +75,7 @@ def main():
         os.path.dirname(__file__), "move_safe_from_ifr_to_ifr.pbs"
     )
     # call prun
-    opts = " --split-max-jobs=700 --background -e "
+    opts = " --split-max-jobs=50 --background -e "
     py2 = "/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python "
     cmd = py2 + prunexe + opts + pbs + " " + tmplisting
     logging.info("cmd to cast = %s", cmd)
