@@ -43,7 +43,9 @@ def main():
 
     # initial listing
     # pbs = os.path.join(os.path.dirname(__file__), "sentinel1_pieuvre.pbs") # conda env classic
-    pbs = os.path.join(os.path.dirname(__file__), "sentinel1_pieuvre_singularity.pbs") # using a singularity image
+    pbs = os.path.join(
+        os.path.dirname(__file__), "sentinel1_pieuvre_singularity.pbs"
+    )  # using a singularity image
     # call prun
     opts = " --split-max-jobs=700 --background -e "
     py2 = "/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python "

@@ -142,9 +142,9 @@ def list_safe_s1_ifr_fs(
     """
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     logpath = None
-    logging.debug('root_archive : %s',root_archive)
-    logging.debug('sats_acro[satellite] %s',sats_acro[satellite])
-    logging.debug('level: %s',level)
+    logging.debug("root_archive : %s", root_archive)
+    logging.debug("sats_acro[satellite] %s", sats_acro[satellite])
+    logging.debug("level: %s", level)
     repdata = os.path.join(root_archive, sats_acro[satellite], level + "/")
     logging.debug("repdata= %s", repdata)
     logging.debug("mode=%s", mode)
