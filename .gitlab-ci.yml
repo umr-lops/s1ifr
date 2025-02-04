@@ -9,4 +9,4 @@ variables:
   DOCUMENTATION_PYTHON_REQUIREMENTS: "requirements_doc.txt"
   PUBLISH_POETRY_ENABLE: "true"  # pour désactiver la publication du module Python sur un registre
   PUBLISH_POETRY_RELEASE: other-public-release  # pour modifier la release d'un module sur un registre
-  PYTHON_IMAGE_NAME: "gitlab-registry.ifremer.fr/lops-wave/s1ifr:b2bedc4c7aa508f38948116283ca4c4c20c4eeaa"
+  PYTHON_IMAGE_NAME: "gitlab-registry.ifremer.fr/lops-wave/s1ifr:latest"
