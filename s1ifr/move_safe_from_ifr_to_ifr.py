@@ -4,11 +4,12 @@ Oct 2024
 script to be used with SLURM or PBS to rsync a single safe
 typical use case: I want to sync lots of SAFE in scratch into a datawork directory
 """
-import os
-import pdb
-import subprocess
-import logging
+
 import argparse
+import logging
+import os
+import subprocess
+
 from s1ifr.explodesafename import ExplodeSAFE
 
 
@@ -50,10 +51,10 @@ def sync_safe(safe_fullpath, outputdir, remove_source_file=False):
     else:
         rsf = ""
     par_dest = get_parent_destination_safe_path(
-	source_safe=safe_fullpath, outputdir=outputdir
+        source_safe=safe_fullpath, outputdir=outputdir
     )
-    os.makedirs(par_dest,exist_ok=True)
-    cmd = "rsync -avz" + rsf + f" {safe_fullpath} {par_dest}"
+    os.makedirs(par_dest, exist_ok=True)
+    cmd = "rsync -avz " + rsf + f" {safe_fullpath} {par_dest}"
     logging.info("command to be executed: %s", cmd)
     status = subprocess.check_call(cmd, shell=True)
     logging.info("rsync status: %s", status)

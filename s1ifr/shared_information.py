@@ -31,16 +31,16 @@ def give_me_level_from_type(type_format):
 
 TYPES = ["OCN_", "GRDH", "SLC_", "GRDM", "GRDF", "RAW_"]
 sats_acro = {
- "S1A": "sentinel-1a",
- "S1B": "sentinel-1b",
- "S1C": "sentinel-1c",
- "S1D": "sentinel-1d",
- }
+    "S1A": "sentinel-1a",
+    "S1B": "sentinel-1b",
+    "S1C": "sentinel-1c",
+    "S1D": "sentinel-1d",
+}
 sats_full = {
     "sentinel-1a": "S1A",
     "sentinel-1b": "S1B",
     "sentinel-1c": "S1C",
-    "sentinel-1d": "S1D"
+    "sentinel-1d": "S1D",
 }
 
 
