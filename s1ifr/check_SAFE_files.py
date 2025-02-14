@@ -143,14 +143,19 @@ def check_number_of_measurment(manifestpath) -> bool:
 
 
 def check_presence_of_manifest_file(manifestpath):
-    """return True if the manifest is present"""
+    """
+    return True if the manifest is present
+
+    Args:
+        manifestpath (str): full path of the manifest.safe
+    """
     if os.path.exists(manifestpath) is False:
         logging.info("manifest.safe %s doesnt exist", manifestpath)
-        res = False
+        manifestfileok = False
     else:
-        res = True
-    logging.debug("test manifest %s", res)
-    return res
+        manifestfileok = True
+    logging.debug("test manifest %s", manifestfileok)
+    return manifestfileok
 
 
 def exploit_check_sum(safepath):
@@ -234,18 +239,21 @@ def safe_checker(
         if check_presence_of_manifest_file(manifestpath) is False:
             write_to_log(logpath, "missingmanifest", safe_path)
             flag_ok_safe = False
+            logging.info("manifest test: KO")
         else:
             logging.info("manifest test: OK")
 
         if check_number_of_measurment(manifestpath) is False:
             write_to_log(logpath, "missingmeasurement", safe_path)
             flag_ok_safe = False
+            logging.info("measurement count test: KO")
         else:
             logging.info("measurement count test: OK")
 
         if check_sub_directories(safe_path, level, typefile) is False:
             write_to_log(logpath, "missingsubdir", safe_path)
             flag_ok_safe = False
+            logging.info("sub dirs test: KO")
         else:
             logging.info("sub dirs test: OK")
         if enable_checksum is True:
@@ -254,8 +262,9 @@ def safe_checker(
             ):  # commented since I had memory error
                 write_to_log(logpath, "checksum discrepancy", safe_path)
                 flag_ok_safe = False
-        else:
-            logging.info("checksum test: OK")
+                logging.info("checksum test: KO")
+            else:
+                logging.info("checksum test: OK")
         if flag_ok_safe is False:
             logging.info("%s is KO", filename)
         else:
