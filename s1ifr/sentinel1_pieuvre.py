@@ -204,7 +204,13 @@ def sort_one_safe(
                     os.chdir(spool_dir)
                     cmd = "unzip -o " + full_path_safe
                     logging.debug("command: %s", cmd)
-                    st = subprocess.check_output(cmd, shell=True)
+                    try:
+                        st = subprocess.check_output(cmd, shell=True,stderr=subprocess.STDOUT, text=True)
+                    except subprocess.CalledProcessError as e:
+                        st = e.returncode
+                        logging.error(f"Error with cmd : {e}")
+                        logging.error(f"status returned : {e.returncode}")
+                        logging.error(f"cmd output : {e.output}")
                     logging.debug("status unzip : %s", st)
                     unziped_safe = full_path_safe.strip(".zip")
                     unziped_safe = unziped_safe.replace(
