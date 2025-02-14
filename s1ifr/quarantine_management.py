@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import shutil
+import pdb
 
 from s1ifr.SAFEsortingfunctions import whichquarantinedir
 
@@ -11,7 +12,8 @@ def quarantine_ticket(safe_full_path, other_archive):
     rm the corrupted safe and write into a ticket the date of the processing
     (add the date if the ticket already exists)
     """
-    path_ticket = os.path.join(whichquarantinedir(archive=other_archive))
+    base_safe = os.path.basename(safe_full_path)
+    path_ticket = os.path.join(whichquarantinedir(archive=other_archive),base_safe)
     if os.path.exists(path_ticket):
         fid = open(path_ticket, "a")
 
