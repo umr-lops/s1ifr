@@ -12,20 +12,24 @@ from s1ifr.explodesafename import ExplodeSAFE
 from s1ifr.shared_information import QUARANTINE as quarantine_s1
 from s1ifr.shared_information import (
     WORKING_DIR,
+    WORKING_DIR_SCALE,
     datarmor_archive_esa_ifremer,
     sats_acro,
+    scale_archive_esa_ifremer,
 )
 
 ADDITIONAL_ARCHIVES = {
     "datarmor_mpc": datarmor_archive_esa_ifremer,
+    "scale": scale_archive_esa_ifremer,
 }
-WORKING_DIR = {"datarmor_mpc": WORKING_DIR}
+WORKING_DIR = {"datarmor_mpc": WORKING_DIR, "scale": WORKING_DIR_SCALE}
 SPOOL_REP = {  # deprecated
     "datarmor_mpc": "spool_datarmor/",
+    "scale": "spool",
 }
 
 
-def which_archive_dir(safe):
+def which_archive_dir(safe, archive_name="datarmor_mpc"):
     """
     Args:
         safe (str): safe base name
@@ -43,7 +47,7 @@ def which_archive_dir(safe):
             acqui = "SM"
         level = safe[12:13]
         subproddir = "L" + level
-        repdata = ADDITIONAL_ARCHIVES["datarmor_mpc"]
+        repdata = ADDITIONAL_ARCHIVES[archive_name]
         subname = safe[6:14]
         litlerep = sat + "_" + acqui + subname
         gooddir = os.path.join(
@@ -63,7 +67,7 @@ def which_spool_dir(safe=None, archive="datarmor_mpc"):
     """
     Args:
         safe (str): safe basename with .SAFE extension
-        archive (str):
+        archive (str):datarmor_mpc or scale
     """
     if safe is None:
         # default is spool sentinel1
@@ -83,10 +87,12 @@ def which_spool_dir(safe=None, archive="datarmor_mpc"):
 def whichquarantinedir(archive="datarmor_mpc"):
     """
     Args:
-        safe (str): safe basename with .SAFE extension
         archive (str):
     """
-    res = quarantine_s1[archive]
+    # res = quarantine_s1[archive]
+    res = quarantine_s1[
+        "datarmor_mpc"
+    ]  # I want the quarantine to be always on datawork even for product fetch to scale
     return res
 
 
