@@ -10,6 +10,8 @@ PROJECT_DIR_DATARMOR_ALT = (
 datarmor_archive_esa_ifremer = os.path.join(
     PROJECT_DIR_DATARMOR_ALT, "data", "esa"
 )
+WORKBENCH_SCALE = "/scale/project/lops-siam-sentinel1-workbench/"
+scale_archive_esa_ifremer = os.path.join(WORKBENCH_SCALE, "data", "esa")
 dir_suspect = "/home1/scratch/satwave"
 dirdeleted = "/home1/scratch/satwave"
 
@@ -50,6 +52,7 @@ def dir_data(satellite):
 
 
 WORKING_DIR = os.path.join(PROJECT_DIR_DATARMOR_ALT, "workspace")
+WORKING_DIR_SCALE = WORKBENCH_SCALE
 
 QUARANTINE = {
     "datarmor_mpc": os.path.join(

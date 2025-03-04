@@ -41,7 +41,11 @@ EXTENSION_SAFE = ".SAFE"
 
 
 def finalize_archiving(
-    archive_dir, unzipped_safe, final_place, ziptype="", archive_name="mpc"
+    archive_dir,
+    unzipped_safe,
+    final_place,
+    ziptype="",
+    archive_name="mpc",
 ):
     """
     mv the safe to archive directory then chmod
@@ -59,11 +63,16 @@ def finalize_archiving(
     logpath = os.path.join(
         "/home1/scratch", user_run, "sentinel1_quality_check_after_unzip.txt"
     )
-    is_ok_safe = safe_checker(unzipped_safe, logpath=logpath, security_time=0)
+
+    is_ok_safe = safe_checker(
+        unzipped_safe, logpath=logpath, security_time=0
+    )
+
 
     if is_ok_safe:
         cmd = "/bin/mv -f " + unzipped_safe + " " + archive_dir
         logging.debug("command to execute %s", cmd)
+
         status = subprocess.check_output(cmd, shell=True)
         if status != 0:
             st = os.system("chmod 775 -R " + final_place)
@@ -98,6 +107,7 @@ def sort_one_safe(
     log_file_handler=None,
     other_archive="datarmor_mpc",
     security_second=600,
+    dryrun=False,
 ):
     """
     :input:
@@ -105,6 +115,7 @@ def sort_one_safe(
         log_file_handler (int): [optional]
         other_archive (str) : name of the archive where to store the file [optional]
         security_second (int): number minimum of seconds since last modification [optional]
+        dryrun (bool): do not uncompress nor move the product
     :output:
         doom_flag (str): tell what appended to the SAFE treated
         cpt_dupli (int): counter of duplicate
@@ -131,13 +142,18 @@ def sort_one_safe(
         if safe_basename[0:2] == "S1" and safe_basename[-5:] != EXTENSION_SAFE:
             safe_basename = safe_basename + EXTENSION_SAFE
         logging.debug("basename : %s", safe_basename)
-        archive_dir = which_archive_dir(safe_basename)
+        archive_dir = which_archive_dir(
+            safe_basename, archive_name=other_archive
+        )
         final_place = os.path.join(archive_dir, safe_basename)
-        logging.debug("final path should be %s", final_place)
+        if dryrun is True:
+            logging.info("final path should be %s", final_place)
+        else:
+            logging.debug("final path should be %s", final_place)
         flag_continue, _, _ = product_is_present_at_ifremer(
             safe_basename, full_path_safe
         )
-        if flag_continue is True:
+        if flag_continue is True and dryrun is False:
 
             os.makedirs(archive_dir, 0o0775, exist_ok=True)
             t = os.path.getctime(full_path_safe)
@@ -204,8 +220,14 @@ def sort_one_safe(
                     os.chdir(spool_dir)
                     cmd = "unzip -o " + full_path_safe
                     logging.debug("command: %s", cmd)
+
                     try:
-                        st = subprocess.check_output(cmd, shell=True,stderr=subprocess.STDOUT, text=True)
+                        st = subprocess.check_output(
+                            cmd,
+                            shell=True,
+                            stderr=subprocess.STDOUT,
+                            text=True,
+                        )
                     except subprocess.CalledProcessError as e:
                         st = e.returncode
                         logging.error(f"Error with cmd : {e}")
@@ -224,7 +246,10 @@ def sort_one_safe(
                         unziped_safe,
                         os.path.exists(unziped_safe),
                     )
-                    if os.path.exists(unziped_safe):
+                    testexistenceuncompressedsafe = os.path.exists(
+                        unziped_safe
+                    )
+                    if testexistenceuncompressedsafe:
                         doom_flag = finalize_archiving(
                             archive_dir,
                             unziped_safe,
@@ -290,8 +315,11 @@ def sort_one_safe(
         )
         doom_flag = UNEXISTANT
     if doom_flag == NORMAL:
-        logging.info("final path where the product is stored : %s", final_place)
+        logging.info(
+            "final path where the product is stored : %s", final_place
+        )
     logging.debug("final flag: %s", doom_flag)
+    logging.info("final path where the product is stored : %s", final_place)
     return doom_flag, cpt_dupli
 
 
@@ -310,6 +338,18 @@ def main():
         action="store",
         dest="safe",
         help="full path of a unique SAFE product to be sorted and stored",
+    )
+    parser.add_argument(
+        "--archivename",
+        choices=["datarmor_mpc", "scale"],
+        help="name of the archive to use datarmor_mpc or scale",
+    )
+    parser.add_argument(
+        "--dryrun",
+        action="store_true",
+        default=False,
+        help="do not unzip nor move product,"
+        " to be used to check final path expected",
     )
     args = parser.parse_args()
     fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
@@ -333,10 +373,14 @@ def main():
     if user_run != "satwave":
         logging.warning('you must run this script with user "satwave".')
     logging.info("user : %s", user_run)
-    archive_output = ["datarmor_mpc"]
+    # archive_output = ["datarmor_mpc"]
+    archive_output = [args.archivename]
     logging.info("the script will sort sentinel1 product : %s", args.safe)
     sort_one_safe(
-        args.safe, other_archive=archive_output[0], security_second=0
+        args.safe,
+        other_archive=archive_output[0],
+        security_second=0,
+        dryrun=args.dryrun,
     )
     logging.info("time to sort the data %1.1f seconds", time.time() - t0)
 
