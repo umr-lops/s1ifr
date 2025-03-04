@@ -22,13 +22,14 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
 
     Returns:
         flag_continue (bool): True -> continue archiving process
-        existing_storage (str): could be 'quarantine' or 'datarmor_mpc' or ...
+        existing_storage (str): could be 'quarantine' or 'datawork' or ...
         archive (str): name of the Ifremer archive where the product is stored
     """
+    archive = None
     flag_continue = True
     existing_storage = None
     if safe_basename[0:2] == "S1":
-        possible_archives = ["mpc"]
+        possible_archives = ["scale","datawork"]
         if ".SAFE" not in safe_basename:
             safe_basename = safe_basename + ".SAFE"
     elif safe_basename[0:2] == "S3":
@@ -51,24 +52,26 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
     # add a test to see if the product is black-listed in quarantine
     if full_path_safe is not None:
         flag_go_download = test_quarantine_before_download(
-            full_path_safe, archive="datarmor_mpc"
+            full_path_safe, archive="datawork"
         )
         if flag_go_download is False:
             logging.info("%s is blacklisted", full_path_safe)
             flag_continue = False
             existing_storage = "quarantine"
-            archive = "datarmor_mpc"
+            archive = "datawork"
     return flag_continue, existing_storage, archive
 
 
-def remove_file_already_in_archive(fulle_path_tar):
+def remove_file_already_in_archive(full_path_tar):
     """
 
     delete SAFE.tar files from spool when already in archive
 
+    Args:
+        full_path_tar: str
     """
-    if os.path.isfile(fulle_path_tar):
-        os.remove(fulle_path_tar)
+    if os.path.isfile(full_path_tar):
+        os.remove(full_path_tar)
     else:
-        shutil.rmtree(fulle_path_tar)
-    logging.info("delete %s", fulle_path_tar)
+        shutil.rmtree(full_path_tar)
+    logging.info("delete %s", full_path_tar)

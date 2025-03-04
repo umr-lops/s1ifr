@@ -16,12 +16,12 @@
 
 
 # -- Project information -----------------------------------------------------
-import aar
+import s1ifr
 
-project = 'angles-antenna-referential'
-copyright = '2024, Ifremer LOPS/SIAM'
+project = 's1ifr'
+copyright = '2025, Ifremer LOPS/SIAM'
 author = 'Antoine Grouazel'
-version = aar.__version__
+version = s1ifr.__version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -77,7 +77,7 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_style = 'css/aar.css'
+html_style = 'css/s1ifr.css'
 
 html_theme_options = {
     'logo_only': False,

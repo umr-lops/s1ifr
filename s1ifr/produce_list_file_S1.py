@@ -116,7 +116,7 @@ def list_safe_s1_ifr_fs(
     level,
     mode,
     formato,
-    archive_name="datarmor_mpc",
+    archive_name="datawork",
     category="S",
     write=True,
     logfile_path=None,
@@ -131,7 +131,7 @@ def list_safe_s1_ifr_fs(
         enddate (str): YYYYMMDD
         mode (str): IW EW SM or WV
         formato (str): e.g. OCN_ SLC_ GRDH or RAW_, could be GRD*
-        archive_name (str): "datarmor_mpc" for instance
+        archive_name (str): "datawork" for instance
         category (str): 'S', 'A'  or 'N' [default is S=standard]
         write (bool): True -> write product list to a file
         logfile_path (str): [optional]
@@ -246,7 +246,7 @@ def find_netcdf_day_before(nbdays, satellite, archive_name="mpc"):
 
 
 def find_netcdf_between_2_dates(
-    start, stop, satellite, mode="*", archive_name="datarmor_mpc"
+    start, stop, satellite, mode="*", archive_name="datawork"
 ) -> list:
     """
     start,stop (datetime)
@@ -308,7 +308,7 @@ def find_netcdf_between_2_dates(
 
 
 def find_s1_measurement_between_2_dates(
-    start, stop, product_type, archive_name="datarmor_mpc"
+    start, stop, product_type, archive_name="datawork"
 ) -> list:
     """
 
@@ -359,7 +359,7 @@ def find_sar_tiff_between_2_dates(
     stop,
     satellite,
     mode,
-    archive_name="datarmor_mpc",
+    archive_name="datawork",
     processing_format="*",
 ):
     """
@@ -404,7 +404,7 @@ def findtifffromdaybefore(
     nbdays,
     satellite,
     mode=None,
-    archive_name="datarmor_mpc",
+    archive_name="datawork",
 ):
     """
     browse the mpc repositories to find the tiff data from last days
@@ -599,14 +599,14 @@ def main():
         choices=possibles_archives,
         dest="archive",
         metavar="string",
-        help=f"which archive do you want: {ADDITIONAL_ARCHIVES.keys()} ? [optional, default is datarmor_mpc ]",
+        help=f"which archive do you want: {ADDITIONAL_ARCHIVES.keys()} ? [optional, default is datawork ]",
     )
     args = parser.parse_args()
 
     startdt = datetime.datetime.strptime(args.startdate, "%Y%m%d")
     stopdt = datetime.datetime.strptime(args.enddate, "%Y%m%d")
     if args.archive is None:
-        archive_name = "datarmor_mpc"
+        archive_name = "datawork"
     else:
         archive_name = args.archive
     fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
@@ -683,7 +683,7 @@ def main():
         )
         logging.info("product type: %s", product_type)
         listmesu = find_s1_measurement_between_2_dates(
-            startdt, stopdt, product_type, archive_name="datarmor_mpc"
+            startdt, stopdt, product_type, archive_name="datawork"
         )
         print(len(listmesu))
     else:
