@@ -308,7 +308,8 @@ def sort_one_safe(
         else:
             doom_flag = ALREADY
             # then I have to remove the SAFE from spool dir
-            remove_safe_from_disk(full_path_safe)
+            if dryrun is False:
+                remove_safe_from_disk(full_path_safe)
     else:
         logging.debug(
             "sentinel1_pieuvre | %s doesnt exist anymore", full_path_safe
