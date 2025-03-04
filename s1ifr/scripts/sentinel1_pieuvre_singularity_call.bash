@@ -7,10 +7,11 @@ img=/home/datawork-cersat-public/cache/project/mpc-sentinel1/workspace/singulari
 #cmd="micromamba activate /opt/app-s1ifr/envs/envs1ifr && archivesafe -h"
 #cmd="archivesafe -h"
 #cmd='/home1/datahome/agrouaze/sources/git/s1ifr/payload_sorting_S1_product.bash'
-cmd='/opt/app-s1ifr/envs/envs1ifr/bin/archivesafe --input-safe '
-safe=$1
-echo 'safe to sort: '$safe
+#cmd='/opt/app-s1ifr/envs/envs1ifr/bin/archivesafe --input-safe '
+cmd='/opt/app-s1ifr/envs/envs1ifr/bin/archivesafe '
+linewithoptions=$1
+echo 'options: '$linewithoptions
 echo 'command '$cmd
 echo 'img '$img
-singularity run --bind /home/datawork-cersat-public/ --bind /home1/datahome/ --bind /home1/scratch/ $img $cmd $safe
+singularity run --bind /home/datawork-cersat-public/ --bind /home1/datahome/ --bind /home1/scratch/ $img $cmd $linewithoptions
 echo done

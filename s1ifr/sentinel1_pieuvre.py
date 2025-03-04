@@ -105,7 +105,7 @@ def finalize_archiving(
 def sort_one_safe(
     full_path_safe,
     log_file_handler=None,
-    other_archive="datarmor_mpc",
+    other_archive="datawork",
     security_second=600,
     dryrun=False,
 ):
@@ -342,8 +342,8 @@ def main():
     )
     parser.add_argument(
         "--archivename",
-        choices=["datarmor_mpc", "scale"],
-        help="name of the archive to use datarmor_mpc or scale",
+        choices=["datawork", "scale"],
+        help="name of the archive to use datawork or scale",
     )
     parser.add_argument(
         "--dryrun",
@@ -374,7 +374,7 @@ def main():
     if user_run != "satwave":
         logging.warning('you must run this script with user "satwave".')
     logging.info("user : %s", user_run)
-    # archive_output = ["datarmor_mpc"]
+    # archive_output = ["datawork"]
     archive_output = [args.archivename]
     logging.info("the script will sort sentinel1 product : %s", args.safe)
     sort_one_safe(

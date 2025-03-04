@@ -5,6 +5,6 @@
 #PBS -j oe
 #PBS -m n
 echo 'script to archive Sentinel-1 in Ifremer database'
-echo "SAFE source: "$1
-bash /home1/datahome/satwave/sources_en_exploitation2/s1ifr/s1ifr/scripts/example_singularity_image_usage.bash $1
+echo "line with options to treat : "$1
+bash /home1/datahome/satwave/sources_en_exploitation2/s1ifr/s1ifr/scripts/sentinel1_pieuvre_singularity_call.bash $1
 

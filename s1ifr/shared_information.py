@@ -55,7 +55,7 @@ WORKING_DIR = os.path.join(PROJECT_DIR_DATARMOR_ALT, "workspace")
 WORKING_DIR_SCALE = WORKBENCH_SCALE
 
 QUARANTINE = {
-    "datarmor_mpc": os.path.join(
+    "datawork": os.path.join(
         PROJECT_DIR_DATARMOR, "workspace", "quarantine/"
     )
 }

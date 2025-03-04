@@ -83,7 +83,7 @@ def main():
         )
 
     flag_go_download = test_quarantine_before_download(
-        args.inputsafe, archive="datarmor_mpc"
+        args.inputsafe, archive="datawork"
     )
     logging.info("flag_go_download : %s", flag_go_download)
 

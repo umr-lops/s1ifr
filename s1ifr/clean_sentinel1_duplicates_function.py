@@ -73,12 +73,12 @@ def latest_safe_processed(duplicates_list):
     return indice_latest_processing, duplicates_list, stoptimes
 
 
-def check_duplicate(file_to_be_checked, archive="datarmor_mpc", dryrun=True):
+def check_duplicate(file_to_be_checked, archive="datawork", dryrun=True):
     """
     delete SAFE with same acquisition dates and oldest processing time
     @input:
         fileTobechecked (str): fullpath of the .SAFE to be checked
-        archive (str): mpc or datarmor_mpc
+        archive (str): scale or datawork
     :output:
 
     """
