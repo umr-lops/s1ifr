@@ -46,7 +46,6 @@ def finalize_archiving(
     final_place,
     ziptype="",
     archive_name="mpc",
-    dryrun=False,
 ):
     """
     mv the safe to archive directory then chmod
@@ -56,7 +55,6 @@ def finalize_archiving(
         final_place (str): the place the safe should be in archive if no corruption
         ziptype (str): .tar or .zip or ''
         archive_name (str):
-        dryrun (bool): True -> no move of the product
     """
     #     unziped_safe = full_path_safe.strip('.tar')
     # check that the SAFE uncompressed is not corrupted
@@ -65,27 +63,26 @@ def finalize_archiving(
     logpath = os.path.join(
         "/home1/scratch", user_run, "sentinel1_quality_check_after_unzip.txt"
     )
-    if dryrun is False:
-        is_ok_safe = safe_checker(
-            unzipped_safe, logpath=logpath, security_time=0
-        )
-    else:
-        is_ok_safe = True
+
+    is_ok_safe = safe_checker(
+        unzipped_safe, logpath=logpath, security_time=0
+    )
+
 
     if is_ok_safe:
         cmd = "/bin/mv -f " + unzipped_safe + " " + archive_dir
         logging.debug("command to execute %s", cmd)
-        if dryrun is False:
-            status = subprocess.check_output(cmd, shell=True)
-            if status != 0:
-                st = os.system("chmod 775 -R " + final_place)
-                if st != 0:
-                    logging.error("chmod operation on %s failed", final_place)
-                    doom_flag = FAILED
-                else:
-                    logging.debug("chmod done")
-            else:
+
+        status = subprocess.check_output(cmd, shell=True)
+        if status != 0:
+            st = os.system("chmod 775 -R " + final_place)
+            if st != 0:
+                logging.error("chmod operation on %s failed", final_place)
                 doom_flag = FAILED
+            else:
+                logging.debug("chmod done")
+        else:
+            doom_flag = FAILED
     else:
         logging.error(
             "%s is corrupted, so we delete it to let it be re download",
@@ -96,7 +93,7 @@ def finalize_archiving(
     original_full_path = unzipped_safe + ziptype
     logging.debug("original_full_path = %s", original_full_path)
     # remove the tar or zip file that is now useless since uncompress has been done or move to quarantine
-    if os.path.exists(original_full_path) is True and dryrun is False:
+    if os.path.exists(original_full_path) is True:
         logging.info("%s has been deleted ", original_full_path)
         if os.path.isdir(original_full_path):
             shutil.rmtree(original_full_path)
@@ -149,11 +146,14 @@ def sort_one_safe(
             safe_basename, archive_name=other_archive
         )
         final_place = os.path.join(archive_dir, safe_basename)
-        logging.debug("final path should be %s", final_place)
+        if dryrun is True:
+            logging.info("final path should be %s", final_place)
+        else:
+            logging.debug("final path should be %s", final_place)
         flag_continue, _, _ = product_is_present_at_ifremer(
             safe_basename, full_path_safe
         )
-        if flag_continue is True:
+        if flag_continue is True and dryrun is False:
 
             os.makedirs(archive_dir, 0o0775, exist_ok=True)
             t = os.path.getctime(full_path_safe)
@@ -220,20 +220,20 @@ def sort_one_safe(
                     os.chdir(spool_dir)
                     cmd = "unzip -o " + full_path_safe
                     logging.debug("command: %s", cmd)
-                    if dryrun is False:
-                        try:
-                            st = subprocess.check_output(
-                                cmd,
-                                shell=True,
-                                stderr=subprocess.STDOUT,
-                                text=True,
-                            )
-                        except subprocess.CalledProcessError as e:
-                            st = e.returncode
-                            logging.error(f"Error with cmd : {e}")
-                            logging.error(f"status returned : {e.returncode}")
-                            logging.error(f"cmd output : {e.output}")
-                        logging.debug("status unzip : %s", st)
+
+                    try:
+                        st = subprocess.check_output(
+                            cmd,
+                            shell=True,
+                            stderr=subprocess.STDOUT,
+                            text=True,
+                        )
+                    except subprocess.CalledProcessError as e:
+                        st = e.returncode
+                        logging.error(f"Error with cmd : {e}")
+                        logging.error(f"status returned : {e.returncode}")
+                        logging.error(f"cmd output : {e.output}")
+                    logging.debug("status unzip : %s", st)
                     unziped_safe = full_path_safe.strip(".zip")
                     unziped_safe = unziped_safe.replace(
                         os.path.dirname(full_path_safe), spool_dir
@@ -249,8 +249,6 @@ def sort_one_safe(
                     testexistenceuncompressedsafe = os.path.exists(
                         unziped_safe
                     )
-                    if dryrun is True:
-                        testexistenceuncompressedsafe = True
                     if testexistenceuncompressedsafe:
                         doom_flag = finalize_archiving(
                             archive_dir,
@@ -258,7 +256,6 @@ def sort_one_safe(
                             final_place,
                             ".zip",
                             archive_name=other_archive,
-                            dryrun=dryrun,
                         )
                     else:
                         logging.error(
