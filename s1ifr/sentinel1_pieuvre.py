@@ -308,7 +308,7 @@ def sort_one_safe(
         else:
             doom_flag = ALREADY
             # then I have to remove the SAFE from spool dir
-            if dryrun is False:
+            if dryrun is False and os.path.exists(full_path_safe):
                 remove_safe_from_disk(full_path_safe)
     else:
         logging.debug(

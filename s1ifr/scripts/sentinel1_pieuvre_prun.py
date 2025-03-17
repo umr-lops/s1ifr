@@ -26,6 +26,7 @@ def main():
         help="listing containing paths of the safe to sync",
         required=True,
     )
+    parser.add_argument('--exe',choices=['condaDev','singularity'],help='which .pbs/env do you want to use? [default=singularity]',default='singularity',required=False)
     args = parser.parse_args()
 
     if args.verbose:
@@ -56,11 +57,14 @@ def main():
     logging.info("number of SAFE to be archive : %i", cpt)
 
     # initial listing
-    # pbs = os.path.join(os.path.dirname(__file__), "sentinel1_pieuvre.pbs") # conda env classic
-    pbs = os.path.join(
+    if args.exe=='condaDev':
+        pbs = os.path.join(os.path.dirname(__file__), "sentinel1_pieuvre.pbs") # conda env classic
+    else:
+        pbs = os.path.join(
         os.path.dirname(__file__), "sentinel1_pieuvre_singularity.pbs"
     )  # using a singularity image
     # call prun
+    logging.info('pbs = %s',pbs)
     opts = " --split-max-jobs=700 --background -e "
     py2 = "/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python "
     cmd = py2 + prunexe + opts + pbs + " " + ontheflymodifiedlisting
