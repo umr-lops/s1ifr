@@ -4,8 +4,16 @@
 #PBS -N archives1safe
 #PBS -j oe
 #PBS -m n
-echo 'script to archive Sentinel-1 in Ifremer database'
+echo 'script to archive Sentinel-1 in Ifremer database '${BASH_SOURCE[0]}"
 alloptions="$1 $2 $3 $4"
 echo "line with options to treat : "$alloptions
-bash sentinel1_pieuvre_singularity_call.bash $alloptions
+# Get the directory of the current script
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+
+# Construct the full path to the target file
+scriptsingularity="${SCRIPT_DIR}/sentinel1_pieuvre_singularity_call.bash"
+echo "script to call singularity image for sorting Sentinel-1 product: "$scriptsingularity
+#bash sentinel1_pieuvre_singularity_call.bash $alloptions
+bash $scriptsingularity $alloptions
+echo 'end of pbs'
 
