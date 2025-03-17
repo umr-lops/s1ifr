@@ -5,6 +5,7 @@
 #PBS -j oe
 #PBS -m n
 echo 'script to archive Sentinel-1 in Ifremer database'
-echo "line with options to treat : "$1
-bash /home1/datahome/satwave/sources_en_exploitation2/s1ifr/s1ifr/scripts/sentinel1_pieuvre_singularity_call.bash $1
+alloptions="$1 $2 $3 $4"
+echo "line with options to treat : "$alloptions
+bash sentinel1_pieuvre_singularity_call.bash $alloptions
 
