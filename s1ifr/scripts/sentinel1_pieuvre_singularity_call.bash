@@ -9,7 +9,8 @@ img=/home/datawork-cersat-public/cache/project/mpc-sentinel1/workspace/singulari
 #cmd='/home1/datahome/agrouaze/sources/git/s1ifr/payload_sorting_S1_product.bash'
 #cmd='/opt/app-s1ifr/envs/envs1ifr/bin/archivesafe --input-safe '
 cmd='/opt/app-s1ifr/envs/envs1ifr/bin/archivesafe '
-linewithoptions=$1
+# --input-safe blablabla --archivename blabla
+linewithoptions="$1 $2 $3 $4"
 echo 'options: '$linewithoptions
 echo 'command '$cmd
 echo 'img '$img
