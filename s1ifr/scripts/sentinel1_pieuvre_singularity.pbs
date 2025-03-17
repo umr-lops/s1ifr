@@ -4,7 +4,7 @@
 #PBS -N archives1safe
 #PBS -j oe
 #PBS -m n
-echo 'script to archive Sentinel-1 in Ifremer database '${BASH_SOURCE[0]}"
+echo 'script to archive Sentinel-1 in Ifremer database '${BASH_SOURCE[0]}
 alloptions="$1 $2 $3 $4"
 echo "line with options to treat : "$alloptions
 # Get the directory of the current script
