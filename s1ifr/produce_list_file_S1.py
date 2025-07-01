@@ -19,7 +19,7 @@ from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES
 from s1ifr.shared_information import EXTENSIONS, sats_acro
 
 ERROR_DATES = "start date is > stop date"
-
+NB_NC = "number of netCDF found %s"
 
 def write_measurement_list(
     type,
@@ -241,7 +241,7 @@ def find_netcdf_day_before(nbdays, satellite, archive_name="mpc"):
     )
     logging.debug("pattern %s", pattern_nc)
     netcdf_list = glob.glob(pattern_nc)
-    logging.info("number of netCDF found %s", len(netcdf_list))
+    logging.info(NB_NC, len(netcdf_list))
     return netcdf_list
 
 
@@ -302,7 +302,7 @@ def find_netcdf_between_2_dates(
             else:
                 cpt_out_of_bounds += 1
         cpt += 1
-    logging.debug("number of netCDF found %s", len(netcdf_list))
+    logging.debug(NB_NC, len(netcdf_list))
     logging.debug("cpt_out_of_bounds : %s", cpt_out_of_bounds)
     return netcdf_list
 
@@ -350,7 +350,7 @@ def find_s1_measurement_between_2_dates(
             logging.debug("pattern: %s", pattern)
             tmp = glob.glob(pattern)
             netcdf_list = netcdf_list + tmp
-    logging.debug("number of netCDF found %s", len(netcdf_list))
+    logging.debug(NB_NC, len(netcdf_list))
     return netcdf_list
 
 

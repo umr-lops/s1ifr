@@ -1,6 +1,6 @@
-###########################################################################################
-aar: angles-antenna-referential python library to compute angles in SAR antenna referential
-###########################################################################################
+########################################################
+s1ifr: python lib to find S1 products in Ifremer archive
+########################################################
 
 
 Documentation
@@ -15,7 +15,7 @@ usage:
 
 .. code-block:: python
 
-    import aar
+    import s1ifr
 
 
 
@@ -23,8 +23,15 @@ usage:
 Examples
 ........
 
+.. code-block:: python
 
-* :doc:`examples/azimuth_angle_use_cases`
+    import s1ifr
+
+    safe = "S1A_IW_SLC__1SDV_20230114T222629_20230114T222656_046786_059BF8_AA99.SAFE"
+    safe_fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
+        inputa=safe, archive_name="datawork"
+    )
+
 
 
 Reference
@@ -42,12 +49,6 @@ Get in touch
 Last documentation build: |today|
 
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Examples
-
-   examples/azimuth_angle_use_cases
-
 
 
 .. toctree::
@@ -57,4 +58,4 @@ Last documentation build: |today|
 
    basic_api
 
-.. _on gitlab: https://gitlab.ifremer.fr/lops-wave/angles-antenna-referential
+.. _on gitlab: https://gitlab.ifremer.fr/lops-wave/s1ifr

@@ -4,7 +4,7 @@ requires-python = ">= 3.10"
 license = { text = "MIT" }
 description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
 readme = "README.md"
-dependencies = ["numpy", "xarray","lxml",'tqdm']
+dependencies = ["numpy", "xarray", "lxml", 'tqdm']
 keywords = [
   "earth-observation",
   "remote-sensing",

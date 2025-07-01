@@ -64,10 +64,7 @@ def finalize_archiving(
         "/home1/scratch", user_run, "sentinel1_quality_check_after_unzip.txt"
     )
 
-    is_ok_safe = safe_checker(
-        unzipped_safe, logpath=logpath, security_time=0
-    )
-
+    is_ok_safe = safe_checker(unzipped_safe, logpath=logpath, security_time=0)
 
     if is_ok_safe:
         cmd = "/bin/mv -f " + unzipped_safe + " " + archive_dir

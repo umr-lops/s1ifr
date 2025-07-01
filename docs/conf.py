@@ -18,9 +18,9 @@
 # -- Project information -----------------------------------------------------
 import s1ifr
 
-project = 's1ifr'
-copyright = '2025, Ifremer LOPS/SIAM'
-author = 'Antoine Grouazel'
+project = "s1ifr"
+copyright = "2025, Ifremer LOPS/SIAM"
+author = "Antoine Grouazel"
 version = s1ifr.__version__
 
 # -- General configuration ---------------------------------------------------
@@ -29,16 +29,16 @@ version = s1ifr.__version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinx_rtd_theme',
-    'nbsphinx',
-    'jupyter_sphinx',
-    'sphinxcontrib.programoutput'
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx_rtd_theme",
+    "nbsphinx",
+    "jupyter_sphinx",
+    "sphinxcontrib.programoutput",
 ]
 
 # order by source
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"
 
 # Napoleon settings
 napoleon_google_docstring = True
@@ -56,12 +56,12 @@ napoleon_type_aliases = None
 
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -69,21 +69,21 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = 'classic'
-html_theme = 'sphinx_rtd_theme'
+# html_theme = 'classic'
+html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
-html_style = 'css/s1ifr.css'
+html_style = "css/s1ifr.css"
 
 html_theme_options = {
-    'logo_only': False,
-    'display_version': True,
-    'navigation_depth': 4,
-    'collapse_navigation': False,
+    "logo_only": False,
+    # 'display_version': True,
+    "navigation_depth": 4,
+    "collapse_navigation": False,
 }
 
 # If true, links to the reST sources are added to the pages.
@@ -91,11 +91,11 @@ html_show_sourcelink = False
 
 nbsphinx_allow_errors = False
 
-nbsphinx_execute = 'always'
+nbsphinx_execute = "always"
 
 nbsphinx_timeout = 300
 
 nbsphinx_prolog = """
 """
 
-today_fmt = '%b %d %Y at %H:%M'
+today_fmt = "%b %d %Y at %H:%M"

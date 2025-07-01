@@ -4,10 +4,10 @@
 import sys
 
 print(sys.executable)
+import getpass
 import logging
 import os
 import subprocess
-import getpass
 
 
 def main():
@@ -19,14 +19,25 @@ def main():
 
     parser = argparse.ArgumentParser(description="start prun")
     parser.add_argument("--verbose", action="store_true", default=False)
-    parser.add_argument("--archivename", choices=['scale','datawork'], default='datawork',
-                        help='archive name scale or datawork [default is datawork]',required=False)
+    parser.add_argument(
+        "--archivename",
+        choices=["scale", "datawork"],
+        default="datawork",
+        help="archive name scale or datawork [default is datawork]",
+        required=False,
+    )
     parser.add_argument(
         "--listinginputsafe",
         help="listing containing paths of the safe to sync",
         required=True,
     )
-    parser.add_argument('--exe',choices=['condaDev','singularity'],help='which .pbs/env do you want to use? [default=singularity]',default='singularity',required=False)
+    parser.add_argument(
+        "--exe",
+        choices=["condaDev", "singularity"],
+        help="which .pbs/env do you want to use? [default=singularity]",
+        default="singularity",
+        required=False,
+    )
     args = parser.parse_args()
 
     if args.verbose:
@@ -44,27 +55,37 @@ def main():
     prunexe = "/appli/prun/bin/prun"
     lines = open(args.listinginputsafe).readlines()
     username = getpass.getuser()
-    ontheflymodifiedlisting = os.path.join('/home1/scratch/',username,'tmp_listing_s1_archiving_prun_script.txt')
-    fid =open(ontheflymodifiedlisting,'w')
+    ontheflymodifiedlisting = os.path.join(
+        "/home1/scratch/", username, "tmp_listing_s1_archiving_prun_script.txt"
+    )
+    fid = open(ontheflymodifiedlisting, "w")
     for uu in lines:
-        safeclean = uu.replace('\n','')
-        uu2 = '--input-safe '+safeclean+' --archivename '+args.archivename+' \n'
+        safeclean = uu.replace("\n", "")
+        uu2 = (
+            "--input-safe "
+            + safeclean
+            + " --archivename "
+            + args.archivename
+            + " \n"
+        )
         fid.write(uu2)
 
     fid.close()
-    logging.info('temporary listing updated : %s',ontheflymodifiedlisting)
+    logging.info("temporary listing updated : %s", ontheflymodifiedlisting)
     cpt = len(lines)
     logging.info("number of SAFE to be archive : %i", cpt)
 
     # initial listing
-    if args.exe=='condaDev':
-        pbs = os.path.join(os.path.dirname(__file__), "sentinel1_pieuvre.pbs") # conda env classic
+    if args.exe == "condaDev":
+        pbs = os.path.join(
+            os.path.dirname(__file__), "sentinel1_pieuvre.pbs"
+        )  # conda env classic
     else:
         pbs = os.path.join(
-        os.path.dirname(__file__), "sentinel1_pieuvre_singularity.pbs"
-    )  # using a singularity image
+            os.path.dirname(__file__), "sentinel1_pieuvre_singularity.pbs"
+        )  # using a singularity image
     # call prun
-    logging.info('pbs = %s',pbs)
+    logging.info("pbs = %s", pbs)
     opts = " --split-max-jobs=700 --background -e "
     py2 = "/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python "
     cmd = py2 + prunexe + opts + pbs + " " + ontheflymodifiedlisting

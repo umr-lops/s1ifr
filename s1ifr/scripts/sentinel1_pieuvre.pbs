@@ -1,10 +1,10 @@
 #!/bin/bash
-#PBS -l walltime=0:45:00
+#PBS -l walltime=25:45:00
 #PBS -l mem=500m
 #PBS -N archives1safe
 #PBS -j oe
 #PBS -m n
-#PBS -q gpd
+
 # I need queue GPU because node of old datarmor grappe dont have /scale access March 25
 echo 'script to archive Sentinel-1 in Ifremer database'
 # input will contain --input-safe SAFE --archivename scale (for example)
@@ -19,4 +19,3 @@ echo 'pybin:'$pybin
 
 #archivesafe --input-safe $1
 archivesafe $1 $2 $3 $4
-
