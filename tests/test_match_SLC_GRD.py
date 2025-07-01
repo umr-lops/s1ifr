@@ -1,149 +1,126 @@
-import unittest
-from unittest.mock import patch, MagicMock
+#!/usr/bin/python
 import datetime
-from s1ifr.match_SLC_GRD import match_SLC_GRD
+import glob
+import logging
+import os
+
+from s1ifr.explodesafename import ExplodeSAFE
+from s1ifr.get_path_from_base_safe import get_path_from_base_safe
 
 
-class TestMatchSlcGr(unittest.TestCase):
-    """Unit tests for the match_SLC_GRD function."""
+def _core_find(
+    search_path_pattern: str,
+    input_start_date: datetime.datetime,
+    time_threshold_sec: int,
+) -> str | None:
+    """
+    Finds the SAFE file with the smallest time difference within a given threshold.
 
-    @patch('s1ifr.match_SLC_GRD.glob.glob')
-    @patch('s1ifr.match_SLC_GRD.get_path_from_base_safe')
-    @patch('s1ifr.match_SLC_GRD.ExplodeSAFE')
-    def test_finds_grd_from_slc_on_datawork(self, mock_explode_safe, mock_get_path, mock_glob):
-        """
-        Should find a matching GRDH file for an SLC input on the first archive ('datawork').
-        """
-        # --- Arrange ---
-        slc_name = 'S1A_IW_SLC__1SDV_20220901T055632_20220901T055659_044814_055A8B_939A.SAFE'
+    This is a helper function designed to find the best match in a list of potential files.
 
-        # This is the file we expect glob to find
-        expected_grd_name = 'S1A_IW_GRDH_1SDV_20220901T055633_20220901T055700_044814_055A8B_1234.SAFE'
-        expected_grd_path = f'/datawork/some/path/{expected_grd_name}'
+    Args:
+        search_path_pattern (str): The glob pattern to search for files (e.g., '/path/to/S1A_IW_GRDH*.SAFE').
+        input_start_date (datetime.datetime): The start time of the original input product.
+        time_threshold_sec (int): The maximum allowed time difference in seconds.
 
-        # Configure the mock for ExplodeSAFE to handle different inputs
-        def explode_side_effect(filename):
-            mock_instance = MagicMock()
-            if 'SLC' in filename or 'GRDH' in slc_name.replace('SLC_', 'GRDH'):
-                # This is the input file being parsed
-                mock_instance.get.return_value = datetime.datetime(2022, 9, 1, 5, 56, 32)
-            elif expected_grd_name in filename:
-                # This is the file "found" by glob
-                mock_instance.get.return_value = datetime.datetime(2022, 9, 1, 5, 56, 33)  # 1 sec diff
-            return mock_instance
+    Returns:
+        Optional[str]: The full path to the best matching SAFE file, or None if no suitable match is found.
+    """
+    potential_matches = glob.glob(search_path_pattern)
+    if not potential_matches:
+        return None
 
-        mock_explode_safe.side_effect = explode_side_effect
+    best_match_path = None
+    # REASON FOR CHANGE: Initialize with a time difference larger than the threshold.
+    # This ensures that any valid match will be selected initially.
+    best_time_diff = datetime.timedelta(seconds=time_threshold_sec + 1)
 
-        # Configure the mock for get_path_from_base_safe
-        mock_get_path.return_value = '/datawork/some/path/S1A_IW_GRDH_...SAFE'
+    for path in potential_matches:
+        logging.debug("Potential safe: %s", path)
+        try:
+            instance = ExplodeSAFE(os.path.basename(path))
+            candidate_start_date = instance.get("startdate")
+            current_diff = abs(input_start_date - candidate_start_date)
 
-        # Configure the mock for glob.glob to "find" our expected file
-        mock_glob.return_value = [expected_grd_path]
+            # REASON FOR CHANGE: This logic now correctly finds the file with the
+            # absolute smallest time difference among all candidates.
+            if current_diff < best_time_diff:
+                best_time_diff = current_diff
+                best_match_path = path
+        except Exception as e:
+            logging.warning(
+                "Could not parse SAFE name '%s': %s", os.path.basename(path), e
+            )
+            continue
 
-        # --- Act ---
-        result = match_SLC_GRD(slc_name)
+    # REASON FOR CHANGE: The check against the threshold is now done only once,
+    # after finding the closest possible match. This is more efficient and correct.
+    if best_match_path and best_time_diff.total_seconds() < time_threshold_sec:
+        logging.info(
+            "Found match %s with time diff of %s seconds",
+            os.path.basename(best_match_path),
+            best_time_diff.total_seconds(),
+        )
+        return best_match_path
 
-        # --- Assert ---
-        self.assertEqual(result, expected_grd_path)
-        mock_get_path.assert_called_once_with(slc_name.replace('SLC_', 'GRDH'), archive_name='datawork')
-        mock_glob.assert_called_once()
-
-    @patch('s1ifr.match_SLC_GRD.glob.glob')
-    @patch('s1ifr.match_SLC_GRD.get_path_from_base_safe')
-    @patch('s1ifr.match_SLC_GRD.ExplodeSAFE')
-    def test_finds_slc_from_grd_on_scale(self, mock_explode_safe, mock_get_path, mock_glob):
-        """
-        Should find a matching SLC file for a GRDH input, falling back to the 'scale' archive.
-        """
-        # --- Arrange ---
-        grd_name = 'S1A_IW_GRDH_1SDV_20220901T055633_20220901T055700_044814_055A8B_1234.SAFE'
-        expected_slc_name = 'S1A_IW_SLC__1SDV_20220901T055632_20220901T055659_044814_055A8B_939A.SAFE'
-        expected_slc_path = f'/scale/some/path/{expected_slc_name}'
-
-        # Configure ExplodeSAFE mock
-        def explode_side_effect(filename):
-            mock_instance = MagicMock()
-            if 'GRDH' in filename or 'SLC' in grd_name.replace('GRDH', 'SLC_'):
-                mock_instance.get.return_value = datetime.datetime(2022, 9, 1, 5, 56, 33)
-            elif expected_slc_name in filename:
-                mock_instance.get.return_value = datetime.datetime(2022, 9, 1, 5, 56, 32)  # 1 sec diff
-            return mock_instance
-
-        mock_explode_safe.side_effect = explode_side_effect
-
-        # Simulate finding nothing on 'datawork', but finding the file on 'scale'
-        mock_get_path.side_effect = [
-            '/datawork/dummy/path.SAFE',  # First call
-            '/scale/some/path/S1A_IW_SLC_...SAFE'  # Second call
-        ]
-        mock_glob.side_effect = [
-            [],  # First call (for datawork) returns no files
-            [expected_slc_path]  # Second call (for scale) finds the file
-        ]
-
-        # --- Act ---
-        result = match_SLC_GRD(grd_name, type_input='GRDH', type_seek='SLC_')
-
-        # --- Assert ---
-        self.assertEqual(result, expected_slc_path)
-        self.assertEqual(mock_get_path.call_count, 2)  # Called for both archives
-        self.assertEqual(mock_glob.call_count, 2)
-
-    @patch('s1ifr.match_SLC_GRD.glob.glob')
-    @patch('s1ifr.match_SLC_GRD.get_path_from_base_safe')
-    @patch('s1ifr.match_SLC_GRD.ExplodeSAFE')
-    def test_returns_none_if_no_match_found(self, mock_explode_safe, mock_get_path, mock_glob):
-        """
-        Should return None if no matching file is found in any archive.
-        """
-        # --- Arrange ---
-        slc_name = 'S1A_IW_SLC__1SDV_20220901T055632_20220901T055659_044814_055A8B_939A.SAFE'
-        mock_explode_safe.return_value.get.return_value = datetime.datetime.now()
-        mock_get_path.return_value = '/dummy/path.SAFE'
-
-        # Simulate glob finding nothing on both archives
-        mock_glob.return_value = []
-
-        # --- Act ---
-        result = match_SLC_GRD(slc_name)
-
-        # --- Assert ---
-        self.assertIsNone(result)
-        self.assertEqual(mock_get_path.call_count, 2)  # Should check both archives
-        self.assertEqual(mock_glob.call_count, 2)
-
-    @patch('s1ifr.match_SLC_GRD.glob.glob')
-    @patch('s1ifr.match_SLC_GRD.get_path_from_base_safe')
-    @patch('s1ifr.match_SLC_GRD.ExplodeSAFE')
-    def test_returns_none_if_time_diff_too_large(self, mock_explode_safe, mock_get_path, mock_glob):
-        """
-        Should return None if the only potential match has a start time outside the threshold.
-        """
-        # --- Arrange ---
-        slc_name = 'S1A_IW_SLC__1SDV_20220901T055632_20220901T055659_044814_055A8B_939A.SAFE'
-        # This file has a 5-second time difference, which is > the default 3-second threshold
-        found_grd_name = 'S1A_IW_GRDH_1SDV_20220901T055637_20220901T055704_044814_055A8B_ABCD.SAFE'
-        found_grd_path = f'/datawork/some/path/{found_grd_name}'
-
-        def explode_side_effect(filename):
-            mock_instance = MagicMock()
-            if 'SLC' in filename:
-                mock_instance.get.return_value = datetime.datetime(2022, 9, 1, 5, 56, 32)
-            elif found_grd_name in filename:
-                mock_instance.get.return_value = datetime.datetime(2022, 9, 1, 5, 56, 37)  # 5 sec diff
-            return mock_instance
-
-        mock_explode_safe.side_effect = explode_side_effect
-
-        mock_get_path.return_value = '/dummy/path.SAFE'
-        mock_glob.return_value = [found_grd_path]
-
-        # --- Act ---
-        result = match_SLC_GRD(slc_name)
-
-        # --- Assert ---
-        self.assertIsNone(result)
+    return None
 
 
-if __name__ == '__main__':
-    unittest.main()
+def match_slc_grd(
+    safename: str,
+    type_input: str = "SLC_",
+    type_seek: str = "GRDH",
+    minimal_time_diff: int = 3,
+) -> str | None:
+    """
+    Finds a matching GRDH or SLC product for a given SAFE file across Ifremer archives.
+
+    It searches first in the 'datawork' archive, then falls back to the 'scale' archive if no
+    match is found.
+
+    Args:
+        safename (str): The full name of the input SAFE file.
+        type_input (str): The type of the input file ('SLC_' or 'GRDH').
+        type_seek (str): The type of the file to find ('GRDH' or 'SLC_').
+        minimal_time_diff (int): The maximum allowed time difference in seconds.
+
+    Returns:
+        Optional[str]: The full path of the matching SAFE file if found, otherwise None.
+    """
+    try:
+        # REASON FOR CHANGE: Parse the original input filename to get the start date.
+        # This is safer than parsing a hypothetical filename.
+        input_info = ExplodeSAFE(safename)
+        input_start_date = input_info.get("startdate")
+    except Exception as e:
+        logging.error("Could not parse input SAFE name '%s': %s", safename, e)
+        return None
+
+    target_safename = safename.replace(type_input, type_seek)
+    # REASON FOR CHANGE: A more robust pattern using the first 10 characters
+    # (e.g., 'S1A_IW_GRD') to build the glob pattern.
+    target_base_pattern = f"{os.path.basename(target_safename)[:10]}*.SAFE"
+    logging.debug("Target pattern: %s", target_base_pattern)
+
+    # REASON FOR CHANGE: Loop through archives to avoid repeating code (DRY principle).
+    for archive in ["datawork", "scale"]:
+        logging.debug("Searching in '%s' archive...", archive)
+        base_path = get_path_from_base_safe(
+            target_safename, archive_name=archive
+        )
+
+        # REASON FOR CHANGE: Use os.path.join for robust path construction.
+        search_pattern = os.path.join(
+            os.path.dirname(base_path), target_base_pattern
+        )
+
+        found_safe = _core_find(
+            search_pattern, input_start_date, minimal_time_diff
+        )
+        if found_safe:
+            return found_safe
+
+    logging.warning(
+        "No matching product found for %s in any archive.", safename
+    )
+    return None

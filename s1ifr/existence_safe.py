@@ -6,9 +6,9 @@ author: Antoine Grouazel
 import logging
 import os
 import shutil
-import pdb
+
 from s1ifr.quarantine_management import test_quarantine_before_download
-from s1ifr.SAFEsortingfunctions import which_archive_dir,ADDITIONAL_ARCHIVES
+from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES, which_archive_dir
 
 
 def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
@@ -29,7 +29,7 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
     flag_continue = True
     existing_storage = None
     if safe_basename[0:2] == "S1":
-        #possible_archives = ["scale","datawork"]
+        # possible_archives = ["scale","datawork"]
         possible_archives = ADDITIONAL_ARCHIVES.keys()
         if ".SAFE" not in safe_basename:
             safe_basename = safe_basename + ".SAFE"
@@ -38,7 +38,9 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
     else:
         raise ValueError("product not handle by the poulpe")
     for archive in possible_archives:
-        possible_archive = which_archive_dir(safe=safe_basename,archive_name=archive)
+        possible_archive = which_archive_dir(
+            safe=safe_basename, archive_name=archive
+        )
         possible_storage = os.path.join(possible_archive, safe_basename)
         if os.path.exists(possible_storage) is True:
             existing_storage = possible_storage

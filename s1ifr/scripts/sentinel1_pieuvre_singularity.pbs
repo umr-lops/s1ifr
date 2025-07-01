@@ -16,4 +16,3 @@ echo "script to call singularity image for sorting Sentinel-1 product: "$scripts
 #bash sentinel1_pieuvre_singularity_call.bash $alloptions
 bash $scriptsingularity $alloptions
 echo 'end of pbs'
-

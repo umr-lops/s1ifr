@@ -14,6 +14,7 @@ WORKBENCH_SCALE = "/scale/project/lops-siam-sentinel1-workbench/"
 scale_archive_esa_ifremer = os.path.join(WORKBENCH_SCALE, "data", "esa")
 dir_suspect = "/home1/scratch/satwave"
 dirdeleted = "/home1/scratch/satwave"
+DIR_SATWAVE_SCRATCH = "/home1/scratch/satwave/"
 
 EXTENSIONS = {"L1": "tiff", "L2": "nc"}
 
@@ -55,8 +56,5 @@ WORKING_DIR = os.path.join(PROJECT_DIR_DATARMOR_ALT, "workspace")
 WORKING_DIR_SCALE = WORKBENCH_SCALE
 
 QUARANTINE = {
-    "datawork": os.path.join(
-        PROJECT_DIR_DATARMOR, "workspace", "quarantine/"
-    )
+    "datawork": os.path.join(PROJECT_DIR_DATARMOR, "workspace", "quarantine/")
 }
-DIR_SATWWAVE_SCRATCH = "/home1/scratch/satwave/"
