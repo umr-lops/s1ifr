@@ -52,7 +52,7 @@ if __name__ == "__main__":
     for ii in tqdm(range(len(df["base"]))):
         safe = df["base"].iloc[ii].replace(".zip", "")
         fp = get_path_from_base_safe(
-            inputa=safe, archive_name=args.archivename
+            safe_basename=safe, archive_name=args.archivename
         )
         if fp is not None:
             pass
