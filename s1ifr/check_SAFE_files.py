@@ -16,14 +16,23 @@ import traceback
 from xml.dom import minidom
 
 from s1ifr.produce_list_file_S1 import list_safe_s1_ifr_fs
-from s1ifr.shared_information import (
-    TYPES,
-    dir_suspect,
-    dirdeleted,
-    give_me_level_from_type,
-    macro_MODES,
-    sats_acro,
-)
+
+# from s1ifr.shared_information import (
+#     TYPES,
+#     dir_suspect,
+#     dirdeleted,
+#     give_me_level_from_type,
+#     macro_MODES,
+#     sats_acro,
+# )
+from s1ifr.utils import give_me_level_from_type, load_config
+
+conf = load_config()
+TYPES = conf["product_info"]["types"]
+dir_suspect = conf["paths"]["scratch"]["satwave"]
+dirdeleted = conf["paths"]["scratch"]["satwave"]
+macro_MODES = conf["product_info"]["modes"]
+sats_acro = conf["satellites"]["acronyms"]
 
 SECURITY_SECONDS = 300
 table_subdir_subprod = {
@@ -110,7 +119,7 @@ def delete_corrupted_safe(corrupted_list, dirout) -> int:
     return cpt
 
 
-def check_number_of_measurment(manifestpath) -> bool:
+def check_number_of_measurement(manifestpath) -> bool:
     """
     return true if the number of measurement is in line with manifest file
 
@@ -128,13 +137,14 @@ def check_number_of_measurment(manifestpath) -> bool:
         all_measu_present = True
         for occur in meas:
             dat_file_name = occur.getAttribute("href")
-            meas_path = os.path.join(dir_name, dat_file_name)
-            logging.debug("measurement file to read %s", meas_path)
-            if not os.path.exists(meas_path):
-                logging.debug("file  %s doesnt exist", meas_path)
-                all_measu_present = False
+            if "measurement" in dat_file_name:
+                meas_path = os.path.join(dir_name, dat_file_name)
+                logging.debug("measurement file to read %s", meas_path)
+                if not os.path.exists(meas_path):
+                    logging.warning("file  %s doesnt exist", meas_path)
+                    all_measu_present = False
     except OSError:
-        logging.error("tracek %s", traceback.format_exc())
+        logging.error("traceback %s", traceback.format_exc())
         logging.error("cant parse manifest %s ", manifestpath)
         all_measu_present = False
 
@@ -243,7 +253,7 @@ def safe_checker(
         else:
             logging.info("manifest test: OK")
 
-        if check_number_of_measurment(manifestpath) is False:
+        if check_number_of_measurement(manifestpath) is False:
             write_to_log(logpath, "missingmeasurement", safe_path)
             flag_ok_safe = False
             logging.info("measurement count test: KO")
