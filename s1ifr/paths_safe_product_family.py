@@ -269,8 +269,6 @@ def add_L2WAV(df, versions=None, cpt=None, disable_tqdm=False) -> pd.DataFrame:
                     datedt__slc.strftime("%j"),
                     base_safe_l2,
                 )
-                # pdb.set_trace()
-                valuepathl2wav
                 if os.path.exists(valuepathl2wav):
                     cpt["L2_WAV_" + versionl2 + "_found"] += 1
                     path_l2w[versionl2_complete].append(valuepathl2wav)
