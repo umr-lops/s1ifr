@@ -302,7 +302,8 @@ def find_netcdf_between_2_dates(
                 os.path.basename(ff).split("-")[4], "%Y%m%dt%H%M%S"
             )
             if datestartdt >= start and datestartdt <= stop:
-                netcdf_list.append(ff)
+                if ff not in netcdf_list:
+                    netcdf_list.append(ff)
             else:
                 cpt_out_of_bounds += 1
         cpt += 1
