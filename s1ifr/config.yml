@@ -1,0 +1,66 @@
+# Configuration for the s1ifr project
+
+# General product information
+product_info:
+  modes:
+    - "SM"
+    - "WV"
+    - "IW"
+    - "EW"
+  types:
+    - "OCN_"
+    - "GRDH"
+    - "SLC_"
+    - "GRDM"
+    - "GRDF"
+    - "RAW_"
+  extensions:
+    L1: "tiff"
+    L2: "nc"
+
+# Satellite name mappings
+satellites:
+  longnames:
+    S1A: "sentinel-1a"
+    S1B: "sentinel-1b"
+    S1C: "sentinel-1c"
+    S1D: "sentinel-1d"
+  acronyms:
+    sentinel-1a: "S1A"
+    sentinel-1b: "S1B"
+    sentinel-1c: "S1C"
+    sentinel-1d: "S1D"
+
+# Filesystem paths and archives
+paths:
+  # Base project directories on datawork
+  datawork:
+    project_cache: "/home/datawork-cersat-public/cache/project/mpc-sentinel1/"
+    project_main: "/home/datawork-cersat-public/project/mpc-sentinel1/"
+    # The archive path is constructed from project_main
+    archive_esa: "/home/datawork-cersat-public/project/mpc-sentinel1/data/esa"
+    workspace: "/home/datawork-cersat-public/project/mpc-sentinel1/workspace"
+    quarantine: "/home/datawork-cersat-public/project/mpc-sentinel1/workspace/quarantine"
+    dir_outs_l1c: ['/home/datawork-cersat-public/project/sarwave/data/products/experiments/slc/iw/l1c']
+    dir_outs_l1b: ['/home/datawork-cersat-public/project/sarwave/data/products/from_creodias/slc/iw/l1b',
+          # '/home/datawork-cersat-public/project/sarwave/data/products/tests2/slc/iw/l1b',
+          '/home/datawork-cersat-public/project/sarwave/data/products/experiments/slc/iw/l1b',
+          '/home/datawork-cersat-public/cache/public/http/sarwave/diffusion/sar/iw/slc/l1b/experimental_product_collection/v5.0/',
+        ]
+    dir_out_l2wav: ['/home/datawork-cersat-public/project/sarwave/data/products/experiments/slc/iw/l2/']
+  # Base project directories on SCALE
+  scale:
+    workbench: "/scale/project/lops-siam-sentinel1-workbench/"
+    # The archive path is constructed from workbench
+    archive_esa: "/scale/project/lops-siam-sentinel1-workbench/data/esa"
+    workspace: "/scale/project/lops-siam-sentinel1-workbench/"
+
+  # Scratch directories
+  scratch:
+    # dir_suspect, dirdeleted, and DIR_SATWAVE_SCRATCH all pointed to the same place
+    satwave: "/home1/scratch/satwave/"
+
+
+DEFAULT_VERSIONS_L1B: ['A23']
+DEFAULT_VERSIONS_L1C: ['B09','B14','B15']
+DEFAULT_VERSIONS_L2WAV: ['E11','E12'] # E11 17.5km , E12 5km

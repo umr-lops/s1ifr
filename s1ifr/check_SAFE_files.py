@@ -16,14 +16,22 @@ import traceback
 from xml.dom import minidom
 
 from s1ifr.produce_list_file_S1 import list_safe_s1_ifr_fs
-from s1ifr.shared_information import (
-    TYPES,
-    dir_suspect,
-    dirdeleted,
-    give_me_level_from_type,
-    macro_MODES,
-    sats_acro,
-)
+from s1ifr.utils import give_me_level_from_type
+# from s1ifr.shared_information import (
+#     TYPES,
+#     dir_suspect,
+#     dirdeleted,
+#     give_me_level_from_type,
+#     macro_MODES,
+#     sats_acro,
+# )
+from s1ifr.utils import load_config
+conf = load_config()
+TYPES = conf['product_info']['types']
+dir_suspect = conf['paths']['scratch']['satwave']
+dirdeleted = conf['paths']['scratch']['satwave']
+macro_MODES = conf['product_info']['modes']
+sats_acro = conf['satellites']['acronyms']
 
 SECURITY_SECONDS = 300
 table_subdir_subprod = {

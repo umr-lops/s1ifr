@@ -9,14 +9,22 @@ import logging
 import os
 
 from s1ifr.explodesafename import ExplodeSAFE
-from s1ifr.shared_information import QUARANTINE as quarantine_s1
-from s1ifr.shared_information import (
-    WORKING_DIR,
-    WORKING_DIR_SCALE,
-    datarmor_archive_esa_ifremer,
-    sats_acro,
-    scale_archive_esa_ifremer,
-)
+# from s1ifr.shared_information import QUARANTINE as quarantine_s1
+# from s1ifr.shared_information import (
+#     WORKING_DIR,
+#     WORKING_DIR_SCALE,
+#     datarmor_archive_esa_ifremer,
+#     sats_acro,
+#     scale_archive_esa_ifremer,
+# )
+from s1ifr.utils import load_config
+conf = load_config()
+quarantine_s1 = conf['paths']['datawork']['quarantine']
+WORKING_DIR = conf['paths']['datawork']['workspace']
+WORKING_DIR_SCALE = conf['paths']['scale']['workspace']
+datarmor_archive_esa_ifremer = conf['paths']['datawork']['archive_esa']
+scale_archive_esa_ifremer = conf['paths']['scale']['archive_esa']
+sats_acro = conf['satellites']['longnames']
 
 ADDITIONAL_ARCHIVES = {
     "datawork": datarmor_archive_esa_ifremer,
