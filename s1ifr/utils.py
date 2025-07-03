@@ -1,7 +1,10 @@
-import os
 import logging
+import os
+
 import yaml
+
 import s1ifr
+
 
 def load_config():
     """
@@ -9,17 +12,22 @@ def load_config():
     Returns:
         conf: dict
     """
-    local_config_path = os.path.join(os.path.dirname(s1ifr.__file__), 'localconfig.yml')
+    local_config_path = os.path.join(
+        os.path.dirname(s1ifr.__file__), "localconfig.yml"
+    )
 
     if os.path.exists(local_config_path):
         config_path = local_config_path
     else:
-        config_path = os.path.join(os.path.dirname(s1ifr.__file__), 'config.yml')
+        config_path = os.path.join(
+            os.path.dirname(s1ifr.__file__), "config.yml"
+        )
 
-    logging.info('config path: %s', config_path)
-    stream = open(config_path, 'r')
+    logging.info("config path: %s", config_path)
+    stream = open(config_path)
     conf = yaml.load(stream, Loader=yaml.CLoader)
     return conf
+
 
 def give_me_level_from_type(type_format: str) -> str:
     """
@@ -41,7 +49,7 @@ def dir_data(satellite_acronym: str) -> str:
     """
     config = load_config()
     # Access satellite and path info from the config dictionary
-    sat_long_name = config['satellites']['longnames'][satellite_acronym]
-    datarmor_esa_archive = config['paths']['datarmor']['archive_esa']
+    sat_long_name = config["satellites"]["longnames"][satellite_acronym]
+    datarmor_esa_archive = config["paths"]["datarmor"]["archive_esa"]
 
     return os.path.join(datarmor_esa_archive, sat_long_name)

@@ -1,9 +1,10 @@
+import logging
 import unittest
 from unittest.mock import patch
-import logging
 
 # Import the module we want to test
 from s1ifr import get_path_from_base_safe
+
 
 class TestGetPathFromBaseSafe(unittest.TestCase):
     """Unit tests for the get_path_from_base_safe.py module."""
@@ -17,14 +18,18 @@ class TestGetPathFromBaseSafe(unittest.TestCase):
         expected_basename = "S1A_IW_GRDH_1SDV_20220101T120000_..._1234.SAFE"
 
         # --- Act ---
-        result = get_path_from_base_safe.get_safe_basename_from_fullpath_measu(measurement_path)
+        result = get_path_from_base_safe.get_safe_basename_from_fullpath_measu(
+            measurement_path
+        )
 
         # --- Assert ---
         self.assertEqual(result, expected_basename)
 
-    @patch('s1ifr.get_path_from_base_safe.glob.glob')
-    @patch('s1ifr.get_path_from_base_safe.which_archive_dir')
-    def test_get_path_from_base_safe_simple_case(self, mock_which_archive_dir, mock_glob):
+    @patch("s1ifr.get_path_from_base_safe.glob.glob")
+    @patch("s1ifr.get_path_from_base_safe.which_archive_dir")
+    def test_get_path_from_base_safe_simple_case(
+        self, mock_which_archive_dir, mock_glob
+    ):
         """
         Should return the full path for a simple basename without wildcards.
         """
@@ -38,31 +43,44 @@ class TestGetPathFromBaseSafe(unittest.TestCase):
 
         # --- Assert ---
         self.assertEqual(result, expected_path)
-        mock_which_archive_dir.assert_called_once_with(safe_name, archive_name="datawork")
-        mock_glob.assert_not_called() # Glob should not be called if there's no wildcard
+        mock_which_archive_dir.assert_called_once_with(
+            safe_name, archive_name="datawork"
+        )
+        mock_glob.assert_not_called()  # Glob should not be called if there's no wildcard
 
-    @patch('s1ifr.get_path_from_base_safe.glob.glob')
-    @patch('s1ifr.get_path_from_base_safe.which_archive_dir')
-    def test_get_path_with_wildcard_finds_match(self, mock_which_archive_dir, mock_glob):
+    @patch("s1ifr.get_path_from_base_safe.glob.glob")
+    @patch("s1ifr.get_path_from_base_safe.which_archive_dir")
+    def test_get_path_with_wildcard_finds_match(
+        self, mock_which_archive_dir, mock_glob
+    ):
         """
         Should return the first matched file when a wildcard is used and a file is found.
         """
         # --- Arrange ---
         mock_which_archive_dir.return_value = "/fake/archive/path"
         # Simulate glob finding one or more files
-        mock_glob.return_value = ["/fake/archive/path/S1A_IW_SLC__1SDV_..._REAL_MATCH.SAFE", "/another/file"]
+        mock_glob.return_value = [
+            "/fake/archive/path/S1A_IW_SLC__1SDV_..._REAL_MATCH.SAFE",
+            "/another/file",
+        ]
         wildcard_name = "S1A_IW_SLC_*.SAFE"
 
         # --- Act ---
         result = get_path_from_base_safe.get_path_from_base_safe(wildcard_name)
 
         # --- Assert ---
-        self.assertEqual(result, "/fake/archive/path/S1A_IW_SLC__1SDV_..._REAL_MATCH.SAFE")
-        mock_glob.assert_called_once_with(f"/fake/archive/path/{wildcard_name}")
+        self.assertEqual(
+            result, "/fake/archive/path/S1A_IW_SLC__1SDV_..._REAL_MATCH.SAFE"
+        )
+        mock_glob.assert_called_once_with(
+            f"/fake/archive/path/{wildcard_name}"
+        )
 
-    @patch('s1ifr.get_path_from_base_safe.glob.glob')
-    @patch('s1ifr.get_path_from_base_safe.which_archive_dir')
-    def test_get_path_with_wildcard_finds_no_match(self, mock_which_archive_dir, mock_glob):
+    @patch("s1ifr.get_path_from_base_safe.glob.glob")
+    @patch("s1ifr.get_path_from_base_safe.which_archive_dir")
+    def test_get_path_with_wildcard_finds_no_match(
+        self, mock_which_archive_dir, mock_glob
+    ):
         """
         Should return the original path with the wildcard if no match is found.
         """
@@ -84,8 +102,10 @@ class TestGetPathFromBaseSafe(unittest.TestCase):
         # --- Assert ---
         self.assertEqual(result, expected_path_with_wildcard)
 
-    @patch('s1ifr.get_path_from_base_safe.which_archive_dir')
-    def test_get_path_handles_exception_from_which_archive_dir(self, mock_which_archive_dir):
+    @patch("s1ifr.get_path_from_base_safe.which_archive_dir")
+    def test_get_path_handles_exception_from_which_archive_dir(
+        self, mock_which_archive_dir
+    ):
         """
         Should return None if which_archive_dir raises an exception.
         """
@@ -98,10 +118,11 @@ class TestGetPathFromBaseSafe(unittest.TestCase):
         # Suppress the expected error log message
         logging.disable(logging.ERROR)
         result = get_path_from_base_safe.get_path_from_base_safe(safe_name)
-        logging.disable(logging.NOTSET) # Re-enable logging
+        logging.disable(logging.NOTSET)  # Re-enable logging
 
         # --- Assert ---
         self.assertIsNone(result)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

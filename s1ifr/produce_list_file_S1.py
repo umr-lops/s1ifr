@@ -16,14 +16,15 @@ from dateutil import rrule
 from tqdm import tqdm
 
 from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES
-# from s1ifr.shared_information import EXTENSIONS, sats_acro
 from s1ifr.utils import load_config
+
 conf = load_config()
-EXTENSIONS = conf['product_info']['extensions']
-sats_acro = conf['satellites']['acronyms']
+EXTENSIONS = conf["product_info"]["extensions"]
+sats_acro = conf["satellites"]["acronyms"]
 
 ERROR_DATES = "start date is > stop date"
 NB_NC = "number of netCDF found %s"
+
 
 def write_measurement_list(
     type,
