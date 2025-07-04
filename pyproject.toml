@@ -1,7 +1,7 @@
 [project]
 name = "s1ifr"
 requires-python = ">= 3.10"
-license = { text = "MIT" }
+license = "MIT"
 description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
 readme = "README.md"
 dependencies = ["numpy", "xarray", "lxml", 'tqdm', 'pandas']
@@ -20,7 +20,6 @@ keywords = [
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
@@ -49,6 +48,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["s1ifr"]
+
+#[tool.setuptools.packages.find]
+#where = ["s1ifr"]
 
 [tool.setuptools_scm]
 fallback_version = "999"
