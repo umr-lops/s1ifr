@@ -12,7 +12,6 @@ from collections import defaultdict
 
 import pandas as pd
 from tqdm import tqdm
-from xsarslc.filenaming import get_output_l1b_filepath  # prefered location
 
 import s1ifr
 from s1ifr.match_SLC_GRD import match_slc_grd
@@ -184,13 +183,16 @@ def add_L1C(df, versions=None, cpt=None, disable_tqdm=False) -> pd.DataFrame:
             if versionl1c_complete not in path_l1c:
                 path_l1c[versionl1c_complete] = []
             for out in dir_outs_l1c:
-                valuepathl1c = get_output_l1b_filepath(
-                    fp + ":IW1", outputdir=out, productid=versionl1c
-                )
-                if os.path.exists(os.path.dirname(valuepathl1c)):
+                #valuepathl1c = get_output_l1b_filepath(
+                #    fp + ":IW1", outputdir=out, productid=versionl1c
+                #)
+                safel1c = get_output_l1b_safe(
+                       fp, outputdir=out, productid=versionl1c)
+
+                if os.path.exists(safel1c):
                     cpt["L1C_" + versionl1c + "_found"] += 1
                     path_l1c[versionl1c_complete].append(
-                        os.path.dirname(valuepathl1c)
+                        safel1c
                     )
                     l1c_found = True
                     l1c_found_version_span = True
@@ -410,6 +412,8 @@ if __name__ == "__main__":
     # drop empty columns:
     newdf = newdf.loc[:, (newdf != "").any()]
     newdf.to_csv(fout, header=True, index=True)
-
+    
     logging.info("output file: %s", fout)
-    print(newdf)
+    import pdb
+    pdb.set_trace()
+    #print(newdf)
