@@ -16,6 +16,8 @@ from s1ifr.utils import load_config
 conf = load_config()
 sats_acro = conf["satellites"]["longnames"]
 
+DATE_FORMAT_MEASU = '%Y%m%dt%H%M%S'
+
 def get_full_path_from_measu(measurement, storage='datawork')->str:
     """
     to get the full path in ifremer archive of given measurement
@@ -43,7 +45,7 @@ def get_full_path_from_measu(measurement, storage='datawork')->str:
         processing = sat.upper() + '_' + mode + '_' + processing.upper() + '*_1S'
     fullsat = sats_acro[sat.upper()]
     root = os.path.join(conf['paths'][storage]['archive_esa'], fullsat)
-    datestart = datetime.datetime.strptime(measurement.split('-')[5], '%Y%m%dt%H%M%S')
+    datestart = datetime.datetime.strptime(measurement.split('-')[5], DATE_FORMAT_MEASU)
     date_before = datestart - datetime.timedelta(days=1)
     year = datestart.strftime('%Y')
     doy = datestart.strftime('%j')
@@ -99,7 +101,7 @@ def get_full_path_from_beg_measu(piece_base_measu, return_pattern_when_no_match=
         processing = sat.upper() + '_' + mode + '_' + processing.upper() + '__1S'
     else:
         processing = sat.upper() + '_' + mode + '_' + processing.upper() + '*_1S'
-    datestart = datetime.datetime.strptime(piece_base_measu.split('-')[4], '%Y%m%dt%H%M%S')
+    datestart = datetime.datetime.strptime(piece_base_measu.split('-')[4], DATE_FORMAT_MEASU)
     year = datestart.strftime('%Y')
     doy = datestart.strftime('%j')
     #     cycle = piece_base_measu.split('-')[6].upper()
@@ -157,7 +159,7 @@ def get_full_path_ocn_wv_from_approximate_date(datedt, sat, level='L2',storage='
         doy = curdt.strftime('%j')
         final = os.path.join(root, level, mode, processing, year, doy,
                              processing + '*' + curdt.strftime('%Y%m%dT') + '*SAFE', 'measurement',
-                             sat.lower() + '-wv*-' + prodtype + '-*-' + curdt.strftime('%Y%m%dt%H%M%S') + '*t*' + ext)
+                             sat.lower() + '-wv*-' + prodtype + '-*-' + curdt.strftime(DATE_FORMAT_MEASU) + '*t*' + ext)
         # logging.debug('test %s',final)
         potential = glob.glob(final)
         # logging.debug('potential nb = %s',len(potential))
@@ -179,7 +181,7 @@ def get_full_path_with_safe_and_measu(safebase, measu_base,storage='datawork'):
     """
     sat = measu_base[0:3].upper()
     prodtype = measu_base.split('-')[2]
-    datedt = datetime.datetime.strptime(measu_base.split('-')[4], '%Y%m%dt%H%M%S')
+    datedt = datetime.datetime.strptime(measu_base.split('-')[4], DATE_FORMAT_MEASU)
     # root = os.path.join(datarmor_archive_esa_ifremer, sats_acro[sat.upper()])
     root = os.path.join(conf['paths'][storage]['archive_esa'], sats_acro[sat.upper()])
     mode = 'WV'
@@ -247,7 +249,7 @@ if __name__ == '__main__':
             print('res,', get_full_path_from_measu(measurement))
 
     elif args.which == 'date':
-        res = get_full_path_ocn_wv_from_approximate_date(datetime.datetime.strptime(args.date, '%Y%m%dt%H%M%S'),
+        res = get_full_path_ocn_wv_from_approximate_date(datetime.datetime.strptime(args.date, DATE_FORMAT_MEASU),
                                                          args.sat, level=args.level)
         print(res)
     else:
