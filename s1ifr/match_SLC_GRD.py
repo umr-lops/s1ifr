@@ -17,6 +17,9 @@ def core_find(fp, minimal_time_diff, res_base, startdate):
         minimal_time_diff: int in seconds
         res_base: str radical of the SAFE pattern to replace in original SAFE
         startdate: datetime.datime of the input product
+
+    Returns
+        goodsafe str or None, full path of the SAFE if found otherwise None
     """
     mini_ecart = datetime.timedelta(seconds=15)
     goodsafe = None
@@ -49,7 +52,7 @@ def match_slc_grd(
     params: minimal_time_diff int in seconds
 
     returns
-        goodsafe str or None, path of the SAFE if found otherwise None
+        goodsafe str or None, full path of the SAFE if found otherwise None
     """
     res = safenameslc.replace(type_input, type_seek)
     obj = ExplodeSAFE(res)

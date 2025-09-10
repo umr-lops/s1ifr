@@ -9,7 +9,7 @@ import logging
 import os
 import re
 from collections import defaultdict
-
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -330,7 +330,7 @@ def add_SLC(df, cpt=None):
 
 
 def get_products_family(
-    df, l1bversions=None, disable_tqdm=False
+    df, l1bversions=None,l1cversions=None, disable_tqdm=False
 ) -> pd.DataFrame:
     """
     wrapper method to add Level-1B , Level-1C and Level-2 WAV paths associated to initial SAFE
@@ -338,6 +338,7 @@ def get_products_family(
     Args:
         df: pandas.DataFrame
         l1bversions: list of str ['A12'] for instance [optional]
+        l1cversions : list of str ['B17'] for instance [optional]
         disable_tqdm: bool
     Returns:
         df: pandas.DataFrame with new columns
@@ -349,7 +350,7 @@ def get_products_family(
     df, cpt = add_L1B(
         df, cpt=cpt, versions=l1bversions, disable_tqdm=disable_tqdm
     )
-    df, cpt = add_L1C(df, cpt=cpt, disable_tqdm=disable_tqdm)
+    df, cpt = add_L1C(df, cpt=cpt, versions=l1cversions, disable_tqdm=disable_tqdm)
     df, cpt = add_L2WAV(df, versions=None, cpt=cpt, disable_tqdm=disable_tqdm)
     logging.info("\n=====================================\n")
     for kee in cpt:
@@ -390,6 +391,13 @@ if __name__ == "__main__":
         required=False,
         default=None,
     )
+    parser.add_argument(
+        "--l1cversions",
+        nargs="+",
+        help="Provide one or more L1C versions B17 B18 ...",
+        required=False,
+        default=None,
+    )
     args = parser.parse_args()
     fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
     if args.verbose:
@@ -402,7 +410,8 @@ if __name__ == "__main__":
         )
     merged_df = pd.read_csv(args.listing, names=["L1_SLC"])
     logging.debug("L1B versions %s", args.l1bversions)
-    newdf = get_products_family(merged_df, l1bversions=args.l1bversions)
+    logging.debug("L1C versions %s", args.l1cversions)
+    newdf = get_products_family(merged_df, l1bversions=args.l1bversions,l1cversions=args.l1cversions)
     fout = os.path.join(
         args.outputdir,
         "product_family_{}.csv".format(
@@ -414,6 +423,8 @@ if __name__ == "__main__":
     newdf.to_csv(fout, header=True, index=True)
     
     logging.info("output file: %s", fout)
+    print(newdf.keys())
+    print("example of command to execute \n serii = newdf['L1B_XSP_A23'].where(newdf['L1B_XSP_A23'].str.strip() != '', np.nan) \n serii.dropna().to_csv('/home/datawork-cersat-public/project/sarwave/data/listings/swot_colocated_IW_L1B_XSP_A23_safe_sentinel1_present_at_ifremer_2025-08-28_sdv_only.csv',header=False,index=False) ")
     import pdb
     pdb.set_trace()
     #print(newdf)
