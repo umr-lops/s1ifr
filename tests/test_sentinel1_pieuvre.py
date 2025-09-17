@@ -38,3 +38,4 @@ class TestFinalizeArchiving(unittest.TestCase):
             ziptype=".zip",
             archive_name="my_archive",
         )
+        print(result)
