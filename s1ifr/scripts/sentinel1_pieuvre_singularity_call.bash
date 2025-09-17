@@ -14,5 +14,5 @@ linewithoptions="$1 $2 $3 $4"
 echo 'options: '$linewithoptions
 echo 'command '$cmd
 echo 'img '$img
-singularity run --bind /home/datawork-cersat-public/ --bind /home1/datahome/ --bind /home1/scratch/ $img $cmd $linewithoptions
+singularity run --bind /home/datawork-cersat-public/ --bind /home1/datahome/ --bind /home1/scratch/ --bind /scale/project/lops-siam-sentinel1-workbench/ $img $cmd $linewithoptions
 echo done
