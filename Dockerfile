@@ -43,7 +43,11 @@ SHELL ["micromamba", "shell", "init", "--shell", "bash", "--root-prefix=~/.local
 SHELL ["source", "~/.bashrc"]
 SHELL ["micromamba", "activate", "/opt/app-s1ifr/envs/envs1ifr"]
 SHELL ["micromamba", "run", "-p", "/opt/app-s1ifr/envs/envs1ifr", "/bin/bash", "-c"]
-COPY s1ifr/localconfig.yml /opt/app-s1ifr/envs/envs1ifr/lib/python3.12/site-packages/s1ifr/localconfig.yml
+# Copy localconfig file
+# COPY s1ifr/localconfig.yml /opt/app-s1ifr/envs/envs1ifr/lib/python3.12/site-packages/s1ifr/localconfig.yml
+RUN if [ -f s1ifr/localconfig.yml ]; then \
+      cp s1ifr/localconfig.yml /opt/app-s1ifr/envs/envs1ifr/lib/python3.12/site-packages/s1ifr/localconfig.yml; \
+    fi
 ENV PATH /opt/app-s1ifr/envs/envs1ifr/bin:$PATH
 # another trick test to make sure the micromamba env will be set as default
 #RUN echo "micromamba activate /opt/app-s1ifr/envs/envs1ifr" > ~/.bashrc
