@@ -9,7 +9,7 @@ import logging
 import os
 import re
 from collections import defaultdict
-import numpy as np
+
 import pandas as pd
 from tqdm import tqdm
 
@@ -183,17 +183,16 @@ def add_L1C(df, versions=None, cpt=None, disable_tqdm=False) -> pd.DataFrame:
             if versionl1c_complete not in path_l1c:
                 path_l1c[versionl1c_complete] = []
             for out in dir_outs_l1c:
-                #valuepathl1c = get_output_l1b_filepath(
+                # valuepathl1c = get_output_l1b_filepath(
                 #    fp + ":IW1", outputdir=out, productid=versionl1c
-                #)
+                # )
                 safel1c = get_output_l1b_safe(
-                       fp, outputdir=out, productid=versionl1c)
+                    fp, outputdir=out, productid=versionl1c
+                )
 
                 if os.path.exists(safel1c):
                     cpt["L1C_" + versionl1c + "_found"] += 1
-                    path_l1c[versionl1c_complete].append(
-                        safel1c
-                    )
+                    path_l1c[versionl1c_complete].append(safel1c)
                     l1c_found = True
                     l1c_found_version_span = True
                     break  # break loop on directories
@@ -330,7 +329,7 @@ def add_SLC(df, cpt=None):
 
 
 def get_products_family(
-    df, l1bversions=None,l1cversions=None, disable_tqdm=False
+    df, l1bversions=None, l1cversions=None, disable_tqdm=False
 ) -> pd.DataFrame:
     """
     wrapper method to add Level-1B , Level-1C and Level-2 WAV paths associated to initial SAFE
@@ -350,7 +349,9 @@ def get_products_family(
     df, cpt = add_L1B(
         df, cpt=cpt, versions=l1bversions, disable_tqdm=disable_tqdm
     )
-    df, cpt = add_L1C(df, cpt=cpt, versions=l1cversions, disable_tqdm=disable_tqdm)
+    df, cpt = add_L1C(
+        df, cpt=cpt, versions=l1cversions, disable_tqdm=disable_tqdm
+    )
     df, cpt = add_L2WAV(df, versions=None, cpt=cpt, disable_tqdm=disable_tqdm)
     logging.info("\n=====================================\n")
     for kee in cpt:
@@ -411,7 +412,9 @@ if __name__ == "__main__":
     merged_df = pd.read_csv(args.listing, names=["L1_SLC"])
     logging.debug("L1B versions %s", args.l1bversions)
     logging.debug("L1C versions %s", args.l1cversions)
-    newdf = get_products_family(merged_df, l1bversions=args.l1bversions,l1cversions=args.l1cversions)
+    newdf = get_products_family(
+        merged_df, l1bversions=args.l1bversions, l1cversions=args.l1cversions
+    )
     fout = os.path.join(
         args.outputdir,
         "product_family_{}.csv".format(
@@ -421,10 +424,13 @@ if __name__ == "__main__":
     # drop empty columns:
     newdf = newdf.loc[:, (newdf != "").any()]
     newdf.to_csv(fout, header=True, index=True)
-    
+
     logging.info("output file: %s", fout)
     print(newdf.keys())
-    print("example of command to execute \n serii = newdf['L1B_XSP_A23'].where(newdf['L1B_XSP_A23'].str.strip() != '', np.nan) \n serii.dropna().to_csv('/home/datawork-cersat-public/project/sarwave/data/listings/swot_colocated_IW_L1B_XSP_A23_safe_sentinel1_present_at_ifremer_2025-08-28_sdv_only.csv',header=False,index=False) ")
+    print(
+        "example of command to execute \n serii = newdf['L1B_XSP_A23'].where(newdf['L1B_XSP_A23'].str.strip() != '', np.nan) \n serii.dropna().to_csv('/home/datawork-cersat-public/project/sarwave/data/listings/swot_colocated_IW_L1B_XSP_A23_safe_sentinel1_present_at_ifremer_2025-08-28_sdv_only.csv',header=False,index=False) "
+    )
     import pdb
+
     pdb.set_trace()
-    #print(newdf)
+    # print(newdf)
