@@ -20,6 +20,7 @@ sats_acro = conf["satellites"]["longnames"]
 
 DATE_FORMAT_MEASU = "%Y%m%dt%H%M%S"
 
+prodtype_levels = {'OCN':'2','SLC':'1','GRDH':'1','GRDM':'1','GRDF':'1','GRD':'1'}
 
 def get_full_path_from_measu(measurement, storage="datawork") -> str:
     """
@@ -36,22 +37,14 @@ def get_full_path_from_measu(measurement, storage="datawork") -> str:
     else:
         mode = mode.upper()
     processing = measurement.split("-")[2].upper()
-    if processing in ["OCN"]:
-        level = "L2"
+    print('processing',processing)
+    level = "L"+prodtype_levels.get(processing,'1')
+    if processing == 'GRD':
+        processing_4digits = processing.upper()+'*'
     else:
-        level = "L1"
-    if processing in ["OCN"]:
-        processing = (
-            sat.upper() + "_" + mode + "_" + processing.upper() + "__2S"
-        )
-    elif processing in ["SLC"]:
-        processing = (
-            sat.upper() + "_" + mode + "_" + processing.upper() + "__1S"
-        )
-    else:
-        processing = (
-            sat.upper() + "_" + mode + "_" + processing.upper() + "*_1S"
-        )
+        processing_4digits = processing.upper().ljust(4, "_")
+    complete_processing = sat.upper() + "_" + mode + "_" + processing_4digits + "_"+prodtype_levels[processing]+"S"
+
     fullsat = sats_acro[sat.upper()]
     root = os.path.join(conf["paths"][storage]["archive_esa"], fullsat)
     datestart = datetime.datetime.strptime(
@@ -62,8 +55,6 @@ def get_full_path_from_measu(measurement, storage="datawork") -> str:
     doy = datestart.strftime("%j")
     cycle = measurement.split("-")[6].upper()
     aquicistion_id = measurement.split("-")[7].upper()
-    #     product_uniq = measurement.split('-')[8].replace('.tiff','').replace('.nc','').upper()
-    # S1A_WV_OCN__2SSV_20150911T122006_20150911T124054_007667_00AA41_E869.SAFE
     safe = (
         sat.upper()
         + "_"
@@ -80,7 +71,7 @@ def get_full_path_from_measu(measurement, storage="datawork") -> str:
         root,
         level,
         mode,
-        processing,
+        complete_processing,
         year,
         doy,
         safe,
@@ -100,7 +91,7 @@ def get_full_path_from_measu(measurement, storage="datawork") -> str:
             root,
             level,
             mode,
-            processing,
+            complete_processing,
             year,
             doy,
             safe,
@@ -119,75 +110,6 @@ def get_full_path_from_measu(measurement, storage="datawork") -> str:
     else:
         reso = res[0]
     return reso
-
-
-def get_full_path_from_beg_measu(
-    piece_base_measu, return_pattern_when_no_match=False, storage="datawork"
-):
-    """
-    context: to be used to get the fullpath from the 32 char given in output of WW3
-    ex: s1a-wv2-slc-vv-20160501t011151-2 (need at least the basename from 's1' up to startdate )
-    """
-    reso = None
-    sat = piece_base_measu[0:3]
-
-    fullsat = sats_acro[sat.upper()]
-    root = os.path.join(conf["paths"][storage]["archive_esa"], fullsat)
-    mode = piece_base_measu.split("-")[1][0:2]
-    if mode[0] == "s":
-        mode = "SM"
-    else:
-        mode = mode.upper()
-    processing = piece_base_measu.split("-")[2].upper()
-    if processing in ["OCN"]:
-        level = "L2"
-    else:
-        level = "L1"
-    if processing in ["OCN"]:
-        processing = (
-            sat.upper() + "_" + mode + "_" + processing.upper() + "__2S"
-        )
-    elif processing in ["SLC"]:
-        processing = (
-            sat.upper() + "_" + mode + "_" + processing.upper() + "__1S"
-        )
-    else:
-        processing = (
-            sat.upper() + "_" + mode + "_" + processing.upper() + "*_1S"
-        )
-    datestart = datetime.datetime.strptime(
-        piece_base_measu.split("-")[4], DATE_FORMAT_MEASU
-    )
-    year = datestart.strftime("%Y")
-    doy = datestart.strftime("%j")
-    #     cycle = piece_base_measu.split('-')[6].upper()
-    #     aquicistion_id = piece_base_measu.split('-')[7].upper()
-    #     product_uniq = piece_base_measu.split('-')[8].replace('.tiff','').replace('.nc','').upper()
-    # S1A_WV_OCN__2SSV_20150911T122006_20150911T124054_007667_00AA41_E869.SAFE
-    safe = sat.upper() + "_" + mode + "_" + processing[7:] + "*.SAFE"
-    final = os.path.join(
-        root,
-        level,
-        mode,
-        processing,
-        year,
-        doy,
-        safe,
-        "measurement",
-        piece_base_measu + "*",
-    )
-    logging.debug("proposition full path : %s", final)
-    res = glob.glob(final)
-    if res == []:
-        logging.info(
-            "cannot find the fullpath of this measurement, very strange...."
-        )
-        if return_pattern_when_no_match:
-            reso = final
-    else:
-        reso = res[0]
-    return reso
-
 
 def get_full_path_ocn_wv_from_approximate_date(
     datedt, sat, level="L2", storage="datawork", nb_seconds_delta=3
@@ -222,8 +144,6 @@ def get_full_path_ocn_wv_from_approximate_date(
         processing = sat.upper() + "_" + mode + "_SLC__1S"
         prodtype = "slc"
         ext = ".tiff"
-
-    # for ssec in range(-2,2):
     ssec = -nb_seconds_delta
     while ssec <= nb_seconds_delta and reso is None:
         curdt = datedt + datetime.timedelta(seconds=ssec)
@@ -260,19 +180,19 @@ def get_full_path_ocn_wv_from_approximate_date(
 
 def get_full_path_with_safe_and_measu(
     safebase, measu_base, storage="datawork"
-):
+)->str:
     """
     used when inputs are coming from the json of datavore xwave quicklook request
     :param safebase:
     :param measu_base:
     :return:
+        finalpath: str full path of the measurement
     """
     sat = measu_base[0:3].upper()
     prodtype = measu_base.split("-")[2]
     datedt = datetime.datetime.strptime(
         measu_base.split("-")[4], DATE_FORMAT_MEASU
     )
-    # root = os.path.join(datarmor_archive_esa_ifremer, sats_acro[sat.upper()])
     root = os.path.join(
         conf["paths"][storage]["archive_esa"], sats_acro[sat.upper()]
     )
@@ -319,7 +239,6 @@ if __name__ == "__main__":
             subcmd, help=f"{chco[subcmd]}"
         )
         dico_subparsers[subcmd].set_defaults(which=subcmd)
-    #     dico_subparsers['GEN'] = subparsers.add_parser('GEN', help='generate the netcdf from trackfile (old procedure) ')
     dico_subparsers["date"].add_argument(
         "--date", type=str, help="YYYYmmddtHHMMSS"
     )
