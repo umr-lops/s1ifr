@@ -36,12 +36,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+
 # Ensure shell uses the correct environment
 SHELL ["/bin/bash", "-c"]
 SHELL ["micromamba", "shell", "init", "--shell", "bash", "--root-prefix=~/.local/share/mamba"]
 SHELL ["source", "~/.bashrc"]
 SHELL ["micromamba", "activate", "/opt/app-s1ifr/envs/envs1ifr"]
 SHELL ["micromamba", "run", "-p", "/opt/app-s1ifr/envs/envs1ifr", "/bin/bash", "-c"]
+COPY s1ifr/localconfig.yml /opt/app-s1ifr/envs/envs1ifr/lib/python3.12/site-packages/s1ifr/localconfig.yml
 ENV PATH /opt/app-s1ifr/envs/envs1ifr/bin:$PATH
 # another trick test to make sure the micromamba env will be set as default
 #RUN echo "micromamba activate /opt/app-s1ifr/envs/envs1ifr" > ~/.bashrc
