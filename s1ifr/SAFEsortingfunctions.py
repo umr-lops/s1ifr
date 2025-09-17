@@ -88,13 +88,12 @@ def which_spool_dir(safe=None, archive="datawork"):
 def whichquarantinedir(archive="datawork"):
     """
     Args:
-        archive (str):
+        archive (str): [optionnal]
+    Returns:
+        str: path of the quarantine directory
     """
-    # res = quarantine_s1[archive]
-    res = quarantine_s1[
-        "datawork"
-    ]  # I want the quarantine to be always on datawork even for product fetch to scale
-    return res
+    # I want the quarantine to be always on datawork even for product fetch to scale
+    return quarantine_s1 
 
 
 if __name__ == "__main__":
