@@ -21,7 +21,7 @@ from s1ifr.utils import load_config
 conf = load_config()
 EXTENSIONS = conf["product_info"]["extensions"]
 sats_acro = conf["satellites"]["acronyms"]
-
+sats_long = conf["satellites"]["longnames"]
 ERROR_DATES = "start date is > stop date"
 NB_NC = "number of netCDF found %s"
 
@@ -148,9 +148,9 @@ def list_safe_s1_ifr_fs(
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     logpath = None
     logging.debug("root_archive : %s", root_archive)
-    logging.debug("sats_acro[satellite] %s", sats_acro[satellite])
+    logging.debug("sats_long[satellite] %s", sats_long[satellite])
     logging.debug("level: %s", level)
-    repdata = os.path.join(root_archive, sats_acro[satellite], level + "/")
+    repdata = os.path.join(root_archive, sats_long[satellite], level + "/")
     logging.debug("repdata= %s", repdata)
     logging.debug("mode=%s", mode)
     list_safe = []
@@ -329,7 +329,8 @@ def find_s1_measurement_between_2_dates(
     netcdf_list = []
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
     satellite = product_type[0:3]
-    fs = sats_acro[satellite]
+    # fs = sats_acro[satellite]
+    fs = sats_long[satellite]
     logging.debug("full satellite unit name :%s", fs)
     mode = product_type.split("_")[1]
     level = "L" + product_type[-2:-1]
@@ -421,7 +422,7 @@ def findtifffromdaybefore(
     else:
         modes = [mode]
     root_archive = ADDITIONAL_ARCHIVES[archive_name]
-    sat_dir = sats_acro[satellite]
+    sat_dir = sats_long[satellite]
     rep_data = os.path.join(root_archive, sat_dir, "L1/")
     ext = "tiff"
     product_type = "1S"
@@ -646,7 +647,7 @@ def main():
             tiff_list = find_sar_tiff_between_2_dates(
                 startdt,
                 stopdt,
-                sats_acro[args.satellite],
+                sats_long[args.satellite],
                 [args.mode],
                 archive_name=archive_name,
                 processing_format=args.format,
@@ -656,13 +657,13 @@ def main():
             netcdf_list = find_netcdf_between_2_dates(
                 startdt,
                 stopdt,
-                sats_acro[args.satellite],
+                sats_long[args.satellite],
                 args.mode,
                 archive_name=archive_name,
             )
             logging.info("Nber of measurement: %s", len(netcdf_list))
     elif args.usage == "write_measurment_list":
-        sat_dir = sats_acro[args.satellite]
+        sat_dir = sats_long[args.satellite]
         root_archive = ADDITIONAL_ARCHIVES[archive_name]
         rep_data = os.path.join(root_archive, sat_dir, args.level)
         write_measurement_list(
