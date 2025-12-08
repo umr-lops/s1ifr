@@ -37,7 +37,6 @@ def get_full_path_from_measu(measurement, storage="datawork") -> str:
     else:
         mode = mode.upper()
     processing = measurement.split("-")[2].upper()
-    print('processing',processing)
     level = "L"+prodtype_levels.get(processing,'1')
     if processing == 'GRD':
         processing_4digits = processing.upper()+'*'
