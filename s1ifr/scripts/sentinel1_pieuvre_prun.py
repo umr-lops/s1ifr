@@ -89,7 +89,7 @@ def main():
     opts = " --split-max-jobs=700 --background -e "
     # py2 = "/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python "
     py2 = "/home1/datawork/satwave/miniconda3_v2/envs/download_s1_scihub_py2.7/bin/python"
-    cmd = py2 + prunexe + opts + pbs + " " + ontheflymodifiedlisting
+    cmd = py2+ ' ' + prunexe + opts + pbs + " " + ontheflymodifiedlisting
     logging.info("cmd to cast = %s", cmd)
     st = subprocess.check_call(cmd, shell=True)
     logging.info("status cmd = %s", st)
