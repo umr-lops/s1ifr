@@ -335,7 +335,7 @@ def get_products_family(
     wrapper method to add Level-1B , Level-1C and Level-2 WAV paths associated to initial SAFE
 
     Args:
-        df: pandas.DataFrame
+        df: pandas.DataFrame with 'L1_SLC' column filled with SAFE paths
         l1bversions: list of str ['A12'] for instance [optional]
         l1cversions : list of str ['B17'] for instance [optional]
         disable_tqdm: bool
