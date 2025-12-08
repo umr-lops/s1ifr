@@ -93,7 +93,7 @@ def whichquarantinedir(archive="datawork"):
         str: path of the quarantine directory
     """
     # I want the quarantine to be always on datawork even for product fetch to scale
-    return quarantine_s1 
+    return quarantine_s1
 
 
 if __name__ == "__main__":

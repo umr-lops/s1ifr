@@ -8,7 +8,7 @@ from s1ifr.explodesafename import ExplodeSAFE
 from s1ifr.get_path_from_base_safe import get_path_from_base_safe
 
 
-def core_find(fp, minimal_time_diff, res_base, startdate):
+def core_find(fp, minimal_time_diff, res_base, startdate) -> str:
     """
     return the safe if it exists at Ifremer otherwise None
 
@@ -21,7 +21,7 @@ def core_find(fp, minimal_time_diff, res_base, startdate):
     Returns
         goodsafe str or None, full path of the SAFE if found otherwise None
     """
-    mini_ecart = datetime.timedelta(seconds=15)
+    mini_ecart = datetime.timedelta(seconds=15)  # default large value
     goodsafe = None
     base = os.path.basename(fp)
     pattern = fp.replace(base, res_base)
@@ -46,7 +46,7 @@ def match_slc_grd(
     """
     return the safe if it exists at Ifremer otherwise None
 
-    params: safenameslc str
+    params: safenameslc str base safe
     params: type_input str 'SLC_' or 'GRDH'
     params: type_seek str 'GRDH' or 'SLC_'
     params: minimal_time_diff int in seconds

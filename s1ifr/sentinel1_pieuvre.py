@@ -316,7 +316,7 @@ def sort_one_safe(
         logging.info(
             "final path where the product is stored : %s", final_place
         )
-    logging.debug("final flag: %s", doom_flag)
+    logging.info("final flag: %s", doom_flag)
     logging.info("final path where the product is stored : %s", final_place)
     return doom_flag, cpt_dupli
 

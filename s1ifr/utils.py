@@ -24,7 +24,7 @@ def load_config():
         )
 
     logging.info("config path: %s", config_path)
-    print('config path:',config_path)
+    print("config path:", config_path)
     stream = open(config_path)
     conf = yaml.load(stream, Loader=yaml.CLoader)
     return conf

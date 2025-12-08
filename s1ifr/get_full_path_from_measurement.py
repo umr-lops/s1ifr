@@ -20,7 +20,15 @@ sats_acro = conf["satellites"]["longnames"]
 
 DATE_FORMAT_MEASU = "%Y%m%dt%H%M%S"
 
-prodtype_levels = {'OCN':'2','SLC':'1','GRDH':'1','GRDM':'1','GRDF':'1','GRD':'1'}
+prodtype_levels = {
+    "OCN": "2",
+    "SLC": "1",
+    "GRDH": "1",
+    "GRDM": "1",
+    "GRDF": "1",
+    "GRD": "1",
+}
+
 
 def get_full_path_from_measu(measurement, storage="datawork") -> str:
     """
@@ -37,13 +45,21 @@ def get_full_path_from_measu(measurement, storage="datawork") -> str:
     else:
         mode = mode.upper()
     processing = measurement.split("-")[2].upper()
-    print('processing',processing)
-    level = "L"+prodtype_levels.get(processing,'1')
-    if processing == 'GRD':
-        processing_4digits = processing.upper()+'*'
+    level = "L" + prodtype_levels.get(processing, "1")
+    if processing == "GRD":
+        processing_4digits = processing.upper() + "*"
     else:
         processing_4digits = processing.upper().ljust(4, "_")
-    complete_processing = sat.upper() + "_" + mode + "_" + processing_4digits + "_"+prodtype_levels[processing]+"S"
+    complete_processing = (
+        sat.upper()
+        + "_"
+        + mode
+        + "_"
+        + processing_4digits
+        + "_"
+        + prodtype_levels[processing]
+        + "S"
+    )
 
     fullsat = sats_acro[sat.upper()]
     root = os.path.join(conf["paths"][storage]["archive_esa"], fullsat)
@@ -110,6 +126,7 @@ def get_full_path_from_measu(measurement, storage="datawork") -> str:
     else:
         reso = res[0]
     return reso
+
 
 def get_full_path_ocn_wv_from_approximate_date(
     datedt, sat, level="L2", storage="datawork", nb_seconds_delta=3
@@ -180,7 +197,7 @@ def get_full_path_ocn_wv_from_approximate_date(
 
 def get_full_path_with_safe_and_measu(
     safebase, measu_base, storage="datawork"
-)->str:
+) -> str:
     """
     used when inputs are coming from the json of datavore xwave quicklook request
     :param safebase:
