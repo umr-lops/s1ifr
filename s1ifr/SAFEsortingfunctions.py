@@ -63,7 +63,6 @@ def which_archive_dir(safe, archive_name="datawork"):
         ):
             # new storage for TOPS OCN managed by CERSAT Dec 2025
             logging.debug("new storage for TOPS OCN managed by CERSAT")
-            datawork_provider
             gooddir = os.path.join(
                 datawork_provider.format(satellite=sat_letter.lower()),
                 litlerep.lower(),
