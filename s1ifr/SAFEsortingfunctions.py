@@ -56,12 +56,19 @@ def which_archive_dir(safe, archive_name="datawork"):
         repdata = ADDITIONAL_ARCHIVES[archive_name]
         subname = safe[6:14]
         litlerep = sat + "_" + acqui + subname
-        if (mode=='IW' or mode=='EW') and subproddir == "L2" and sat_letter=='A':
+        if (
+            (mode == "IW" or mode == "EW")
+            and subproddir == "L2"
+            and sat_letter == "A"
+        ):
             # new storage for TOPS OCN managed by CERSAT Dec 2025
             logging.debug("new storage for TOPS OCN managed by CERSAT")
             datawork_provider
             gooddir = os.path.join(
-                datawork_provider.format(satellite=sat_letter.lower()), litlerep.lower(), year, doy + "/"
+                datawork_provider.format(satellite=sat_letter.lower()),
+                litlerep.lower(),
+                year,
+                doy + "/",
             )
         else:
             gooddir = os.path.join(
@@ -116,10 +123,12 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     test = "S1A_IW_RAW__0SDV_20140526T145627_20140526T145655_000770_000BAE_BC53.SAFE"
     # test = 'S1A_IW_OCN__2SSH_20220512T035031_20220512T035056_043172_0527ED_2612.SAFE'
-    test = 'S1C_WV_SLC__1SSV_20250124T170604_20250124T171016_000725_000941_3B92.SAFE'
+    test = "S1C_WV_SLC__1SSV_20250124T170604_20250124T171016_000725_000941_3B92.SAFE"
     print(test)
     print("spool", which_spool_dir(test))
     tmp = which_archive_dir(test)
     print("archive", tmp)
-    assert os.path.exists(os.path.join(tmp,test)), "SAFE %s does not exist" % os.path.join(tmp,test)
-    print('success', os.path.join(tmp, test))
+    assert os.path.exists(
+        os.path.join(tmp, test)
+    ), f"SAFE {os.path.join(tmp, test)} does not exist"
+    print("success", os.path.join(tmp, test))

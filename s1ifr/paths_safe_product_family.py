@@ -9,7 +9,7 @@ import logging
 import os
 import re
 from collections import defaultdict
-import numpy as np
+
 import pandas as pd
 from tqdm import tqdm
 
@@ -90,10 +90,11 @@ def add_L1B(df, cpt=None, versions=None, disable_tqdm=False):
         cpt = defaultdict(int)
 
     L1B_found = {}
+    # loop over all SLC SAFE
     for xx in tqdm(range(len(df["L1_SLC"])), disable=disable_tqdm):
         ii = df["L1_SLC"].iloc[xx]
         assert isinstance(ii, str)
-
+        # get full path of SLC SAFE
         if "/" not in ii:
 
             fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
@@ -109,9 +110,10 @@ def add_L1B(df, cpt=None, versions=None, disable_tqdm=False):
         cpt["total_safe_slc"] += 1
         if fp != "" and fp is not None and os.path.exists(fp):
             cpt["total_safe_slc_avail_at_ifr"] += 1
+            # loop over versions of L1B XSP
             for pid in versions:  # ,'A15'
-                l1b_found_version_span = False
                 found_version = False
+                # loop over output directories for a given version
                 for out in dir_outs_l1b:
                     if pid not in L1B_found:
                         L1B_found[pid] = []
@@ -128,12 +130,12 @@ def add_L1B(df, cpt=None, versions=None, disable_tqdm=False):
                         pass
                 if found_version is True:
                     # logging.debug('break loop')
-                    
+
                     L1B_found[pid].append(safel1b)
                 else:
                     cpt["L1B_" + pid + "_absent"] += 1
                     L1B_found[pid].append("")
-                
+
         else:
             cpt["SLC_absent"] += 1
         if found is True:
@@ -146,7 +148,11 @@ def add_L1B(df, cpt=None, versions=None, disable_tqdm=False):
     L1B_found = pd.DataFrame(L1B_found)
     for uu in L1B_found:
         sumnotnull = (L1B_found[uu] != "").sum()
-        pct = sumnotnull / cpt['total_safe_slc'] * 100 if cpt['total_safe_slc']>0 else 0
+        pct = (
+            sumnotnull / cpt["total_safe_slc"] * 100
+            if cpt["total_safe_slc"] > 0
+            else 0
+        )
         logging.info(
             "version: %s -> %i safe found (%.1f%%)", uu, sumnotnull, pct
         )

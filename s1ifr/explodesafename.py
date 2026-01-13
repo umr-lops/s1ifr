@@ -8,8 +8,8 @@
 
 import datetime
 import logging
-import sys
 import re
+import sys
 
 fields = [
     "satellite",
@@ -51,7 +51,9 @@ class ExplodeSAFE:
             )
             m = re.match(SAFE_PATTERN, self.safename)
             if m is None:
-                raise ValueError(f"S1 SAFE name does not match expected pattern: '{self.safename}'")
+                raise ValueError(
+                    f"S1 SAFE name does not match expected pattern: '{self.safename}'"
+                )
             g = m.groupdict()
 
             self.satellite = g.get("mission_id")
@@ -62,10 +64,16 @@ class ExplodeSAFE:
             self.kind = g.get("class")
             self.polarisation = g.get("pol")
             try:
-                self.startdate = datetime.datetime.strptime(g.get("starttime"), DEFAULT_DATE_FORMAT)
-                self.enddate = datetime.datetime.strptime(g.get("endtime"), DEFAULT_DATE_FORMAT)
+                self.startdate = datetime.datetime.strptime(
+                    g.get("starttime"), DEFAULT_DATE_FORMAT
+                )
+                self.enddate = datetime.datetime.strptime(
+                    g.get("endtime"), DEFAULT_DATE_FORMAT
+                )
             except Exception as e:
-                raise ValueError(f"Failed to parse start/end dates from SAFE name '{self.safename}': {e}")
+                raise ValueError(
+                    f"Failed to parse start/end dates from SAFE name '{self.safename}': {e}"
+                )
 
             self.absolute_orbit_number = g.get("orbit_no")
             self.duration = (self.enddate - self.startdate).total_seconds()
@@ -126,8 +134,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         safe = sys.argv[1]
     else:
-        safe= None
-    
+        safe = None
+
     if safe is None:
         for safe in [
             "S1A_IW_SLC__1SDV_20141128T231212_20141128T231239_004275_005C3C_7F6C.SAFE",
@@ -140,9 +148,9 @@ if __name__ == "__main__":
             "S1A_IW_GRDH__1SDV_20200101T061511_20200101T061538_030603_038187",
         ]:
             obj = ExplodeSAFE(safe)
-            print('OK for safe=', safe,obj.startdate,obj.product_id)
+            print("OK for safe=", safe, obj.startdate, obj.product_id)
     else:
-        if 'S3' == safe:
+        if "S3" == safe:
             # attention fichiers coupe en demi orbit mais une seul numero de cycle
             safe = "S3A_SR_2_WAT____20170124T120058_20170124T121058_20170124T140548_0599_013_294______MAR_O_NR_002.SEN3"
         else:
@@ -154,6 +162,3 @@ if __name__ == "__main__":
                 val = obj.get(ff)
                 logging.debug("info %s => %s", ff, val)
             print("start date=", obj.startdate)
-        
-
-    
