@@ -16,7 +16,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="base->full")
     parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument(
-        "--input", required=True, help="input listing containing base SAFE"
+        "--input",
+        required=True,
+        help="input listing (.txt or .lst or .csv) containing base SAFE or directly a single base SAFE",
     )
     parser.add_argument(
         "--archivename",
@@ -46,7 +48,12 @@ if __name__ == "__main__":
             datefmt="%d/%m/%Y %H:%M:%S",
             force=True,
         )
-    df = pd.read_csv(args.input, names=["base"])
+    if args.input.endswith((".csv", ".txt", ".lst")):
+        df = pd.read_csv(args.input, names=["base"])
+    else:
+        assert ".SAFE" in args.input
+        logging.info("test a single SAFE")
+        df = pd.DataFrame({"base": [args.input]})
     all_fp = []
     cpt = defaultdict(int)
     for ii in tqdm(range(len(df["base"]))):

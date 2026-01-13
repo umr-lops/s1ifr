@@ -54,6 +54,7 @@ def match_slc_grd(
     returns
         goodsafe str or None, full path of the SAFE if found otherwise None
     """
+    assert len(type_input) == 4
     res = safenameslc.replace(type_input, type_seek)
     obj = ExplodeSAFE(res)
     st = obj.get("startdate")
