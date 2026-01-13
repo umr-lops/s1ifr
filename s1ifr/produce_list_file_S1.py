@@ -509,7 +509,6 @@ def main():
     ]
     level_choice = ["L1", "L2"]
     format_choice = ["SLC_", "GRDH", "GRDF", "GRDM", "OCN_", "RAW_"]
-    satellite_choice = ["S1A", "S1B", "S1C"]
     mode_choice = ["WV", "EW", "IW", "SM"]
     import argparse
 
@@ -585,10 +584,10 @@ def main():
         "-s",
         "--satellite",
         action="store",
-        choices=satellite_choice,
+        choices=sats_long.keys(),
         dest="satellite",
         metavar="string",
-        help=f"which satellite do you want: {satellite_choice} ?",
+        help=f"which satellite do you want: {sats_long.keys()} ?",
     )
     parser.add_argument(
         "-m",
