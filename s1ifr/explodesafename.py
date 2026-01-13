@@ -9,6 +9,7 @@
 import datetime
 import logging
 import sys
+import re
 
 fields = [
     "satellite",
@@ -35,25 +36,42 @@ class ExplodeSAFE:
             raise ValueError("need basename not full path")
         if basename_safe[0:2] == "S1":
             self.safename = basename_safe
-            self.satellite = self.safename[0:3]
-            self.mode = self.safename[4:6]
-            self.product = self.safename[7:11]
-            self.level = self.safename[12]
-            self.kind = self.safename[13]
-            self.polarisation = self.safename[14:16]
-            self.startdate = datetime.datetime.strptime(
-                self.safename[17:32], DEFAULT_DATE_FORMAT
+            # Use SAFE regex for robust extraction of named groups
+            SAFE_PATTERN = (
+                r"^(?P<mission_id>S1[A-Z])_"
+                r"(?P<mode>(?:IW|EW|WV|S[1-6]))_"
+                r"(?P<type>(?:GRDH|GRDF|GRDM|SLC_|RAW_|OCN_))_"
+                r"(?P<level>[0-9])(?P<class>[A-Z])(?P<pol>[A-Z]{2})_"
+                r"(?P<starttime>\d{8}T\d{6})_"
+                r"(?P<endtime>\d{8}T\d{6})_"
+                r"(?P<orbit_no>\d{6})_"
+                r"(?P<datatake_id>[A-Z0-9]{6})"
+                r"(?:_(?P<id>[A-Z0-9]{4})(?:_(?P<suffix>[A-Z0-9]{3}))?)?"
+                r"(?:\.SAFE)?$"
             )
-            self.enddate = datetime.datetime.strptime(
-                self.safename[33:48], DEFAULT_DATE_FORMAT
-            )
-            self.absolute_orbit_number = self.safename[49:55]
+            m = re.match(SAFE_PATTERN, self.safename)
+            if m is None:
+                raise ValueError(f"S1 SAFE name does not match expected pattern: '{self.safename}'")
+            g = m.groupdict()
+
+            self.satellite = g.get("mission_id")
+            self.mode = g.get("mode")
+            self.product = g.get("type")
+            self.level = g.get("level")
+            # 'kind' previously was a single char at pos 13; use 'class' if available
+            self.kind = g.get("class")
+            self.polarisation = g.get("pol")
+            try:
+                self.startdate = datetime.datetime.strptime(g.get("starttime"), DEFAULT_DATE_FORMAT)
+                self.enddate = datetime.datetime.strptime(g.get("endtime"), DEFAULT_DATE_FORMAT)
+            except Exception as e:
+                raise ValueError(f"Failed to parse start/end dates from SAFE name '{self.safename}': {e}")
+
+            self.absolute_orbit_number = g.get("orbit_no")
             self.duration = (self.enddate - self.startdate).total_seconds()
             self.sensor = "CbandRadar"
-            self.mission_data_take = self.safename[56:62]  # datatake id
-            self.product_id = self.safename[
-                63:67
-            ]  # unique id (processing ID) for a given product id( you can have the same for different product_id)
+            self.mission_data_take = g.get("datatake_id")  # datatake id
+            self.product_id = g.get("id")  # unique id (processing ID)
             self.production_status = "operational"
             self.cycle_number = None
             self.relative_orbit_number = None
@@ -108,14 +126,34 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         safe = sys.argv[1]
     else:
-        # attention fichiers coupe en demi orbit mais une seul numero de cycle
-        safe = "S3A_SR_2_WAT____20170124T120058_20170124T121058_20170124T140548_0599_013_294______MAR_O_NR_002.SEN3"
+        safe= None
+    
+    if safe is None:
+        for safe in [
+            "S1A_IW_SLC__1SDV_20141128T231212_20141128T231239_004275_005C3C_7F6C.SAFE",
+            "S1B_EW_GRDM_1SDH_20210615T120001_20210615T120121_000000_000000_0000.SAFE",
+            "S1D_EW_RAW__0SDH_20220301T150000_20220301T150120_000000_000000_0000.SAFE",
+            "S1E_S1_OCN__2SDH_20220301T150000_20220301T150120_000000_000000_0000.SAFE",
+            "S1A_WV_SLC__1SDV_20170615T120001_20170615T120021_014275_017C3C_7F6C.SAFE",
+            "S1B_WV_OCN__2SDH_20210615T120001_20210615T120121_000000_000000_0000.SAFE",
+            "S1B_WV_OCN__2SDH_20210615T120001_20210615T120121_000000_000000",
+            "S1A_IW_GRDH__1SDV_20200101T061511_20200101T061538_030603_038187",
+        ]:
+            obj = ExplodeSAFE(safe)
+            print('OK for safe=', safe,obj.startdate,obj.product_id)
+    else:
+        if 'S3' == safe:
+            # attention fichiers coupe en demi orbit mais une seul numero de cycle
+            safe = "S3A_SR_2_WAT____20170124T120058_20170124T121058_20170124T140548_0599_013_294______MAR_O_NR_002.SEN3"
+        else:
+            logging.info("%s", safe)
+            obj = ExplodeSAFE(safe)
+            print(obj.get("startdate"))
+            #     for ff in fields:
+            for ff in obj.props():
+                val = obj.get(ff)
+                logging.debug("info %s => %s", ff, val)
+            print("start date=", obj.startdate)
+        
 
-    logging.info("%s", safe)
-    obj = ExplodeSAFE(safe)
-    print(obj.get("startdate"))
-    #     for ff in fields:
-    for ff in obj.props():
-        val = obj.get(ff)
-        logging.debug("info %s => %s", ff, val)
-    print("start date=", obj.startdate)
+    

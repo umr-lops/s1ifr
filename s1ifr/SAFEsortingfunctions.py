@@ -56,7 +56,7 @@ def which_archive_dir(safe, archive_name="datawork"):
         repdata = ADDITIONAL_ARCHIVES[archive_name]
         subname = safe[6:14]
         litlerep = sat + "_" + acqui + subname
-        if (mode=='IW' or mode=='EW') and subproddir == "L2":
+        if (mode=='IW' or mode=='EW') and subproddir == "L2" and sat_letter=='A':
             # new storage for TOPS OCN managed by CERSAT Dec 2025
             logging.debug("new storage for TOPS OCN managed by CERSAT")
             datawork_provider
