@@ -8,8 +8,8 @@ import glob
 import logging
 import os
 
-from s1ifr.SAFEsortingfunctions import which_archive_dir
 from s1ifr.explodesafename import check_safe_name_match_expected_s1_pattern
+from s1ifr.SAFEsortingfunctions import which_archive_dir
 
 
 def get_safe_basename_from_fullpath_measu(fullpathmeasu: str) -> str:
@@ -30,7 +30,9 @@ def get_safe_basename_from_fullpath_measu(fullpathmeasu: str) -> str:
 
 
 def get_path_from_base_safe(
-    safe_basename: str, archive_name: str = "datawork", check_existence: bool = False
+    safe_basename: str,
+    archive_name: str = "datawork",
+    check_existence: bool = False,
 ) -> str | None:
     """Constructs the full, absolute path for a given SAFE product basename.
 
@@ -49,7 +51,9 @@ def get_path_from_base_safe(
         path with the unresolved wildcard.
     """
     # check that safe_basename matches expected SAFE pattern
-    if not check_safe_name_match_expected_s1_pattern(safe_basename.replace(".zip", "")):
+    if not check_safe_name_match_expected_s1_pattern(
+        safe_basename.replace(".zip", "")
+    ):
         logging.error(
             "The provided SAFE basename does not match the expected Sentinel-1 pattern: %s",
             safe_basename,
@@ -61,8 +65,8 @@ def get_path_from_base_safe(
 
     # try:
     archive_base_dir = which_archive_dir(
-            safe_basename, archive_name=archive_name
-        )
+        safe_basename, archive_name=archive_name
+    )
     # except Exception as e:
     #     logging.error(
     #         "Could not determine archive directory for %s: %s",

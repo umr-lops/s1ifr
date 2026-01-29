@@ -26,17 +26,18 @@ fields = [
 ]
 DEFAULT_DATE_FORMAT = "%Y%m%dT%H%M%S"
 SAFE_PATTERN = (
-                r"^(?P<mission_id>S1[A-Z])_"
-                r"(?P<mode>(?:IW|EW|WV|S[1-6]))_"
-                r"(?P<type>(?:GRDH|GRDF|GRDM|SLC_|RAW_|OCN_))_"
-                r"(?P<level>[0-9])(?P<class>[A-Z])(?P<pol>[A-Z]{2})_"
-                r"(?P<starttime>\d{8}T\d{6})_"
-                r"(?P<endtime>\d{8}T\d{6})_"
-                r"(?P<orbit_no>\d{6})_"
-                r"(?P<datatake_id>[A-Z0-9]{6})"
-                r"(?:_(?P<id>[A-Z0-9]{4})(?:_(?P<suffix>[A-Z0-9]{3}))?)?"
-                r"(?:\.SAFE)?$"
-            )
+    r"^(?P<mission_id>S1[A-Z])_"
+    r"(?P<mode>(?:IW|EW|WV|S[1-6]))_"
+    r"(?P<type>(?:GRDH|GRDF|GRDM|SLC_|RAW_|OCN_))_"
+    r"(?P<level>[0-9])(?P<class>[A-Z])(?P<pol>[A-Z]{2})_"
+    r"(?P<starttime>\d{8}T\d{6})_"
+    r"(?P<endtime>\d{8}T\d{6})_"
+    r"(?P<orbit_no>\d{6})_"
+    r"(?P<datatake_id>[A-Z0-9]{6})"
+    r"(?:_(?P<id>[A-Z0-9]{4})(?:_(?P<suffix>[A-Z0-9]{3}))?)?"
+    r"(?:\.SAFE)?$"
+)
+
 
 def check_safe_name_match_expected_s1_pattern(safename: str) -> bool:
     """Check if the given SAFE name matches the expected Sentinel-1 pattern.
@@ -45,7 +46,8 @@ def check_safe_name_match_expected_s1_pattern(safename: str) -> bool:
         safename: The SAFE product name to check.
     """
     match = re.match(SAFE_PATTERN, safename)
-    return match,match is not None
+    return match, match is not None
+
 
 class ExplodeSAFE:
     """input basename_safe (str) SAFE name
@@ -57,9 +59,11 @@ class ExplodeSAFE:
         if basename_safe[0:2] == "S1":
             self.safename = basename_safe
             # Use SAFE regex for robust extraction of named groups
-           
+
             # m = re.match(SAFE_PATTERN, self.safename)
-            m, flag_is_safe = check_safe_name_match_expected_s1_pattern(self.safename)
+            m, flag_is_safe = check_safe_name_match_expected_s1_pattern(
+                self.safename
+            )
             if flag_is_safe is False or m is None:
                 raise ValueError(
                     f"S1 SAFE name does not match expected pattern: '{self.safename}'"

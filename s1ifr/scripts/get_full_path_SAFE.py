@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 from s1ifr.get_path_from_base_safe import get_path_from_base_safe
 
+
 def entrypoint():
     """
 
@@ -46,8 +47,12 @@ def entrypoint():
         default=False,
         help="check if the SAFE file exists, if not return None",
     )
-    parser.add_argument('--remove_empty_lines', action='store_true', default=False,
-                        help='remove empty lines in the output listing (can occure when check_existence is True and SAFE absent)')
+    parser.add_argument(
+        "--remove_empty_lines",
+        action="store_true",
+        default=False,
+        help="remove empty lines in the output listing (can occure when check_existence is True and SAFE absent)",
+    )
     args = parser.parse_args()
     fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
     if args.verbose:
@@ -77,7 +82,9 @@ def entrypoint():
         flag_safe_found = False
         for archive_name in args.archivename:
             fp = get_path_from_base_safe(
-                safe_basename=safe, archive_name=archive_name, check_existence=args.check_existence
+                safe_basename=safe,
+                archive_name=archive_name,
+                check_existence=args.check_existence,
             )
             if fp is not None:
                 # pass
@@ -95,12 +102,11 @@ def entrypoint():
     logging.info("%s", df)
     if args.remove_empty_lines:
         logging.info("removing empty lines in the output listing")
-        df = df.dropna(subset=['fullpath'])
+        df = df.dropna(subset=["fullpath"])
     # write to disk
     df["fullpath"].to_csv(args.output, index=False, header=False)
     logging.info("output : %s", args.output)
 
-    
 
 if __name__ == "__main__":
     entrypoint()
