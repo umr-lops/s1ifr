@@ -25,19 +25,7 @@ fields = [
     "kind",
 ]
 DEFAULT_DATE_FORMAT = "%Y%m%dT%H%M%S"
-
-
-class ExplodeSAFE:
-    """input basename_safe (str) SAFE name
-    only (no parent directories before neitheir children files)"""
-
-    def __init__(self, basename_safe):
-        if "/" in basename_safe:
-            raise ValueError("need basename not full path")
-        if basename_safe[0:2] == "S1":
-            self.safename = basename_safe
-            # Use SAFE regex for robust extraction of named groups
-            SAFE_PATTERN = (
+SAFE_PATTERN = (
                 r"^(?P<mission_id>S1[A-Z])_"
                 r"(?P<mode>(?:IW|EW|WV|S[1-6]))_"
                 r"(?P<type>(?:GRDH|GRDF|GRDM|SLC_|RAW_|OCN_))_"
@@ -49,8 +37,30 @@ class ExplodeSAFE:
                 r"(?:_(?P<id>[A-Z0-9]{4})(?:_(?P<suffix>[A-Z0-9]{3}))?)?"
                 r"(?:\.SAFE)?$"
             )
-            m = re.match(SAFE_PATTERN, self.safename)
-            if m is None:
+
+def check_safe_name_match_expected_s1_pattern(safename: str) -> bool:
+    """Check if the given SAFE name matches the expected Sentinel-1 pattern.
+
+    Args:
+        safename: The SAFE product name to check.
+    """
+    match = re.match(SAFE_PATTERN, safename)
+    return match,match is not None
+
+class ExplodeSAFE:
+    """input basename_safe (str) SAFE name
+    only (no parent directories before neitheir children files)"""
+
+    def __init__(self, basename_safe):
+        if "/" in basename_safe:
+            raise ValueError("need basename not full path")
+        if basename_safe[0:2] == "S1":
+            self.safename = basename_safe
+            # Use SAFE regex for robust extraction of named groups
+           
+            # m = re.match(SAFE_PATTERN, self.safename)
+            m, flag_is_safe = check_safe_name_match_expected_s1_pattern(self.safename)
+            if flag_is_safe is False or m is None:
                 raise ValueError(
                     f"S1 SAFE name does not match expected pattern: '{self.safename}'"
                 )
