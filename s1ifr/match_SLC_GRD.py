@@ -55,15 +55,15 @@ def match_slc_grd(
         goodsafe str or None, full path of the SAFE if found otherwise None
     """
     assert len(type_input) == 4
-    res = safenameslc.replace(type_input, type_seek)
-    obj = ExplodeSAFE(res)
+    safe_mirrored = safenameslc.replace(type_input, type_seek)
+    obj = ExplodeSAFE(safe_mirrored)
     st = obj.get("startdate")
-    res_base = res[0:10] + "*.SAFE"
-    logging.debug("res: %s", res)
-    # fp = get_path_from_base_SAFE.get_path_from_base_SAFE(res)
-    fp = get_path_from_base_safe(res, archive_name="datawork")
+    res_base = safe_mirrored[0:10] + "*.SAFE"
+    logging.debug("safe_mirrored: %s", safe_mirrored)
+    # fp = get_path_from_base_SAFE.get_path_from_base_SAFE(safe_mirrored)
+    fp = get_path_from_base_safe(safe_mirrored, archive_name="datawork")
     goodsafe = core_find(fp, minimal_time_diff, res_base, startdate=st)
     if goodsafe is None:
-        fp = get_path_from_base_safe(res, archive_name="scale")
+        fp = get_path_from_base_safe(safe_mirrored, archive_name="scale")
         goodsafe = core_find(fp, minimal_time_diff, res_base, startdate=st)
     return goodsafe

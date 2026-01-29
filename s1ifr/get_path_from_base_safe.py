@@ -8,6 +8,7 @@ import glob
 import logging
 import os
 
+from s1ifr.explodesafename import check_safe_name_match_expected_s1_pattern
 from s1ifr.SAFEsortingfunctions import which_archive_dir
 
 
@@ -29,7 +30,9 @@ def get_safe_basename_from_fullpath_measu(fullpathmeasu: str) -> str:
 
 
 def get_path_from_base_safe(
-    safe_basename: str, archive_name: str = "datawork"
+    safe_basename: str,
+    archive_name: str = "datawork",
+    check_existence: bool = False,
 ) -> str | None:
     """Constructs the full, absolute path for a given SAFE product basename.
 
@@ -41,26 +44,36 @@ def get_path_from_base_safe(
         safe_basename: The name of the SAFE product.
             (e.g., "S1A_IW_OCN__2SDV_20150731T222653_20150731T222719_007061_0099AE_B180.SAFE")
         archive_name: The target archive, either 'datawork' or 'scale'.
+        check_existence: True -> check if the file exists, and if safe does not exist return None, False -> do not check.
 
     Returns:
         The absolute path to the SAFE product if found, otherwise None or the
         path with the unresolved wildcard.
     """
+    # check that safe_basename matches expected SAFE pattern
+    if not check_safe_name_match_expected_s1_pattern(
+        safe_basename.replace(".zip", "")
+    ):
+        logging.error(
+            "The provided SAFE basename does not match the expected Sentinel-1 pattern: %s",
+            safe_basename,
+        )
+        return None
     # Using endswith is more robust than 'in' for checking file extensions.
     if not safe_basename.endswith(".SAFE"):
         safe_basename += ".SAFE"
 
-    try:
-        archive_base_dir = which_archive_dir(
-            safe_basename, archive_name=archive_name
-        )
-    except Exception as e:
-        logging.error(
-            "Could not determine archive directory for %s: %s",
-            safe_basename,
-            e,
-        )
-        return None
+    # try:
+    archive_base_dir = which_archive_dir(
+        safe_basename, archive_name=archive_name
+    )
+    # except Exception as e:
+    #     logging.error(
+    #         "Could not determine archive directory for %s: %s",
+    #         safe_basename,
+    #         e,
+    #     )
+    #     return None
 
     final_path = os.path.join(archive_base_dir, safe_basename)
 
@@ -72,8 +85,11 @@ def get_path_from_base_safe(
             return matching_files[0]
         else:
             # If no match, log a warning and return the path with the wildcard.
-            logging.warning("No file found matching pattern: %s", final_path)
+            logging.debug("No file found matching pattern: %s", final_path)
             return final_path
-
+    if check_existence:
+        if not os.path.exists(final_path):
+            logging.debug("SAFE file does not exist: %s", final_path)
+            return None
     # If no wildcard, just return the constructed path.
     return final_path

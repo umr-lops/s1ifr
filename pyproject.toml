@@ -32,7 +32,7 @@ dynamic = ["version"]
 
 [tool.poetry]
 name = "s1ifr"
-version = "2025.09.23"
+version = "2026.1.29"
 description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
 license = "LGPL-3.0-only"
 authors = ["Antoine GROUAZEL <antoine.grouazel@ifremer.fr>"]
@@ -69,6 +69,7 @@ changelog = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io/en/latest/
 syncsafe = "s1ifr.move_safe_from_ifr_to_ifr:main"
 syncsafebatch = "s1ifr.scripts.move_safe_from_ifr_to_ifr_prun:main"
 archivesafe = 's1ifr.sentinel1_pieuvre:main'
+get-s1-full-path-safe = 's1ifr.scripts.get_full_path_SAFE:entrypoint'
 
 [build-system]
 requires = ["setuptools>=64.0", "setuptools-scm"]
