@@ -9,38 +9,11 @@ import logging
 import os
 import re
 from collections import defaultdict
-
 import pandas as pd
 from tqdm import tqdm
-
 import s1ifr
 from s1ifr.match_SLC_GRD import match_slc_grd
 from s1ifr.utils import load_config
-
-# DEFAULT_VERSIONS_L1B=['A13','A14','A16','A15','A17','A18']
-# DEFAULT_VERSIONS_L1B=['A06','A13','A14','A16','A15','A17','A18','A23']
-# DEFAULT_VERSIONS_L1B = ['A23']
-# DEFAULT_VERSIONS_L1C = ['B09','B14','B15']
-# DEFAULT_VERSIONS_L2WAV = ['E11','E12'] # E11 17.5km , E12 5km
-# dir_outs_l1c = [
-#     '/home/datawork-cersat-public/project/sarwave/data/products/experiments/slc/iw/l1c',
-# ]
-# dir_outs_l1b = ['/home/datawork-cersat-public/project/sarwave/data/products/from_creodias/slc/iw/l1b',
-#                 # '/home/datawork-cersat-public/project/sarwave/data/products/tests2/slc/iw/l1b',
-#                 '/home/datawork-cersat-public/project/sarwave/data/products/experiments/slc/iw/l1b',
-#                 '/home/datawork-cersat-public/cache/public/http/sarwave/diffusion/sar/iw/slc/l1b/experimental_product_collection/v5.0/',
-#                 ]
-# dir_out_l2wav = ['/home/datawork-cersat-public/project/sarwave/data/products/experiments/slc/iw/l2/']
-
-conf = load_config()
-
-DEFAULT_VERSIONS_L1B = conf["DEFAULT_VERSIONS_L1B"]
-DEFAULT_VERSIONS_L1C = conf["DEFAULT_VERSIONS_L1C"]
-DEFAULT_VERSIONS_L2WAV = conf["DEFAULT_VERSIONS_L2WAV"]
-dir_outs_l1c = conf["paths"]["datawork"]["dir_outs_l1c"]
-dir_outs_l1b = conf["paths"]["datawork"]["dir_outs_l1b"]
-dir_out_l2wav = conf["paths"]["datawork"]["dir_out_l2wav"]
-
 
 def get_output_l1b_safe(slc_iw_path_safe, outputdir, productid) -> str:
     """
@@ -72,17 +45,25 @@ def get_output_l1b_safe(slc_iw_path_safe, outputdir, productid) -> str:
     return safe_output
 
 
-def add_L1B(df, cpt=None, versions=None, disable_tqdm=False):
+def add_L1B(df, cpt=None, versions=None, disable_tqdm=False, config_path=None):
     """
 
     collect Level-1B paths from Ifr archive.
     Multiple version/directories can be tested.
 
-    :param df:
-    :param cpt:
-    :param versions:
-    :return:
+    Args:
+        df (pd.DataFrame): 
+        cpt (collections.defaultdict(int)): [optional]
+        versions (list): [optional]
+        config_path (str): full path of config file .yml for s1ifr [optional]
+
+    Return:
+        df (pd.DataFrame): updated
+        cpt (collections.defaultdict(int)): updated
     """
+    conf = load_config(config_path=config_path)
+    dir_outs_l1b = conf["paths"]["datawork"]["dir_outs_l1b"]
+    DEFAULT_VERSIONS_L1B = conf["DEFAULT_VERSIONS_L1B"]
     if versions is None:
         versions = DEFAULT_VERSIONS_L1B
     logging.info("Level-1B version to be tested: %s", versions)
@@ -162,14 +143,19 @@ def add_L1B(df, cpt=None, versions=None, disable_tqdm=False):
     return df, cpt
 
 
-def add_L1C(df, versions=None, cpt=None, disable_tqdm=False) -> pd.DataFrame:
+def add_L1C(df, versions=None, cpt=None, disable_tqdm=False, config_path=None) -> pd.DataFrame:
     """
     from L1B path I want easily find L1C
 
     Args:
         df (pd.DataFrame):
         cpt (collection.defaultdict(int)): [optional]
+        disable_tqdm (bool): True -> no progress bar [optional]
+        config_path (str): full path of config file .yml for s1ifr [optional]
     """
+    conf = load_config(config_path=config_path)
+    DEFAULT_VERSIONS_L1C = conf["DEFAULT_VERSIONS_L1C"]
+    dir_outs_l1c = conf["paths"]["datawork"]["dir_outs_l1c"]
     if versions is None:
         versions = DEFAULT_VERSIONS_L1C
     logging.info("Level-1C will be search in versions: %s", versions)
@@ -231,7 +217,8 @@ def add_L1C(df, versions=None, cpt=None, disable_tqdm=False) -> pd.DataFrame:
     return df, cpt
 
 
-def add_L2WAV(df, versions=None, cpt=None, disable_tqdm=False) -> pd.DataFrame:
+def add_L2WAV(df, versions=None, cpt=None, disable_tqdm=False,
+               config_path=None) -> pd.DataFrame:
     """
     from SLC path I want easily find L2-WAV
 
@@ -239,7 +226,11 @@ def add_L2WAV(df, versions=None, cpt=None, disable_tqdm=False) -> pd.DataFrame:
         df (pd.DataFrame):
         cpt (collection.defaultdict(int)): [optional]
         disable_tqdm (bool): [default False -> no progress bar in stdout]
+        config_path (str): full path of config file .yml for s1ifr [optional]
     """
+    conf = load_config(config_path=config_path)
+    dir_out_l2wav = conf["paths"]["datawork"]["dir_out_l2wav"]
+    DEFAULT_VERSIONS_L2WAV = conf["DEFAULT_VERSIONS_L2WAV"]
     if versions is None:
         versions = DEFAULT_VERSIONS_L2WAV
     logging.info("Level-2 WAV will be search in versions: %s", versions)
