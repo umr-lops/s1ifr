@@ -21,14 +21,10 @@ def which_archive_dir(safe, archive_name="datawork", config_path=None):
     """
     conf = load_config(config_path=config_path)
     sats_acro = conf["satellites"]["longnames"]
-    datarmor_archive_esa_ifremer = conf["paths"]["datawork"]["archive_esa"]
-    scale_archive_esa_ifremer = conf["paths"]["scale"]["archive_esa"]
+    # datarmor_archive_esa_ifremer = conf["paths"]["datawork"]["archive_esa"]
+    # scale_archive_esa_ifremer = conf["paths"]["scale"]["archive_esa"]
     datawork_provider = conf["paths"]["datawork"]["project_provider"]
 
-    # additional_archives = {
-    #     "datawork": datarmor_archive_esa_ifremer,
-    #     "scale": scale_archive_esa_ifremer,
-    # }
     additional_archives = get_all_archives(config_path=config_path)
     if safe[0:2] == "S1":
         firstdate = safe[17:25]

@@ -6,8 +6,9 @@ Janaury 2025
 
 import datetime
 import logging
-import os,sys
+import os
 import re
+import sys
 from collections import defaultdict
 
 import numpy as np
@@ -378,27 +379,32 @@ def get_products_family(
 def create_a_listing(newdf):
     try:
         # 1. Ask for the column name
-        consign = "Enter the column name to filter: possibles names are : %s"%(newdf.keys())
+        consign = f"Enter the column name to filter: possibles names are : {newdf.keys()}"
         input_from_user_colname = input(consign).strip()
 
         # (Optional) Validate that column exists to prevent a crash later
         if input_from_user_colname not in newdf.columns:
-            print(f"Error: Column '{input_from_user_colname}' does not exist in the DataFrame.")
+            print(
+                f"Error: Column '{input_from_user_colname}' does not exist in the DataFrame."
+            )
             sys.exit(1)
 
         # 2. Ask for the output path
-        output_listing_sub_product_path = input("Enter the full path for the output CSV: ").strip()
+        output_listing_sub_product_path = input(
+            "Enter the full path for the output CSV: "
+        ).strip()
 
         # --- Your Logic ---
         serii = newdf[input_from_user_colname].where(
-            newdf[input_from_user_colname].str.strip() != '', 
-            np.nan
+            newdf[input_from_user_colname].str.strip() != "", np.nan
         )
-        
+
         # Save to CSV
-        serii.dropna().to_csv(output_listing_sub_product_path, header=False, index=False)
-        
-        logging.info('output = %s', output_listing_sub_product_path)
+        serii.dropna().to_csv(
+            output_listing_sub_product_path, header=False, index=False
+        )
+
+        logging.info("output = %s", output_listing_sub_product_path)
 
     except KeyboardInterrupt:
         print("\nOperation cancelled by user.")
@@ -468,11 +474,11 @@ if __name__ == "__main__":
     newdf.to_csv(fout, header=True, index=True)
 
     logging.info("output file: %s", fout)
-    logging.info('possible families to put into a listing: %s',newdf.keys())
+    logging.info("possible families to put into a listing: %s", newdf.keys())
     # add a ligne to let the user selct the good column of the dataframe
     create_a_listing(newdf)
     # input_from_user_colname = ...
-    # serii = newdf[input_from_user_colname].where(newdf[input_from_user_colname].str.strip() != '', np.nan) 
+    # serii = newdf[input_from_user_colname].where(newdf[input_from_user_colname].str.strip() != '', np.nan)
     # output_listing_sub_product_path = ....
     # serii.dropna().to_csv(output_listing_sub_product_path,header=False,index=False)
     # logging.info('output = %s',output_listing_sub_product_path)
