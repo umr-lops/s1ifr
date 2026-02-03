@@ -9,11 +9,14 @@ import logging
 import os
 import re
 from collections import defaultdict
+
 import pandas as pd
 from tqdm import tqdm
+
 import s1ifr
 from s1ifr.match_SLC_GRD import match_slc_grd
 from s1ifr.utils import load_config
+
 
 def get_output_l1b_safe(slc_iw_path_safe, outputdir, productid) -> str:
     """
@@ -52,7 +55,7 @@ def add_L1B(df, cpt=None, versions=None, disable_tqdm=False, config_path=None):
     Multiple version/directories can be tested.
 
     Args:
-        df (pd.DataFrame): 
+        df (pd.DataFrame):
         cpt (collections.defaultdict(int)): [optional]
         versions (list): [optional]
         config_path (str): full path of config file .yml for s1ifr [optional]
@@ -143,7 +146,9 @@ def add_L1B(df, cpt=None, versions=None, disable_tqdm=False, config_path=None):
     return df, cpt
 
 
-def add_L1C(df, versions=None, cpt=None, disable_tqdm=False, config_path=None) -> pd.DataFrame:
+def add_L1C(
+    df, versions=None, cpt=None, disable_tqdm=False, config_path=None
+) -> pd.DataFrame:
     """
     from L1B path I want easily find L1C
 
@@ -217,8 +222,9 @@ def add_L1C(df, versions=None, cpt=None, disable_tqdm=False, config_path=None) -
     return df, cpt
 
 
-def add_L2WAV(df, versions=None, cpt=None, disable_tqdm=False,
-               config_path=None) -> pd.DataFrame:
+def add_L2WAV(
+    df, versions=None, cpt=None, disable_tqdm=False, config_path=None
+) -> pd.DataFrame:
     """
     from SLC path I want easily find L2-WAV
 

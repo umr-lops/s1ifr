@@ -12,7 +12,7 @@ from s1ifr.explodesafename import ExplodeSAFE
 from s1ifr.utils import load_config
 
 
-def which_archive_dir(safe, archive_name="datawork",config_path=None):
+def which_archive_dir(safe, archive_name="datawork", config_path=None):
     """
     Args:
         safe (str): safe base name
@@ -75,7 +75,7 @@ def which_archive_dir(safe, archive_name="datawork",config_path=None):
     return gooddir
 
 
-def which_spool_dir(safe=None, archive="datawork",config_path=None):
+def which_spool_dir(safe=None, archive="datawork", config_path=None):
     """
     Args:
         safe (str): safe basename with .SAFE extension
@@ -86,7 +86,10 @@ def which_spool_dir(safe=None, archive="datawork",config_path=None):
     WORKING_DIR_DATAWORK = conf["paths"]["datawork"]["workspace"]
     WORKING_DIR_SCALE = conf["paths"]["scale"]["workspace"]
 
-    WORKING_DIR = {"datawork": WORKING_DIR_DATAWORK, "scale": WORKING_DIR_SCALE}
+    WORKING_DIR = {
+        "datawork": WORKING_DIR_DATAWORK,
+        "scale": WORKING_DIR_SCALE,
+    }
     SPOOL_REP = {  # deprecated
         "datawork": "spool_datarmor/",
         "scale": "spool",
@@ -106,7 +109,7 @@ def which_spool_dir(safe=None, archive="datawork",config_path=None):
     return spooldir
 
 
-def whichquarantinedir(archive="datawork",config_path=None):
+def whichquarantinedir(archive="datawork", config_path=None):
     """
     Args:
         archive (str): [optionnal]

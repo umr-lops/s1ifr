@@ -15,7 +15,6 @@ import os
 
 from s1ifr.utils import load_config
 
-
 DATE_FORMAT_MEASU = "%Y%m%dt%H%M%S"
 
 prodtype_levels = {
@@ -28,7 +27,9 @@ prodtype_levels = {
 }
 
 
-def get_full_path_from_measu(measurement, storage="datawork", config_path=None) -> str:
+def get_full_path_from_measu(
+    measurement, storage="datawork", config_path=None
+) -> str:
     """
     to get the full path in ifremer archive of given measurement
 
@@ -65,7 +66,7 @@ def get_full_path_from_measu(measurement, storage="datawork", config_path=None) 
         + "S"
     )
 
-    fullsat = 'sentinel-1'+sat.lower()[-1]
+    fullsat = "sentinel-1" + sat.lower()[-1]
     root = os.path.join(conf["paths"][storage]["archive_esa"], fullsat)
     datestart = datetime.datetime.strptime(
         measurement.split("-")[5], DATE_FORMAT_MEASU
@@ -133,8 +134,12 @@ def get_full_path_from_measu(measurement, storage="datawork", config_path=None) 
 
 
 def get_full_path_ocn_wv_from_approximate_date(
-    datedt, sat, level="L2", storage="datawork", nb_seconds_delta=3,
-    config_path=None
+    datedt,
+    sat,
+    level="L2",
+    storage="datawork",
+    nb_seconds_delta=3,
+    config_path=None,
 ):
     """
 
@@ -156,7 +161,7 @@ def get_full_path_ocn_wv_from_approximate_date(
     reso = None
     conf = load_config(config_path=config_path)
     root = os.path.join(
-        conf["paths"][storage]["archive_esa"], 'sentinel-1'+sat.lower()[-1]
+        conf["paths"][storage]["archive_esa"], "sentinel-1" + sat.lower()[-1]
     )
     mode = "WV"
 
@@ -223,7 +228,7 @@ def get_full_path_with_safe_and_measu(
         measu_base.split("-")[4], DATE_FORMAT_MEASU
     )
     root = os.path.join(
-        conf["paths"][storage]["archive_esa"], 'sentinel-1'+sat.lower()[-1]
+        conf["paths"][storage]["archive_esa"], "sentinel-1" + sat.lower()[-1]
     )
     mode = "WV"
     year = datedt.strftime("%Y")

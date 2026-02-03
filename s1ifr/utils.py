@@ -1,6 +1,8 @@
 import logging
 import os
+
 import yaml
+
 import s1ifr
 
 
@@ -8,7 +10,7 @@ def load_config(config_path=None):
     """
 
     Args:
-        config_path (str): path of the config file .yml [optional, default 
+        config_path (str): path of the config file .yml [optional, default
             is localconfig.yml with fallback on config.yml]
 
     Returns:
@@ -45,7 +47,7 @@ def give_me_level_from_type(type_format: str) -> str:
         return "L1"
 
 
-def dir_data(satellite_acronym: str,config_path=None) -> str:
+def dir_data(satellite_acronym: str, config_path=None) -> str:
     """
     Constructs the ESA data path for a given satellite.
     This function now uses the loaded configuration.

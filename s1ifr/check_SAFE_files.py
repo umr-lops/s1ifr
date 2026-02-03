@@ -18,8 +18,6 @@ from xml.dom import minidom
 from s1ifr.produce_list_file_S1 import list_safe_s1_ifr_fs
 from s1ifr.utils import give_me_level_from_type, load_config
 
-
-
 SECURITY_SECONDS = 300
 table_subdir_subprod = {
     "L0S": ("support"),
@@ -303,7 +301,7 @@ def main_loop(
     limit_nb_safe=None,
 ):
     """
-    
+
     browse the whole archive to find the pattern
 
 
@@ -375,8 +373,9 @@ def main():
         help="enable the md5 checksum  ",
     )
     parser.add_argument(
-        '--configfile',
-        help=' path of the s1ifr config file .yml [optional]',required=False
+        "--configfile",
+        help=" path of the s1ifr config file .yml [optional]",
+        required=False,
     )
     parser.add_argument(
         "-d",
@@ -404,20 +403,20 @@ def main():
                 "--mode",
                 required=True,
                 type=str,
-                choices=macro_MODES,
+                choices=["IW", "EW", "SM", "WV"],
                 help="IW EW SM WV ",
             )
             dico_subparsers[mm].add_argument(
                 "-t",
                 "--producttype",
                 type=str,
-                choices=TYPES,
+                choices=["SLC_", "GRDH", "GRDM", "GRDF", "OCN_", "RAW_"],
                 help="SLC_ GRDH GRDM GRDF OCN_ RAW_",
                 required=True,
             )
             dico_subparsers[mm].add_argument(
                 "--satellite",
-                default=list(sats_acro.keys()),
+                default=None,
                 type=str,
                 help="satellite S1A or/and ... ",
                 nargs="*",
@@ -442,11 +441,8 @@ def main():
 
     args = parser.parse_args()
     conf = load_config(args.configfile)
-    TYPES = conf["product_info"]["types"]
     dirdeleted = conf["paths"]["scratch"]["satwave"]
-    macro_MODES = conf["product_info"]["modes"]
     sats_acro = conf["satellites"]["acronyms"]
-
 
     suppression_flag = args.delete
     if args.verbose:
@@ -459,8 +455,10 @@ def main():
         counters["total"] = 0
         counters["ok"] = 0
         counters["ko"] = 0
-
-        satellites = args.satellite
+        if args.satellite is None:
+            satellites = list(sats_acro.keys())
+        else:
+            satellites = args.satellite
         logging.info("satellites: %s", satellites)
         #     if options.exploitation is not None:
         logging.info(
