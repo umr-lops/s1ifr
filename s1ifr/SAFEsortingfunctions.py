@@ -9,6 +9,7 @@ import logging
 import os
 
 from s1ifr.explodesafename import ExplodeSAFE
+from s1ifr.produce_list_file_S1 import get_all_archives
 from s1ifr.utils import load_config
 
 
@@ -24,10 +25,11 @@ def which_archive_dir(safe, archive_name="datawork", config_path=None):
     scale_archive_esa_ifremer = conf["paths"]["scale"]["archive_esa"]
     datawork_provider = conf["paths"]["datawork"]["project_provider"]
 
-    ADDITIONAL_ARCHIVES = {
-        "datawork": datarmor_archive_esa_ifremer,
-        "scale": scale_archive_esa_ifremer,
-    }
+    # additional_archives = {
+    #     "datawork": datarmor_archive_esa_ifremer,
+    #     "scale": scale_archive_esa_ifremer,
+    # }
+    additional_archives = get_all_archives(config_path=config_path)
     if safe[0:2] == "S1":
         firstdate = safe[17:25]
         year = firstdate[0:4]
@@ -45,7 +47,7 @@ def which_archive_dir(safe, archive_name="datawork", config_path=None):
         level = safe[12:13]
         subproddir = "L" + level
         logging.debug("subproddir %s", subproddir)
-        repdata = ADDITIONAL_ARCHIVES[archive_name]
+        repdata = additional_archives[archive_name]
         subname = safe[6:14]
         litlerep = sat + "_" + acqui + subname
         if (
@@ -69,7 +71,7 @@ def which_archive_dir(safe, archive_name="datawork", config_path=None):
         inst = ExplodeSAFE(safe)
         year = inst.startdate.strftime("%Y")
         doy = inst.startdate.strftime("%j")
-        gooddir = os.path.join(ADDITIONAL_ARCHIVES["s3sral"], year, doy)
+        gooddir = os.path.join(additional_archives["s3sral"], year, doy)
     else:
         raise ValueError("no handled product mission")
     return gooddir

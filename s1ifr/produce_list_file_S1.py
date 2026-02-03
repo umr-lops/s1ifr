@@ -130,6 +130,7 @@ def get_all_archives(config_path=None):
         "scale": scale_archive_esa_ifremer,
         "provider": datawork_provider,
     }
+
     return additional_archives
 
 

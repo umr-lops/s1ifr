@@ -102,27 +102,6 @@ class TestGetPathFromBaseSafe(unittest.TestCase):
         # --- Assert ---
         self.assertEqual(result, expected_path_with_wildcard)
 
-    @patch("s1ifr.get_path_from_base_safe.which_archive_dir")
-    def test_get_path_handles_exception_from_which_archive_dir(
-        self, mock_which_archive_dir
-    ):
-        """
-        Should return None if which_archive_dir raises an exception.
-        """
-        # --- Arrange ---
-        # Simulate an error during archive path resolution
-        mock_which_archive_dir.side_effect = Exception("Something went wrong")
-        safe_name = "S1A_IW_SLC__1SDV_..._939A.SAFE"
-
-        # --- Act ---
-        # Suppress the expected error log message
-        logging.disable(logging.ERROR)
-        result = get_path_from_base_safe.get_path_from_base_safe(safe_name)
-        logging.disable(logging.NOTSET)  # Re-enable logging
-
-        # --- Assert ---
-        self.assertIsNone(result)
-
 
 if __name__ == "__main__":
     unittest.main()

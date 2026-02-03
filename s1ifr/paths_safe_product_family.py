@@ -6,10 +6,11 @@ Janaury 2025
 
 import datetime
 import logging
-import os
+import os,sys
 import re
 from collections import defaultdict
 
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -374,6 +375,37 @@ def get_products_family(
     return df
 
 
+def create_a_listing(newdf):
+    try:
+        # 1. Ask for the column name
+        consign = "Enter the column name to filter: possibles names are : %s"%(newdf.keys())
+        input_from_user_colname = input(consign).strip()
+
+        # (Optional) Validate that column exists to prevent a crash later
+        if input_from_user_colname not in newdf.columns:
+            print(f"Error: Column '{input_from_user_colname}' does not exist in the DataFrame.")
+            sys.exit(1)
+
+        # 2. Ask for the output path
+        output_listing_sub_product_path = input("Enter the full path for the output CSV: ").strip()
+
+        # --- Your Logic ---
+        serii = newdf[input_from_user_colname].where(
+            newdf[input_from_user_colname].str.strip() != '', 
+            np.nan
+        )
+        
+        # Save to CSV
+        serii.dropna().to_csv(output_listing_sub_product_path, header=False, index=False)
+        
+        logging.info('output = %s', output_listing_sub_product_path)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+    except Exception as e:
+        logging.error("An error occurred: %s", e)
+
+
 if __name__ == "__main__":
     root = logging.getLogger()
     if root.handlers:
@@ -436,11 +468,18 @@ if __name__ == "__main__":
     newdf.to_csv(fout, header=True, index=True)
 
     logging.info("output file: %s", fout)
-    print(newdf.keys())
-    print(
-        "example of command to execute \n serii = newdf['L1B_XSP_A23'].where(newdf['L1B_XSP_A23'].str.strip() != '', np.nan) \n serii.dropna().to_csv('/home/datawork-cersat-public/project/sarwave/data/listings/swot_colocated_IW_L1B_XSP_A23_safe_sentinel1_present_at_ifremer_2025-08-28_sdv_only.csv',header=False,index=False) "
-    )
-    import pdb
+    logging.info('possible families to put into a listing: %s',newdf.keys())
+    # add a ligne to let the user selct the good column of the dataframe
+    create_a_listing(newdf)
+    # input_from_user_colname = ...
+    # serii = newdf[input_from_user_colname].where(newdf[input_from_user_colname].str.strip() != '', np.nan) 
+    # output_listing_sub_product_path = ....
+    # serii.dropna().to_csv(output_listing_sub_product_path,header=False,index=False)
+    # logging.info('output = %s',output_listing_sub_product_path)
+    # print(
+    #     "example of command to execute \n serii = newdf['L1B_XSP_A23'].where(newdf['L1B_XSP_A23'].str.strip() != '', np.nan) \n serii.dropna().to_csv('/home/datawork-cersat-public/project/sarwave/data/listings/swot_colocated_IW_L1B_XSP_A23_safe_sentinel1_present_at_ifremer_2025-08-28_sdv_only.csv',header=False,index=False) "
+    # )
+    # import pdb
 
-    pdb.set_trace()
-    # print(newdf)
+    # pdb.set_trace()
+    # # print(newdf)

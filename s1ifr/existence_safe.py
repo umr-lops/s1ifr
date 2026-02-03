@@ -7,11 +7,14 @@ import logging
 import os
 import shutil
 
+from s1ifr.produce_list_file_S1 import get_all_archives
 from s1ifr.quarantine_management import test_quarantine_before_download
-from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES, which_archive_dir
+from s1ifr.SAFEsortingfunctions import which_archive_dir
 
 
-def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
+def product_is_present_at_ifremer(
+    safe_basename, full_path_safe=None, config_path=None
+):
     """
     check that the safe downloaded do not exist in other archive dirs
     and delete the one in spool_dir if yes
@@ -19,18 +22,20 @@ def product_is_present_at_ifremer(safe_basename, full_path_safe=None):
     Arguments:
         safe_basename (str):
         full_path_safe (str): [optional]
+        config_path (str): full path of config file .yml for s1ifr [optional]
 
     Returns:
         flag_continue (bool): True -> continue archiving process
         existing_storage (str): could be 'quarantine' or 'datawork' or ...
         archive (str): name of the Ifremer archive where the product is stored
     """
+    additional_archives = get_all_archives(config_path=config_path)
     archive = None
     flag_continue = True
     existing_storage = None
     if safe_basename[0:2] == "S1":
         # possible_archives = ["scale","datawork"]
-        possible_archives = ADDITIONAL_ARCHIVES.keys()
+        possible_archives = additional_archives.keys()
         if ".SAFE" not in safe_basename:
             safe_basename = safe_basename + ".SAFE"
     elif safe_basename[0:2] == "S3":
