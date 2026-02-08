@@ -28,7 +28,7 @@ def load_config(config_path=None):
                 os.path.dirname(s1ifr.__file__), "config.yml"
             )
 
-    logging.info("config path: %s", config_path)
+    logging.debug("config path: %s", config_path)
     stream = open(config_path)
     conf = yaml.load(stream, Loader=yaml.CLoader)
     return conf
