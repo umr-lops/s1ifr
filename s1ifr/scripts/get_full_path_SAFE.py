@@ -13,7 +13,8 @@ from tqdm import tqdm
 
 from s1ifr.get_path_from_base_safe import get_path_from_base_safe
 
-if __name__ == "__main__":
+
+def parseargs():
     parser = argparse.ArgumentParser(description="base->full")
     parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument(
@@ -21,20 +22,30 @@ if __name__ == "__main__":
         required=True,
         help="input listing (.txt or .lst or .csv) containing base SAFE or directly a single base SAFE",
     )
-    parser.add_argument(
-        "--archivename",
-        required=False,
-        default="datawork",
-        help="name of the archive 'scale' or 'datawork' or ...",
-    )
+    # parser.add_argument(
+    #     "--archivename",
+    #     required=False,
+    #     default="datawork",
+    #     help="name of the archive 'scale' or 'datawork' or ...",
+    # )
     parser.add_argument(
         "--output",
         required=True,
         help="output listing containing full path SAFE",
     )
     args = parser.parse_args()
+    return args
+
+
+def entrypoint(verbose, input, output):
+    """
+
+    Treat one or many SAFE basenames to find full path in Ifr archive
+
+    """
+
     fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
-    if args.verbose:
+    if verbose:
         logging.basicConfig(
             level=logging.DEBUG,
             format=fmt,
@@ -48,19 +59,26 @@ if __name__ == "__main__":
             datefmt="%d/%m/%Y %H:%M:%S",
             force=True,
         )
-    if args.input.endswith((".csv", ".txt", ".lst")):
-        df = pd.read_csv(args.input, names=["base"])
+    if input.endswith((".csv", ".txt", ".lst")):
+        df = pd.read_csv(input, names=["base"])
     else:
-        assert ".SAFE" in args.input
+        assert ".SAFE" in input
         logging.info("test a single SAFE")
-        df = pd.DataFrame({"base": [args.input]})
+        df = pd.DataFrame({"base": [input]})
     all_fp = []
     cpt = defaultdict(int)
     for ii in tqdm(range(len(df["base"]))):
         safe = df["base"].iloc[ii].replace(".zip", "")
         fp = get_path_from_base_safe(
-            safe_basename=safe, archive_name=args.archivename
+            safe_basename=safe, archive_name="scale", check_existence=True
         )
+        if fp is None:
+            fp = get_path_from_base_safe(
+                safe_basename=safe,
+                archive_name="datawork",
+                check_existence=True,
+            )
+        # add a test without unique ID and glob
         if fp is not None:
             pass
             cpt["ok"] += 1
@@ -72,5 +90,15 @@ if __name__ == "__main__":
     df["fullpath"] = all_fp
     logging.info("%s", df)
     # write to disk
-    df["fullpath"].to_csv(args.output, index=False, header=False)
-    logging.info("output : %s", args.output)
+    df["fullpath"].to_csv(output, index=False, header=False)
+    logging.info("output : %s", output)
+    return df
+
+
+if __name__ == "__main__":
+    args = parseargs()
+    entrypoint(
+        verbose=args.verbose,
+        input=args.input,
+        output=args.output,
+    )
