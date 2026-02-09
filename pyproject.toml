@@ -32,7 +32,7 @@ dynamic = ["version"]
 
 [tool.poetry]
 name = "s1ifr"
-version = "2026.1.29"
+version = "2026.2.9"
 description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
 license = "LGPL-3.0-only"
 authors = ["Antoine GROUAZEL <antoine.grouazel@ifremer.fr>"]
