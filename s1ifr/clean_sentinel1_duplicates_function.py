@@ -1,11 +1,16 @@
-"""
-#clean multiple occurencies of the same SAFE file in sentinel1 data
-#version of clean_sentinel1_duplicates.py that is called by the sentinel1 pieuvre (ventillation of data)
-# agrouaze
-# april 2014
-#perm=775
-@usage:
-find $PWD -maxdepth 1 -name '*SAFE' | python /home/agrouaze/git/mpc-sentinel/mpc-sentinel/mpcsentinellibs/data_collect/clean_sentinel1_duplicates_function.py
+"""Clean multiple occurrences of the same SAFE file in Sentinel-1 data.
+
+This script identifies duplicate Sentinel-1 products based on their acquisition
+parameters and keeps only the version with the latest processing time.
+Old versions are moved to quarantine or deleted. It is designed to be called
+by the Sentinel-1 'pieuvre' (data ventilation) system.
+
+Example:
+    ``find $PWD -maxdepth 1 -name '*SAFE' | python clean_sentinel1_duplicates_function.py --safe [SAFE_PATH]``
+
+Attributes:
+    Author: Antoine Grouazel
+    Date: April 2014
 """
 
 import collections
@@ -21,6 +26,15 @@ from s1ifr.quarantine_management import quarantine_ticket
 
 
 def get_ending_processing_time(safe_full_path):
+    """Extract the stop processing time from the SAFE manifest file.
+
+    Args:
+        safe_full_path (str): Full path to the SAFE directory.
+
+    Returns:
+        datetime.datetime: The processing stop time extracted from the manifest.
+            Returns 2014-01-01 as a default value if the manifest is missing or empty.
+    """
     pattern = "/metadataObject/metadataWrap/xmlData/{http://www.esa.int/safe/sentinel-1.0}processing"
     path_manifest = os.path.join(safe_full_path, "manifest.safe")
     tmp = datetime.datetime(2014, 1, 1)  # dummy value
@@ -34,16 +48,21 @@ def get_ending_processing_time(safe_full_path):
 
 
 def spot_dupli_core(safebasename, repdata):
+    """Identify duplicate SAFE products and find the latest processed version.
+
+    Searches for files matching the acquisition prefix of the provided basename
+    within the specified directory and compares their processing dates.
+
+    Args:
+        safebasename (str): Basename of the S1 SAFE product to check.
+        repdata (str): Path to the directory where potential duplicates are stored.
+
+    Returns:
+        tuple: A tuple containing:
+            - int: Index of the latest processed file in the occurrence list.
+            - list: Full paths of all potential occurrences found.
+            - numpy.ndarray: Array of processing stop times for each occurrence.
     """
-    :input:
-        safebasename (str) S1.......SAFE
-        repdata (str) archive where are store possible duplicate
-    :output:
-
-    :purpose:
-    list duplicate and
-    look at the processing date of each of them to tell which is the latest"""
-
     begninig = safebasename[0:-10]
     logging.debug("begninig = %s", begninig)
     indice_latest_processing = None
@@ -60,6 +79,17 @@ def spot_dupli_core(safebasename, repdata):
 
 
 def latest_safe_processed(duplicates_list):
+    """Compare processing times for a list of duplicate SAFE products.
+
+    Args:
+        duplicates_list (list): List of full paths to duplicate SAFE products.
+
+    Returns:
+        tuple: A tuple containing:
+            - int: Index of the latest processed version in the list.
+            - list: The input duplicates_list.
+            - numpy.ndarray: Array of processing stop times (datetime objects).
+    """
     stoptimes = np.array([])
     for yy, pot in enumerate(duplicates_list):
         logging.debug("duplicate %s %s", pot, yy)
@@ -74,13 +104,19 @@ def latest_safe_processed(duplicates_list):
 
 
 def check_duplicate(file_to_be_checked, archive="datawork", dryrun=True):
-    """
-    delete SAFE with same acquisition dates and oldest processing time
-    @input:
-        fileTobechecked (str): fullpath of the .SAFE to be checked
-        archive (str): scale or datawork
-    :output:
+    """Detect and remove duplicate SAFEs based on processing time.
 
+    Identifies SAFEs with the same acquisition dates as the input file.
+    Keeps only the version with the latest processing time and sends others
+    to quarantine.
+
+    Args:
+        file_to_be_checked (str): Full path of the .SAFE (or .tar) to be checked.
+        archive (str): Storage name ('scale' or 'datawork'). Defaults to "datawork".
+        dryrun (bool): If True, logs actions without deleting/moving files. Defaults to True.
+
+    Returns:
+        int: Number of duplicate files identified for removal.
     """
     cpt_deleted = 0
     logging.debug("test duplication of %s", file_to_be_checked)
@@ -102,9 +138,7 @@ def check_duplicate(file_to_be_checked, archive="datawork", dryrun=True):
                 cpt_deleted += 1
                 logging.debug("to delete %s", pot)
                 if dryrun is False:
-                    quarantine_ticket(
-                        pot, archive
-                    )  # added feb 2019 to delete purely the safe
+                    quarantine_ticket(pot, archive)
 
     else:
         logging.debug("no duplicate found")
@@ -113,6 +147,7 @@ def check_duplicate(file_to_be_checked, archive="datawork", dryrun=True):
 
 
 def main():
+    """Main entry point for the CLI tool to clean SAFE duplicates."""
     import argparse
 
     parser = argparse.ArgumentParser(description="clean SAFE duplicate")
@@ -141,16 +176,18 @@ def main():
         )
     cpt = collections.defaultdict(int)
     logging.info("start the check")
-    # for safefull in sys.stdin:
+
     cpt_deleted = check_duplicate(
         file_to_be_checked=args.safe, dryrun=args.dryrun
     )
     cpt["total_safe_analysed"] += 1
     cpt["total_safe_removed"] += cpt_deleted
+
     if cpt_deleted == 0:
         cpt["total_acqui_already_ok"] += 1
     else:
         cpt["total_acqui_already_fixed"] += 1
+
     if cpt["total_safe_analysed"] % 100 == 1:
         logging.info("counter for duplicate fixing S1: %s", cpt)
     logging.info("fin script : %s", cpt)

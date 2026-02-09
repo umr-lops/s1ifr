@@ -37,6 +37,7 @@ paths:
   datawork:
     project_cache: "/home/datawork-cersat-public/cache/project/mpc-sentinel1/"
     project_main: "/home/datawork-cersat-public/project/mpc-sentinel1/"
+    project_provider: "/home/datawork-cersat-public/provider/esa/satellite/l2/sentinel-1{satellite}/c-band_sar/"
     # The archive path is constructed from project_main
     archive_esa: "/home/datawork-cersat-public/project/mpc-sentinel1/data/esa"
     workspace: "/home/datawork-cersat-public/project/mpc-sentinel1/workspace"

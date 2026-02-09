@@ -1,8 +1,5 @@
 """
-Author: Antoine Grouazel
-creation: june2014
-check that S1 Level 0 and Level1 data is not corrupted
-#TODO: check also Level2!!!
+set of methods to confirm a product Sentinel-1 is nominal using manifest file
 """
 
 import collections
@@ -16,23 +13,7 @@ import traceback
 from xml.dom import minidom
 
 from s1ifr.produce_list_file_S1 import list_safe_s1_ifr_fs
-
-# from s1ifr.shared_information import (
-#     TYPES,
-#     dir_suspect,
-#     dirdeleted,
-#     give_me_level_from_type,
-#     macro_MODES,
-#     sats_acro,
-# )
 from s1ifr.utils import give_me_level_from_type, load_config
-
-conf = load_config()
-TYPES = conf["product_info"]["types"]
-dir_suspect = conf["paths"]["scratch"]["satwave"]
-dirdeleted = conf["paths"]["scratch"]["satwave"]
-macro_MODES = conf["product_info"]["modes"]
-sats_acro = conf["satellites"]["acronyms"]
 
 SECURITY_SECONDS = 300
 table_subdir_subprod = {
@@ -288,7 +269,18 @@ def safe_checker(
     return flag_ok_safe
 
 
-def log_path():
+def log_path(config_path=None):
+    """
+    return a file where to log products that are not nominal.
+
+    Args:
+        config_path (str): full path of config file .yml for s1ifr [optional]
+
+    Returns:
+        list_safe_having_problem (str): path of .lst file
+    """
+    conf = load_config(config_path=config_path)
+    dir_suspect = conf["paths"]["scratch"]["satwave"]
     now = datetime.datetime.now()
     now_character = now.strftime("%Y-%m-%d_%Hh%M%S%f")
     list_safe_having_problem = os.path.join(
@@ -305,8 +297,12 @@ def main_loop(
     list_safe_having_problem=None,
     limit_nb_safe=None,
 ):
-    """browse the whole archive to find the pattern
-    :args:
+    """
+
+    browse the whole archive to find the pattern
+
+
+    Args:
         repdata (str):
         pattern (str):
         unique_safe (str):
@@ -374,6 +370,11 @@ def main():
         help="enable the md5 checksum  ",
     )
     parser.add_argument(
+        "--configfile",
+        help=" path of the s1ifr config file .yml [optional]",
+        required=False,
+    )
+    parser.add_argument(
         "-d",
         "--delete",
         action="store_true",
@@ -399,20 +400,20 @@ def main():
                 "--mode",
                 required=True,
                 type=str,
-                choices=macro_MODES,
+                choices=["IW", "EW", "SM", "WV"],
                 help="IW EW SM WV ",
             )
             dico_subparsers[mm].add_argument(
                 "-t",
                 "--producttype",
                 type=str,
-                choices=TYPES,
+                choices=["SLC_", "GRDH", "GRDM", "GRDF", "OCN_", "RAW_"],
                 help="SLC_ GRDH GRDM GRDF OCN_ RAW_",
                 required=True,
             )
             dico_subparsers[mm].add_argument(
                 "--satellite",
-                default=list(sats_acro.keys()),
+                default=None,
                 type=str,
                 help="satellite S1A or/and ... ",
                 nargs="*",
@@ -436,6 +437,10 @@ def main():
     )
 
     args = parser.parse_args()
+    conf = load_config(args.configfile)
+    dirdeleted = conf["paths"]["scratch"]["satwave"]
+    sats_acro = conf["satellites"]["acronyms"]
+
     suppression_flag = args.delete
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
@@ -447,8 +452,10 @@ def main():
         counters["total"] = 0
         counters["ok"] = 0
         counters["ko"] = 0
-
-        satellites = args.satellite
+        if args.satellite is None:
+            satellites = list(sats_acro.keys())
+        else:
+            satellites = args.satellite
         logging.info("satellites: %s", satellites)
         #     if options.exploitation is not None:
         logging.info(

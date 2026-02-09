@@ -1,14 +1,15 @@
 """
 Functions to resolve full paths for Sentinel-1 SAFE products in the Ifremer archive.
-
-author: Antoine Grouazel
 """
 
 import glob
 import logging
 import os
 
-from s1ifr.explodesafename import check_safe_name_match_expected_s1_pattern
+from s1ifr.explodesafename import (
+    ExplodeSAFE,
+    check_safe_name_match_expected_s1_pattern,
+)
 from s1ifr.SAFEsortingfunctions import which_archive_dir
 
 
@@ -89,7 +90,20 @@ def get_path_from_base_safe(
             return final_path
     if check_existence:
         if not os.path.exists(final_path):
-            logging.debug("SAFE file does not exist: %s", final_path)
-            return None
+
+            # try to replace the unique product ID of the SAFE name because a
+            # single acquisition can be processed several times
+            inst = ExplodeSAFE(safe_basename)
+            product_id = inst.get("product_id")
+            safe_name_wildcard = safe_basename.replace(product_id, "*")
+            safe_path_wildcard = os.path.join(
+                archive_base_dir, safe_name_wildcard
+            )
+            pot_wild = sorted(glob.glob(safe_path_wildcard))
+            if len(pot_wild) > 0:
+                final_path = pot_wild[0]  # arbitraril take first one
+            else:
+                logging.debug("SAFE file does not exist: %s", final_path)
+                final_path = None
     # If no wildcard, just return the constructed path.
     return final_path

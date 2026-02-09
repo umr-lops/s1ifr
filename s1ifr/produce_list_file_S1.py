@@ -15,13 +15,8 @@ import os
 from dateutil import rrule
 from tqdm import tqdm
 
-from s1ifr.SAFEsortingfunctions import ADDITIONAL_ARCHIVES
 from s1ifr.utils import load_config
 
-conf = load_config()
-EXTENSIONS = conf["product_info"]["extensions"]
-sats_acro = conf["satellites"]["acronyms"]
-sats_long = conf["satellites"]["longnames"]
 ERROR_DATES = "start date is > stop date"
 NB_NC = "number of netCDF found %s"
 
@@ -36,9 +31,10 @@ def write_measurement_list(
     level,
     onlyonsea=True,
     write_to_file=True,
+    config_path=None,
 ):
     """
-    create a list of measurement file from mpc ifremer sentinel1 archive
+    create a list of measurement file from MPC ifremer sentinel1 archive
 
     Args:
         type (str): acquisition mode ex : WV
@@ -50,7 +46,15 @@ def write_measurement_list(
         level (str): L1 or L2
         onlyonsea (bool): True->keep measu. with at least one ocean point
         write_to_file (bool): [default True]
+        config_path (str): full path of config file .yml for s1ifr [optional]
+
+    Returns:
+        logpath (str): listing of the measurement write on disk
+            (created only if write_to_file==True, None otherwise )
+        tifflist (list): list of measurement
     """
+    conf = load_config(config_path=config_path)
+    EXTENSIONS = conf["product_info"]["extensions"]
     format_safe = format.rjust(4, "_")
     format_file = format
     subtype = (
@@ -114,6 +118,22 @@ def write_measurement_list(
     return logpath, tifflist
 
 
+def get_all_archives(config_path=None):
+    conf = load_config(config_path=config_path)
+
+    datarmor_archive_esa_ifremer = conf["paths"]["datawork"]["archive_esa"]
+    scale_archive_esa_ifremer = conf["paths"]["scale"]["archive_esa"]
+    datawork_provider = conf["paths"]["datawork"]["project_provider"]
+
+    additional_archives = {
+        "datawork": datarmor_archive_esa_ifremer,
+        "scale": scale_archive_esa_ifremer,
+        "provider": datawork_provider,
+    }
+
+    return additional_archives
+
+
 def list_safe_s1_ifr_fs(
     startdate,
     enddate,
@@ -126,6 +146,7 @@ def list_safe_s1_ifr_fs(
     write=True,
     logfile_path=None,
     logdir_path=None,
+    config_path=None,
 ):
     """
     create a list of SAFE directories (basename of the SAFE only)
@@ -141,11 +162,15 @@ def list_safe_s1_ifr_fs(
         write (bool): True -> write product list to a file
         logfile_path (str): [optional]
         logdir_path (str): [optional]
+        config_path (str): full path of config file .yml for s1ifr [optional]
     Returns:
         list_safe (list):
         logpath (str):
     """
-    root_archive = ADDITIONAL_ARCHIVES[archive_name]
+    conf = load_config(config_path=config_path)
+    sats_long = conf["satellites"]["longnames"]
+    additional_archives = get_all_archives(config_path=config_path)
+    root_archive = additional_archives[archive_name]
     logpath = None
     logging.debug("root_archive : %s", root_archive)
     logging.debug("sats_long[satellite] %s", sats_long[satellite])
@@ -218,18 +243,22 @@ def write_safe_to_file_list(
     return logpath
 
 
-def find_netcdf_day_before(nbdays, satellite, archive_name="mpc"):
+def find_netcdf_day_before(
+    nbdays, satellite, archive_name="mpc", config_path=None
+):
     """
     browse Ifremer repositories to find the netCDF data from the X past days
     Args:
         nbdays (int): number of days to take into account before the present day
         satellite (str): sentinel-1a
         archive (str): mpc or benguela or canaries or swarp
+        config_path (str): full path of config file .yml for s1ifr [optional]
     Returns:
         netcdf_list (list):
     """
     logging.info("coloc for a given date %s days back", nbdays)
-    root_archive = ADDITIONAL_ARCHIVES[archive_name]
+    additional_archives = get_all_archives(config_path=config_path)
+    root_archive = additional_archives[archive_name]
     rep_data = os.path.join(root_archive, satellite, "L2/")
     now = datetime.datetime.now()
     yerterday = now - datetime.timedelta(days=nbdays)
@@ -251,13 +280,14 @@ def find_netcdf_day_before(nbdays, satellite, archive_name="mpc"):
 
 
 def find_netcdf_between_2_dates(
-    start, stop, satellite, mode="*", archive_name="datawork"
+    start, stop, satellite, mode="*", archive_name="datawork", config_path=None
 ) -> list:
     """
     start,stop (datetime)
     satellite (str) sentinel-1a or 1b
     mode (str): WV IW EW SM [default all]
-    archive (str): mpc or benguela or canaries or swarp
+    archive_name (str): 'datawork' or 'scale or ...
+    config_path (str): full path of config file .yml for s1ifr [optional]
 
     :returns
         netcdf_list (list):
@@ -266,7 +296,8 @@ def find_netcdf_between_2_dates(
         "looking for SAR netcdf files between %s-%s dates", start, stop
     )
     netcdf_list = []
-    root_archive = ADDITIONAL_ARCHIVES[archive_name]
+    additional_archives = get_all_archives(config_path=config_path)
+    root_archive = additional_archives[archive_name]
     rep_data = os.path.join(root_archive, satellite, "L2/")
 
     start_rule = start - datetime.timedelta(
@@ -314,7 +345,7 @@ def find_netcdf_between_2_dates(
 
 
 def find_s1_measurement_between_2_dates(
-    start, stop, product_type, archive_name="datawork"
+    start, stop, product_type, archive_name="datawork", config_path=None
 ) -> list:
     """
 
@@ -323,13 +354,16 @@ def find_s1_measurement_between_2_dates(
     Args:
         start,stop (datetime):
         product_type (str): ex S1A_WV_SLC__1S
+        config_path (str): full path of config file .yml for s1ifr [optional]
     :Returns
         netcdf_list (list)
     """
     netcdf_list = []
-    root_archive = ADDITIONAL_ARCHIVES[archive_name]
+    conf = load_config(config_path=config_path)
+    sats_long = conf["satellites"]["longnames"]
+    additional_archives = get_all_archives(config_path=config_path)
+    root_archive = additional_archives[archive_name]
     satellite = product_type[0:3]
-    # fs = sats_acro[satellite]
     fs = sats_long[satellite]
     logging.debug("full satellite unit name :%s", fs)
     mode = product_type.split("_")[1]
@@ -368,12 +402,17 @@ def find_sar_tiff_between_2_dates(
     mode,
     archive_name="datawork",
     processing_format="*",
+    config_path=None,
 ):
     """
-    start,stop (str/datetime)
-    satellite (str) sentinel-1a or 1b
-    mode (list) [IW,EW,...]
-    processing_format (str): GRDM or SLC_ or GRDH or GRDF or *
+
+
+    Args:
+        start,stop (str/datetime)
+        satellite (str) sentinel-1a or 1b
+        mode (list) [IW,EW,...]
+        processing_format (str): GRDM or SLC_ or GRDH or GRDF or *
+        config_path (str): full path of config file .yml for s1ifr [optional]
     """
     logging.debug(
         "looking for SAR tiff files between %s-%s dates", start, stop
@@ -381,7 +420,8 @@ def find_sar_tiff_between_2_dates(
     if isinstance(mode, str):
         mode = [mode]
     tiff_list = []
-    root_archive = ADDITIONAL_ARCHIVES[archive_name]
+    additional_archives = get_all_archives(config_path=config_path)
+    root_archive = additional_archives[archive_name]
     rep_data = os.path.join(root_archive, satellite, "L1")
     if start > stop:
         raise ValueError(ERROR_DATES)
@@ -408,20 +448,29 @@ def find_sar_tiff_between_2_dates(
 
 
 def findtifffromdaybefore(
-    nbdays,
-    satellite,
-    mode=None,
-    archive_name="datawork",
+    nbdays, satellite, mode=None, archive_name="datawork", config_path=None
 ):
     """
     browse the mpc repositories to find the tiff data from last days
-    mode (str): EW IW SM or WV
+
+    Args:
+        nbdays (int): define a time window with number of days before today
+        satellite
+        mode (str): EW IW SM or WV
+        archive_name (str): 'scale' or 'datwork' or ... [optional]
+        config_path (str): full path of config file .yml for s1ifr [optional]
+
+    Returns:
+        list: measurement Sentinel-1 Level-1
     """
     if mode is None:
         modes = ["SM", "IW", "EW", "WV"]
     else:
         modes = [mode]
-    root_archive = ADDITIONAL_ARCHIVES[archive_name]
+    conf = load_config(config_path=config_path)
+    sats_long = conf["satellites"]["longnames"]
+    additional_archives = get_all_archives(config_path=config_path)
+    root_archive = additional_archives[archive_name]
     sat_dir = sats_long[satellite]
     rep_data = os.path.join(root_archive, sat_dir, "L1/")
     ext = "tiff"
@@ -516,7 +565,6 @@ def main():
     if root.handlers:
         for handler in root.handlers:
             root.removeHandler(handler)
-    possibles_archives = [rere for rere in ADDITIONAL_ARCHIVES]
     parser = argparse.ArgumentParser(description="listS1Products@Ifr")
     parser.add_argument(
         "-v",
@@ -584,10 +632,9 @@ def main():
         "-s",
         "--satellite",
         action="store",
-        choices=sats_long.keys(),
         dest="satellite",
         metavar="string",
-        help=f"which satellite do you want: {sats_long.keys()} ?",
+        help="which satellite do you want: S1A , S1B or  ...; ?",
     )
     parser.add_argument(
         "-m",
@@ -602,10 +649,15 @@ def main():
         "-a",
         "--archive",
         action="store",
-        choices=possibles_archives,
         dest="archive",
         metavar="string",
-        help=f"which archive do you want: {ADDITIONAL_ARCHIVES.keys()} ? [optional, default is datawork ]",
+        help="which archive do you want: e.g. 'scale' 'datawork' 'provider' ? "
+        "[optional, default is 'datawork' ]",
+    )
+    parser.add_argument(
+        "--configfile",
+        help=" path of the s1ifr config file .yml [optional]",
+        required=False,
     )
     args = parser.parse_args()
 
@@ -616,6 +668,9 @@ def main():
     else:
         archive_name = args.archive
     fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
+
+    additional_archives = get_all_archives(config_path=args.configfile)
+
     if args.verbose:
         logging.basicConfig(
             level=logging.DEBUG,
@@ -646,7 +701,7 @@ def main():
             tiff_list = find_sar_tiff_between_2_dates(
                 startdt,
                 stopdt,
-                sats_long[args.satellite],
+                "sentinel-1" + args.satellite[-1],
                 [args.mode],
                 archive_name=archive_name,
                 processing_format=args.format,
@@ -656,14 +711,14 @@ def main():
             netcdf_list = find_netcdf_between_2_dates(
                 startdt,
                 stopdt,
-                sats_long[args.satellite],
+                "sentinel-1" + args.satellite[-1],
                 args.mode,
                 archive_name=archive_name,
             )
             logging.info("Nber of measurement: %s", len(netcdf_list))
     elif args.usage == "write_measurment_list":
-        sat_dir = sats_long[args.satellite]
-        root_archive = ADDITIONAL_ARCHIVES[archive_name]
+        sat_dir = ("sentinel-1" + args.satellite[-1],)
+        root_archive = additional_archives[archive_name]
         rep_data = os.path.join(root_archive, sat_dir, args.level)
         write_measurement_list(
             args.mode,

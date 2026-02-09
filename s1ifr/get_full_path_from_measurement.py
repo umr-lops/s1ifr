@@ -1,11 +1,5 @@
 """
-author: Antoine Grouazel
-date: 6/04/2016
-:usage:
- python get_full_path_from_measurement.py date --date 20190501t003325 --sat S1A
-
- import get_full_path_from_measurement
- get_full_path_from_measurement.get_full_path_from_measu(measu)
+methods to find path in Ifremer archive for a given measurement base-name
 """
 
 import datetime
@@ -14,9 +8,6 @@ import logging
 import os
 
 from s1ifr.utils import load_config
-
-conf = load_config()
-sats_acro = conf["satellites"]["longnames"]
 
 DATE_FORMAT_MEASU = "%Y%m%dt%H%M%S"
 
@@ -30,14 +21,22 @@ prodtype_levels = {
 }
 
 
-def get_full_path_from_measu(measurement, storage="datawork") -> str:
+def get_full_path_from_measu(
+    measurement, storage="datawork", config_path=None
+) -> str:
     """
     to get the full path in ifremer archive of given measurement
-    :args:
-        measurement (str):
+
+    Args:
+        measurement (str): basename of a S1 measurement .raw .tiff or .nc
         storage (str): 'scale' or 'datawork'
+        config_path (str): full path of config file .yml for s1ifr [optional]
+
+    Returns:
+        fp (str): full path in archive or None if not found
     """
-    reso = None
+    conf = load_config(config_path=config_path)
+    fp = None
     sat = measurement[0:3]
     mode = measurement.split("-")[1][0:2]
     if mode[0] == "s":
@@ -61,7 +60,7 @@ def get_full_path_from_measu(measurement, storage="datawork") -> str:
         + "S"
     )
 
-    fullsat = sats_acro[sat.upper()]
+    fullsat = "sentinel-1" + sat.lower()[-1]
     root = os.path.join(conf["paths"][storage]["archive_esa"], fullsat)
     datestart = datetime.datetime.strptime(
         measurement.split("-")[5], DATE_FORMAT_MEASU
@@ -122,14 +121,19 @@ def get_full_path_from_measu(measurement, storage="datawork") -> str:
                 final,
             )
         else:
-            reso = res[0]
+            fp = res[0]
     else:
-        reso = res[0]
-    return reso
+        fp = res[0]
+    return fp
 
 
 def get_full_path_ocn_wv_from_approximate_date(
-    datedt, sat, level="L2", storage="datawork", nb_seconds_delta=3
+    datedt,
+    sat,
+    level="L2",
+    storage="datawork",
+    nb_seconds_delta=3,
+    config_path=None,
 ):
     """
 
@@ -142,14 +146,16 @@ def get_full_path_ocn_wv_from_approximate_date(
         level (str): Level of processing of the WV product sought, L2 or L1 [default=L2]
         storage (str): file system where the product is suposed to be stored 'datawork' or 'scale' [optional]
         nb_seconds_delta (int): positive maximum range of search for the number of seconds of shift with respect to datedt
+        config_path (str): full path of config file .yml for s1ifr [optional]
 
     Returns
 
         reso (str): full path of the WV measurement.
     """
     reso = None
+    conf = load_config(config_path=config_path)
     root = os.path.join(
-        conf["paths"][storage]["archive_esa"], sats_acro[sat.upper()]
+        conf["paths"][storage]["archive_esa"], "sentinel-1" + sat.lower()[-1]
     )
     mode = "WV"
 
@@ -196,22 +202,27 @@ def get_full_path_ocn_wv_from_approximate_date(
 
 
 def get_full_path_with_safe_and_measu(
-    safebase, measu_base, storage="datawork"
+    safebase, measu_base, storage="datawork", config_path=None
 ) -> str:
     """
     used when inputs are coming from the json of datavore xwave quicklook request
-    :param safebase:
-    :param measu_base:
-    :return:
-        finalpath: str full path of the measurement
+
+    Args:
+        safebase (str):
+        measu_base (str):
+        config_path (str): full path of config file .yml for s1ifr [optional]
+
+    Returns:
+        finalpath: str full path of the measurement in archive (no exist test)
     """
+    conf = load_config(config_path=config_path)
     sat = measu_base[0:3].upper()
     prodtype = measu_base.split("-")[2]
     datedt = datetime.datetime.strptime(
         measu_base.split("-")[4], DATE_FORMAT_MEASU
     )
     root = os.path.join(
-        conf["paths"][storage]["archive_esa"], sats_acro[sat.upper()]
+        conf["paths"][storage]["archive_esa"], "sentinel-1" + sat.lower()[-1]
     )
     mode = "WV"
     year = datedt.strftime("%Y")

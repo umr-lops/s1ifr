@@ -11,27 +11,30 @@ class TestProduceListFileS1(unittest.TestCase):
 
     # We patch 'load_config' at the class level because it's used by the module on import.
     # This ensures all tests run with a consistent, fake configuration.
-    @classmethod
-    def setUpClass(cls):
-        cls.mock_config = {
-            "product_info": {"extensions": {"L1": "tiff", "L2": "nc"}},
-            "satellites": {"acronyms": {"S1A": "sentinel-1a"}},
-            "paths": {"archives": {"datawork": "/archive/datawork"}},
-        }
-        # The patch needs to target where the object is *looked up*, which is in the module under test.
-        cls.patcher = patch("s1ifr.produce_list_file_S1.conf", cls.mock_config)
-        cls.patcher.start()
-        # Also patch the imported dictionary directly if needed, though patching conf is better
-        produce_list_file_S1.ADDITIONAL_ARCHIVES = cls.mock_config["paths"][
-            "archives"
-        ]
-        produce_list_file_S1.sats_acro = cls.mock_config["satellites"][
-            "acronyms"
-        ]
+    # @classmethod
+    # def setUpClass(cls):
+    #     cls.mock_config = {
+    #         "product_info": {"extensions": {"L1": "tiff", "L2": "nc"}},
+    #         "satellites": {"acronyms": {"S1A": "sentinel-1a"}},
+    #         "paths": {"archives": {"datawork": "/archive/datawork"}},
+    #     }
+    #     # The patch needs to target where the object is *looked up*, which is in the module under test.
+    #     # cls.patcher = patch("s1ifr.produce_list_file_S1.conf", cls.mock_config)
+    #     # cls.patche
+    #     # cls.patcher.start()
+    #     # Also patch the imported dictionary directly if needed, though patching conf is better
+    #     # produce_list_file_S1.ADDITIONAL_ARCHIVES = cls.mock_config["paths"][
+    #     #     "archives"
+    #     # ]
+    #     # produce_list_file_S1.conf = utils.load_config()
+    #     produce_list_file_S1.additional_archives = produce_list_file_S1.get_all_archives()
+    #     produce_list_file_S1.sats_acro = cls.mock_config["satellites"][
+    #         "acronyms"
+    #     ]
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.patcher.stop()
+    # @classmethod
+    # def tearDownClass(cls):
+    #     cls.patcher.stop()
 
     @patch("s1ifr.produce_list_file_S1.write_safe_to_file_list")
     @patch("s1ifr.produce_list_file_S1.glob.glob")
@@ -67,7 +70,8 @@ class TestProduceListFileS1(unittest.TestCase):
         )  # Called once for each day in the range
 
         # Check that the glob pattern was constructed correctly for the second day
-        expected_pattern = "/archive/datawork/sentinel-1a/L1/IW/S1A_IW_GRDH_1S/2023/122/S1A*.SAFE"
+        # expected_pattern = "/archive/datawork/sentinel-1a/L1/IW/S1A_IW_GRDH_1S/2023/122/S1A*.SAFE"
+        expected_pattern = "/home/datawork-cersat-public/project/mpc-sentinel1/data/esa/sentinel-1a/L1/IW/S1A_IW_GRDH_1S/2023/122/S1A*.SAFE"
         mock_glob.assert_called_with(expected_pattern)
 
         # Check that the file writer was called since write=True

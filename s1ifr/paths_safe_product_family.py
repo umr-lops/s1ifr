@@ -8,8 +8,10 @@ import datetime
 import logging
 import os
 import re
+import sys
 from collections import defaultdict
 
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -17,297 +19,278 @@ import s1ifr
 from s1ifr.match_SLC_GRD import match_slc_grd
 from s1ifr.utils import load_config
 
-# DEFAULT_VERSIONS_L1B=['A13','A14','A16','A15','A17','A18']
-# DEFAULT_VERSIONS_L1B=['A06','A13','A14','A16','A15','A17','A18','A23']
-# DEFAULT_VERSIONS_L1B = ['A23']
-# DEFAULT_VERSIONS_L1C = ['B09','B14','B15']
-# DEFAULT_VERSIONS_L2WAV = ['E11','E12'] # E11 17.5km , E12 5km
-# dir_outs_l1c = [
-#     '/home/datawork-cersat-public/project/sarwave/data/products/experiments/slc/iw/l1c',
-# ]
-# dir_outs_l1b = ['/home/datawork-cersat-public/project/sarwave/data/products/from_creodias/slc/iw/l1b',
-#                 # '/home/datawork-cersat-public/project/sarwave/data/products/tests2/slc/iw/l1b',
-#                 '/home/datawork-cersat-public/project/sarwave/data/products/experiments/slc/iw/l1b',
-#                 '/home/datawork-cersat-public/cache/public/http/sarwave/diffusion/sar/iw/slc/l1b/experimental_product_collection/v5.0/',
-#                 ]
-# dir_out_l2wav = ['/home/datawork-cersat-public/project/sarwave/data/products/experiments/slc/iw/l2/']
+# --- SHARED HELPER METHODS ---
 
-conf = load_config()
 
-DEFAULT_VERSIONS_L1B = conf["DEFAULT_VERSIONS_L1B"]
-DEFAULT_VERSIONS_L1C = conf["DEFAULT_VERSIONS_L1C"]
-DEFAULT_VERSIONS_L2WAV = conf["DEFAULT_VERSIONS_L2WAV"]
-dir_outs_l1c = conf["paths"]["datawork"]["dir_outs_l1c"]
-dir_outs_l1b = conf["paths"]["datawork"]["dir_outs_l1b"]
-dir_out_l2wav = conf["paths"]["datawork"]["dir_out_l2wav"]
+def _resolve_slc_path(slc_identifier):
+    """
+    Resolves the physical path of an SLC SAFE from various archives.
+
+    Args:
+        slc_identifier (str): Filename or full path of the SLC SAFE.
+
+    Returns:
+        str or None: Full path if found, else None.
+    """
+    if "/" in slc_identifier:
+        return slc_identifier if os.path.exists(slc_identifier) else None
+
+    # Try datawork archive
+    fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
+        slc_identifier, archive_name="datawork"
+    )
+    if os.path.exists(fp):
+        return fp
+
+    # Fallback to scale archive
+    fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
+        slc_identifier, archive_name="scale"
+    )
+    return fp if os.path.exists(fp) else None
 
 
 def get_output_l1b_safe(slc_iw_path_safe, outputdir, productid) -> str:
     """
+    Predicts the expected L1B/L1C XSP SAFE path based on an SLC path.
 
-    this method will give the expected L1B XSP SAFE path (whatever the input SLC SAFE given as input exists or not).
-    copy pasted from xsarslc processor.
+    Args:
+        slc_iw_path_safe (str): Path to source SLC.
+        outputdir (str): Base output directory.
+        productid (str): Version/Product ID (e.g., 'A14').
 
-    :param slc_iw_path_safe:
-    :param outputdir:
-    :param productid:
-    :return:
-        safe_output: str path of the L1B XSP SAFE
+    Returns:
+        str: Constructured path.
     """
     safe_basename = os.path.basename(slc_iw_path_safe)
     safestartdate = datetime.datetime.strptime(
         safe_basename.split("_")[5], "%Y%m%dT%H%M%S"
     )
-    logging.debug("safe_basename : %s", safe_basename)
     safe_basename = safe_basename.replace("SLC", "XSP")
     safe_basename = safe_basename.replace(
         ".SAFE", "_" + productid.upper() + ".SAFE"
     )
-    safe_output = os.path.join(
+    return os.path.join(
         outputdir,
         safestartdate.strftime("%Y"),
         safestartdate.strftime("%j"),
         safe_basename,
     )
-    return safe_output
 
 
-def add_L1B(df, cpt=None, versions=None, disable_tqdm=False):
+def get_output_l2wav_safe(slc_path, outputdir, productid) -> str:
     """
+    Predicts the expected L2 WAV SAFE path based on an SLC path.
 
-    collect Level-1B paths from Ifr archive.
-    Multiple version/directories can be tested.
+    Args:
+        slc_path (str): Path to source SLC.
+        outputdir (str): Base output directory.
+        productid (str): Version/Product ID.
 
-    :param df:
-    :param cpt:
-    :param versions:
-    :return:
+    Returns:
+        str: Constructed path.
     """
-    if versions is None:
-        versions = DEFAULT_VERSIONS_L1B
+    base_safe = os.path.basename(slc_path)
+    datedt_slc = datetime.datetime.strptime(
+        base_safe.split("_")[5], "%Y%m%dT%H%M%S"
+    )
+    base_safe_l2 = (
+        base_safe.replace("SLC", "WAV")
+        .replace("_1S", "_2S")
+        .replace(".SAFE", "_" + productid + ".SAFE")
+    )
+    return os.path.join(
+        outputdir,
+        datedt_slc.strftime("%Y"),
+        datedt_slc.strftime("%j"),
+        base_safe_l2,
+    )
+
+
+def _find_version_path(slc_path, pid, search_dirs, path_generator_func):
+    """Generic helper to find a versioned product across multiple directories."""
+    for out_dir in search_dirs:
+        candidate = path_generator_func(slc_path, out_dir, pid)
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+
+# --- L1B SPECIFIC LOGIC ---
+
+
+def _process_l1b_row(slc_id, versions, dir_outs, cpt):
+    row_results = {pid: "" for pid in versions}
+    cpt["total_safe_slc"] += 1
+    fp = _resolve_slc_path(slc_id)
+
+    if not fp:
+        cpt["SLC_absent"] += 1
+        cpt["L1B_absent"] += 1
+        return row_results
+
+    cpt["total_safe_slc_avail_at_ifr"] += 1
+    found_any = False
+    for pid in versions:
+        res = _find_version_path(fp, pid, dir_outs, get_output_l1b_safe)
+        if res:
+            row_results[pid] = res
+            cpt[f"L1B_{pid}_found"] += 1
+            found_any = True
+        else:
+            cpt[f"L1B_{pid}_absent"] += 1
+
+    cpt["L1B_found" if found_any else "L1B_absent"] += 1
+    return row_results
+
+
+def add_L1B(df, cpt=None, versions=None, disable_tqdm=False, config_path=None):
+    """
+    Collect Level-1B paths from Ifr archive.
+
+    Args:
+        df (pd.DataFrame): Input dataframe with 'L1_SLC' column.
+        cpt (defaultdict): Counters dictionary.
+        versions (list): List of versions to search.
+        disable_tqdm (bool): Disable progress bar.
+        config_path (str): Path to config file.
+
+    Returns:
+        tuple: (updated df, updated cpt)
+    """
+    conf = load_config(config_path=config_path)
+    dir_outs = conf["paths"]["datawork"]["dir_outs_l1b"]
+    versions = versions or conf["DEFAULT_VERSIONS_L1B"]
+    cpt = cpt if cpt is not None else defaultdict(int)
+
     logging.info("Level-1B version to be tested: %s", versions)
-    if cpt is None:
-        cpt = defaultdict(int)
+    results = [
+        _process_l1b_row(sid, versions, dir_outs, cpt)
+        for sid in tqdm(df["L1_SLC"], disable=disable_tqdm)
+    ]
 
-    L1B_found = {}
-    # loop over all SLC SAFE
-    for xx in tqdm(range(len(df["L1_SLC"])), disable=disable_tqdm):
-        ii = df["L1_SLC"].iloc[xx]
-        assert isinstance(ii, str)
-        # get full path of SLC SAFE
-        if "/" not in ii:
-
-            fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
-                ii, archive_name="datawork"
-            )
-            if not os.path.exists(fp):
-                fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
-                    ii, archive_name="scale"
-                )
-        else:
-            fp = ii
-        found = False
-        cpt["total_safe_slc"] += 1
-        if fp != "" and fp is not None and os.path.exists(fp):
-            cpt["total_safe_slc_avail_at_ifr"] += 1
-            # loop over versions of L1B XSP
-            for pid in versions:  # ,'A15'
-                found_version = False
-                # loop over output directories for a given version
-                for out in dir_outs_l1b:
-                    if pid not in L1B_found:
-                        L1B_found[pid] = []
-                    safel1b = get_output_l1b_safe(
-                        fp, outputdir=out, productid=pid
-                    )
-                    if os.path.exists(safel1b):
-                        cpt["L1B_" + pid + "_found"] += 1
-                        # path_l1b[versionl1b_complete].append(safel1b)
-                        found = True
-                        found_version = True
-                        break  # break loop on directories
-                    else:
-                        pass
-                if found_version is True:
-                    # logging.debug('break loop')
-
-                    L1B_found[pid].append(safel1b)
-                else:
-                    cpt["L1B_" + pid + "_absent"] += 1
-                    L1B_found[pid].append("")
-
-        else:
-            cpt["SLC_absent"] += 1
-        if found is True:
-            cpt["L1B_found"] += 1
-            # L1B_found.append(safel1b)
-        else:
-            # L1B_found.append('')
-            cpt["L1B_absent"] += 1
-
-    L1B_found = pd.DataFrame(L1B_found)
-    for uu in L1B_found:
-        sumnotnull = (L1B_found[uu] != "").sum()
-        pct = (
-            sumnotnull / cpt["total_safe_slc"] * 100
-            if cpt["total_safe_slc"] > 0
-            else 0
-        )
+    res_df = pd.DataFrame(results)
+    for pid in versions:
+        df[f"L1B_XSP_{pid}"] = res_df[pid].values
         logging.info(
-            "version: %s -> %i safe found (%.1f%%)", uu, sumnotnull, pct
+            "version: %s -> %i safe found", pid, (res_df[pid] != "").sum()
         )
-        df[f"L1B_XSP_{uu}"] = L1B_found[uu]
-    # df['L1B_XSP'] = L1B_found[versions[-1]]
-    logging.info("counter: %s", cpt)
+
     return df, cpt
 
 
-def add_L1C(df, versions=None, cpt=None, disable_tqdm=False) -> pd.DataFrame:
+# --- L1C SPECIFIC LOGIC ---
+
+
+def _process_l1c_row(slc_id, versions, dir_outs, cpt):
+    row_results = {f"L1C_XSP_{pid}": "" for pid in versions}
+    fp = _resolve_slc_path(slc_id)
+    if not fp:
+        cpt["L1C_absent"] += 1
+        return row_results
+
+    found_any = False
+    for pid in versions:
+        res = _find_version_path(fp, pid, dir_outs, get_output_l1b_safe)
+        if res:
+            row_results[f"L1C_XSP_{pid}"] = res
+            cpt[f"L1C_{pid}_found"] += 1
+            found_any = True
+        else:
+            cpt[f"L1C_{pid}_absent"] += 1
+
+    cpt["L1C_found" if found_any else "L1C_absent"] += 1
+    return row_results
+
+
+def add_L1C(df, versions=None, cpt=None, disable_tqdm=False, config_path=None):
     """
-    from L1B path I want easily find L1C
+    From L1 path, find associated L1C XSP products.
 
     Args:
-        df (pd.DataFrame):
-        cpt (collection.defaultdict(int)): [optional]
+        df (pd.DataFrame): Input dataframe.
+        versions (list): L1C versions.
+        cpt (defaultdict): Counters.
+        disable_tqdm (bool): Progress bar control.
+        config_path (str): Config file path.
+
+    Returns:
+        tuple: (updated df, updated cpt)
     """
-    if versions is None:
-        versions = DEFAULT_VERSIONS_L1C
-    logging.info("Level-1C will be search in versions: %s", versions)
-    path_l1c = {}
-    if cpt is None:
-        cpt = defaultdict(int)
-    for xx in tqdm(range(df.index.size), disable=disable_tqdm):
-        # pbar.set_description('l1c: %s'%cpt)
-        l1c_found = False
-        ii = df["L1_SLC"].iloc[xx]
-        if "/" not in ii:
-            fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
-                ii, archive_name="datawork"
-            )
-            if not os.path.exists(fp):
-                fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
-                    ii, archive_name="scale"
-                )
-        else:
-            fp = ii
-        for versionl1c in versions:
-            l1c_found_version_span = False
-            versionl1c_complete = "L1C_XSP_" + versionl1c
-            if versionl1c_complete not in path_l1c:
-                path_l1c[versionl1c_complete] = []
-            for out in dir_outs_l1c:
-                # valuepathl1c = get_output_l1b_filepath(
-                #    fp + ":IW1", outputdir=out, productid=versionl1c
-                # )
-                safel1c = get_output_l1b_safe(
-                    fp, outputdir=out, productid=versionl1c
-                )
+    conf = load_config(config_path=config_path)
+    dir_outs = conf["paths"]["datawork"]["dir_outs_l1c"]
+    versions = versions or conf["DEFAULT_VERSIONS_L1C"]
+    cpt = cpt if cpt is not None else defaultdict(int)
 
-                if os.path.exists(safel1c):
-                    cpt["L1C_" + versionl1c + "_found"] += 1
-                    path_l1c[versionl1c_complete].append(safel1c)
-                    l1c_found = True
-                    l1c_found_version_span = True
-                    break  # break loop on directories
-                else:
-                    pass
-            if (
-                l1c_found_version_span is False
-            ):  # all L1B version browsed and no match
-                cpt["L1C_" + versionl1c + "_absent"] += 1
-                path_l1c[versionl1c_complete].append("")
-        logging.debug("all L1C versions tested")
+    logging.info("Level-1C version to be tested: %s", versions)
+    results = [
+        _process_l1c_row(sid, versions, dir_outs, cpt)
+        for sid in tqdm(df["L1_SLC"], disable=disable_tqdm)
+    ]
 
-        if (
-            l1c_found is False
-        ):  # all L1B versions and all L1C version browsed and no match
-            cpt["L1C_absent"] += 1
-        else:
-            cpt["L1C_found"] += 1
+    res_df = pd.DataFrame(results)
+    for col in res_df.columns:
+        df[col] = res_df[col].values
+
     logging.info("cpt : %s", cpt)
-    for uu in path_l1c:
-        logging.info("append column L1C %s to the dataframe", uu)
-        df[uu] = path_l1c[uu]
     return df, cpt
 
 
-def add_L2WAV(df, versions=None, cpt=None, disable_tqdm=False) -> pd.DataFrame:
+# --- L2WAV SPECIFIC LOGIC ---
+
+
+def _process_l2wav_row(slc_id, versions, dir_outs, cpt):
+    row_results = {f"L2_WAV_{pid}": "" for pid in versions}
+    fp = _resolve_slc_path(slc_id)
+    if not fp:
+        cpt["L2WAV_absent"] += 1
+        return row_results
+
+    found_any = False
+    for pid in versions:
+        res = _find_version_path(fp, pid, dir_outs, get_output_l2wav_safe)
+        if res:
+            row_results[f"L2_WAV_{pid}"] = res
+            cpt[f"L2_WAV_{pid}_found"] += 1
+            found_any = True
+        else:
+            cpt[f"L2_WAV_{pid}_absent"] += 1
+
+    cpt["L2WAV_found" if found_any else "L2WAV_absent"] += 1
+    return row_results
+
+
+def add_L2WAV(
+    df, versions=None, cpt=None, disable_tqdm=False, config_path=None
+):
     """
-    from SLC path I want easily find L2-WAV
+    From SLC path, find associated L2-WAV products.
 
     Args:
-        df (pd.DataFrame):
-        cpt (collection.defaultdict(int)): [optional]
-        disable_tqdm (bool): [default False -> no progress bar in stdout]
-    """
-    if versions is None:
-        versions = DEFAULT_VERSIONS_L2WAV
-    logging.info("Level-2 WAV will be search in versions: %s", versions)
-    path_l2w = {}
-    if cpt is None:
-        cpt = defaultdict(int)
-    for xx in tqdm(range(df.index.size), disable=disable_tqdm):
-        # pbar.set_description('l1c: %s'%cpt)
-        l2_found = False
-        ii = df["L1_SLC"].iloc[xx]
-        if "/" not in ii:
-            fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
-                ii, archive_name="datawork"
-            )
-            if not os.path.exists(fp):
-                fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
-                    ii, archive_name="scale"
-                )
-        else:
-            fp = ii
-        for versionl2 in versions:
-            l2_found_version_span = False
-            versionl2_complete = "L2_WAV_" + versionl2
-            if versionl2_complete not in path_l2w:
-                path_l2w[versionl2_complete] = []
-            for out in dir_out_l2wav:
-                # valuepathl1c = get_output_l1b_filepath(ii + ':IW1', outputdir=out, productid=versionl2)
-                base_safe = os.path.basename(fp)
-                # print('base_safe',base_safe,ii,os.path.basename(ii).split('_')[5])
-                datedt__slc = datetime.datetime.strptime(
-                    base_safe.split("_")[5], "%Y%m%dT%H%M%S"
-                )
-                base_safe_l2 = (
-                    base_safe.replace("SLC", "WAV")
-                    .replace("_1S", "_2S")
-                    .replace(".SAFE", "_" + versionl2 + ".SAFE")
-                )
-                valuepathl2wav = os.path.join(
-                    out,
-                    datedt__slc.strftime("%Y"),
-                    datedt__slc.strftime("%j"),
-                    base_safe_l2,
-                )
-                if os.path.exists(valuepathl2wav):
-                    cpt["L2_WAV_" + versionl2 + "_found"] += 1
-                    path_l2w[versionl2_complete].append(valuepathl2wav)
-                    l2_found = True
-                    l2_found_version_span = True
-                    break  # break loop on directories
-                else:
-                    pass
-            if (
-                l2_found_version_span is False
-            ):  # all L1B version browsed and no match
-                cpt["L2_WAV_" + versionl2 + "_absent"] += 1
-                path_l2w[versionl2_complete].append("")
-        logging.debug("all L2WAV versions tested")
+        df (pd.DataFrame): Input dataframe.
+        versions (list): L2 versions.
+        cpt (defaultdict): Counters.
+        disable_tqdm (bool): Progress bar control.
+        config_path (str): Config file path.
 
-        if (
-            l2_found is False
-        ):  # all L1B versions and all L1C version browsed and no match
-            cpt["L2WAV_absent"] += 1
-        else:
-            cpt["L2WAV_found"] += 1
+    Returns:
+        tuple: (updated df, updated cpt)
+    """
+    conf = load_config(config_path=config_path)
+    dir_outs = conf["paths"]["datawork"]["dir_out_l2wav"]
+    versions = versions or conf["DEFAULT_VERSIONS_L2WAV"]
+    cpt = cpt if cpt is not None else defaultdict(int)
+
+    logging.info("Level-2 WAV version to be tested: %s", versions)
+    results = [
+        _process_l2wav_row(sid, versions, dir_outs, cpt)
+        for sid in tqdm(df["L1_SLC"], disable=disable_tqdm)
+    ]
+
+    res_df = pd.DataFrame(results)
+    for col in res_df.columns:
+        df[col] = res_df[col].values
+
     logging.info("cpt : %s", cpt)
-    for uu in path_l2w:
-        logging.info("append column L2-WAV %s to the dataframe", uu)
-        df[uu] = path_l2w[uu]
     return df, cpt
 
 
@@ -377,7 +360,43 @@ def get_products_family(
     return df
 
 
-if __name__ == "__main__":
+def create_a_listing(newdf):
+    try:
+        # 1. Ask for the column name
+        consign = f"Enter the column name to filter: possibles names are : {newdf.keys()}"
+        input_from_user_colname = input(consign).strip()
+
+        # (Optional) Validate that column exists to prevent a crash later
+        if input_from_user_colname not in newdf.columns:
+            print(
+                f"Error: Column '{input_from_user_colname}' does not exist in the DataFrame."
+            )
+            sys.exit(1)
+
+        # 2. Ask for the output path
+        output_listing_sub_product_path = input(
+            "Enter the full path for the output CSV: "
+        ).strip()
+
+        # --- Your Logic ---
+        serii = newdf[input_from_user_colname].where(
+            newdf[input_from_user_colname].str.strip() != "", np.nan
+        )
+
+        # Save to CSV
+        serii.dropna().to_csv(
+            output_listing_sub_product_path, header=False, index=False
+        )
+
+        logging.info("output = %s", output_listing_sub_product_path)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+    except Exception as e:
+        logging.error("An error occurred: %s", e)
+
+
+def entrypoint():
     root = logging.getLogger()
     if root.handlers:
         for handler in root.handlers:
@@ -413,6 +432,7 @@ if __name__ == "__main__":
         default=None,
     )
     args = parser.parse_args()
+    assert os.path.isdir(args.outputdir)
     fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
     if args.verbose:
         logging.basicConfig(
@@ -436,14 +456,26 @@ if __name__ == "__main__":
     )
     # drop empty columns:
     newdf = newdf.loc[:, (newdf != "").any()]
+    breakpoint()
     newdf.to_csv(fout, header=True, index=True)
 
     logging.info("output file: %s", fout)
-    print(newdf.keys())
-    print(
-        "example of command to execute \n serii = newdf['L1B_XSP_A23'].where(newdf['L1B_XSP_A23'].str.strip() != '', np.nan) \n serii.dropna().to_csv('/home/datawork-cersat-public/project/sarwave/data/listings/swot_colocated_IW_L1B_XSP_A23_safe_sentinel1_present_at_ifremer_2025-08-28_sdv_only.csv',header=False,index=False) "
-    )
-    import pdb
+    logging.info("possible families to put into a listing: %s", newdf.keys())
+    # add a ligne to let the user selct the good column of the dataframe
+    create_a_listing(newdf)
+    # input_from_user_colname = ...
+    # serii = newdf[input_from_user_colname].where(newdf[input_from_user_colname].str.strip() != '', np.nan)
+    # output_listing_sub_product_path = ....
+    # serii.dropna().to_csv(output_listing_sub_product_path,header=False,index=False)
+    # logging.info('output = %s',output_listing_sub_product_path)
+    # print(
+    #     "example of command to execute \n serii = newdf['L1B_XSP_A23'].where(newdf['L1B_XSP_A23'].str.strip() != '', np.nan) \n serii.dropna().to_csv('/home/datawork-cersat-public/project/sarwave/data/listings/swot_colocated_IW_L1B_XSP_A23_safe_sentinel1_present_at_ifremer_2025-08-28_sdv_only.csv',header=False,index=False) "
+    # )
+    # import pdb
 
-    pdb.set_trace()
-    # print(newdf)
+    # pdb.set_trace()
+    # # print(newdf)
+
+
+if __name__ == "__main__":
+    entrypoint()

@@ -9,17 +9,16 @@ from s1ifr.get_path_from_base_safe import get_path_from_base_safe
 
 
 def core_find(fp, minimal_time_diff, res_base, startdate) -> str:
-    """
-    return the safe if it exists at Ifremer otherwise None
+    """Finds the SAFE path if it exists at Ifremer.
 
-    Arguments
-        fp: str full path of the SAFE to test
-        minimal_time_diff: int in seconds
-        res_base: str radical of the SAFE pattern to replace in original SAFE
-        startdate: datetime.datime of the input product
+    Args:
+        fp (str): Full path pattern of the SAFE to test.
+        minimal_time_diff (int): Maximum allowed time difference in seconds.
+        res_base (str): Radical of the SAFE pattern to replace in original SAFE.
+        startdate (datetime.datetime): Start date of the input product.
 
-    Returns
-        goodsafe str or None, full path of the SAFE if found otherwise None
+    Returns:
+        str or None: Full path of the SAFE if found, otherwise None.
     """
     mini_ecart = datetime.timedelta(seconds=15)  # default large value
     goodsafe = None
@@ -31,8 +30,7 @@ def core_find(fp, minimal_time_diff, res_base, startdate) -> str:
         basesafel1 = os.path.basename(safe)
         instance = ExplodeSAFE(basesafel1)
         l1st = instance.get("startdate")
-        # l1ee = instance.get('enddate')
-        #         if l1st<=st and l1ee>=ee:
+
         if abs(startdate - l1st) < mini_ecart:
             mini_ecart = abs(startdate - l1st)
             if mini_ecart < datetime.timedelta(seconds=minimal_time_diff):
@@ -43,16 +41,17 @@ def core_find(fp, minimal_time_diff, res_base, startdate) -> str:
 def match_slc_grd(
     safenameslc, type_input="SLC_", type_seek="GRDH", minimal_time_diff=3
 ) -> str:
-    """
-    return the safe if it exists at Ifremer otherwise None
+    """Matches an SLC product with its corresponding GRD (or vice versa).
 
-    params: safenameslc str base safe
-    params: type_input str 'SLC_' or 'GRDH'
-    params: type_seek str 'GRDH' or 'SLC_'
-    params: minimal_time_diff int in seconds
+    Args:
+        safenameslc (str): The basename of the SAFE product.
+        type_input (str): The type of the input product, e.g., ``"SLC_"`` or ``"GRDH"``.
+        type_seek (str): The type of product to search for, e.g., ``"GRDH"`` or ``"SLC_"``.
+        minimal_time_diff (int): Maximum time difference in seconds for a valid match.
+            Defaults to 3.
 
-    returns
-        goodsafe str or None, full path of the SAFE if found otherwise None
+    Returns:
+        str or None: Full path of the matched SAFE if found in archives, otherwise None.
     """
     assert len(type_input) == 4
     safe_mirrored = safenameslc.replace(type_input, type_seek)
@@ -60,10 +59,14 @@ def match_slc_grd(
     st = obj.get("startdate")
     res_base = safe_mirrored[0:10] + "*.SAFE"
     logging.debug("safe_mirrored: %s", safe_mirrored)
-    # fp = get_path_from_base_SAFE.get_path_from_base_SAFE(safe_mirrored)
+
+    # Search in datawork
     fp = get_path_from_base_safe(safe_mirrored, archive_name="datawork")
     goodsafe = core_find(fp, minimal_time_diff, res_base, startdate=st)
+
+    # Fallback to scale
     if goodsafe is None:
         fp = get_path_from_base_safe(safe_mirrored, archive_name="scale")
         goodsafe = core_find(fp, minimal_time_diff, res_base, startdate=st)
+
     return goodsafe

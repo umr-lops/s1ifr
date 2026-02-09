@@ -9,33 +9,23 @@ import logging
 import os
 
 from s1ifr.explodesafename import ExplodeSAFE
+from s1ifr.produce_list_file_S1 import get_all_archives
 from s1ifr.utils import load_config
 
-conf = load_config()
-quarantine_s1 = conf["paths"]["datawork"]["quarantine"]
-WORKING_DIR = conf["paths"]["datawork"]["workspace"]
-WORKING_DIR_SCALE = conf["paths"]["scale"]["workspace"]
-datarmor_archive_esa_ifremer = conf["paths"]["datawork"]["archive_esa"]
-scale_archive_esa_ifremer = conf["paths"]["scale"]["archive_esa"]
-sats_acro = conf["satellites"]["longnames"]
-datawork_provider = conf["paths"]["datawork"]["project_provider"]
 
-ADDITIONAL_ARCHIVES = {
-    "datawork": datarmor_archive_esa_ifremer,
-    "scale": scale_archive_esa_ifremer,
-}
-WORKING_DIR = {"datawork": WORKING_DIR, "scale": WORKING_DIR_SCALE}
-SPOOL_REP = {  # deprecated
-    "datawork": "spool_datarmor/",
-    "scale": "spool",
-}
-
-
-def which_archive_dir(safe, archive_name="datawork"):
+def which_archive_dir(safe, archive_name="datawork", config_path=None):
     """
     Args:
         safe (str): safe base name
+        config_path (str): full path of config file .yml for s1ifr [optional]
     """
+    conf = load_config(config_path=config_path)
+    sats_acro = conf["satellites"]["longnames"]
+    # datarmor_archive_esa_ifremer = conf["paths"]["datawork"]["archive_esa"]
+    # scale_archive_esa_ifremer = conf["paths"]["scale"]["archive_esa"]
+    datawork_provider = conf["paths"]["datawork"]["project_provider"]
+
+    additional_archives = get_all_archives(config_path=config_path)
     if safe[0:2] == "S1":
         firstdate = safe[17:25]
         year = firstdate[0:4]
@@ -53,7 +43,7 @@ def which_archive_dir(safe, archive_name="datawork"):
         level = safe[12:13]
         subproddir = "L" + level
         logging.debug("subproddir %s", subproddir)
-        repdata = ADDITIONAL_ARCHIVES[archive_name]
+        repdata = additional_archives[archive_name]
         subname = safe[6:14]
         litlerep = sat + "_" + acqui + subname
         if (
@@ -77,18 +67,31 @@ def which_archive_dir(safe, archive_name="datawork"):
         inst = ExplodeSAFE(safe)
         year = inst.startdate.strftime("%Y")
         doy = inst.startdate.strftime("%j")
-        gooddir = os.path.join(ADDITIONAL_ARCHIVES["s3sral"], year, doy)
+        gooddir = os.path.join(additional_archives["s3sral"], year, doy)
     else:
         raise ValueError("no handled product mission")
     return gooddir
 
 
-def which_spool_dir(safe=None, archive="datawork"):
+def which_spool_dir(safe=None, archive="datawork", config_path=None):
     """
     Args:
         safe (str): safe basename with .SAFE extension
         archive (str):datawork or scale
+        config_path (str): full path of config file .yml for s1ifr [optional]
     """
+    conf = load_config(config_path=config_path)
+    WORKING_DIR_DATAWORK = conf["paths"]["datawork"]["workspace"]
+    WORKING_DIR_SCALE = conf["paths"]["scale"]["workspace"]
+
+    WORKING_DIR = {
+        "datawork": WORKING_DIR_DATAWORK,
+        "scale": WORKING_DIR_SCALE,
+    }
+    SPOOL_REP = {  # deprecated
+        "datawork": "spool_datarmor/",
+        "scale": "spool",
+    }
     if safe is None:
         # default is spool sentinel1
         spooldir = os.path.join(WORKING_DIR[archive], SPOOL_REP[archive])
@@ -104,14 +107,17 @@ def which_spool_dir(safe=None, archive="datawork"):
     return spooldir
 
 
-def whichquarantinedir(archive="datawork"):
+def whichquarantinedir(archive="datawork", config_path=None):
     """
     Args:
         archive (str): [optionnal]
+        config_path (str): full path of config file .yml for s1ifr [optional]
     Returns:
         str: path of the quarantine directory
     """
     # I want the quarantine to be always on datawork even for product fetch to scale
+    conf = load_config(config_path=config_path)
+    quarantine_s1 = conf["paths"]["datawork"]["quarantine"]
     return quarantine_s1
 
 
