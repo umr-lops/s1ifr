@@ -6,7 +6,7 @@ Old versions are moved to quarantine or deleted. It is designed to be called
 by the Sentinel-1 'pieuvre' (data ventilation) system.
 
 Example:
-    find $PWD -maxdepth 1 -name '*SAFE' | python clean_sentinel1_duplicates_function.py --safe [SAFE_PATH]
+    ``find $PWD -maxdepth 1 -name '*SAFE' | python clean_sentinel1_duplicates_function.py --safe [SAFE_PATH]``
 
 Attributes:
     Author: Antoine Grouazel

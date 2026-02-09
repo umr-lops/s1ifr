@@ -395,8 +395,7 @@ def create_a_listing(newdf):
     except Exception as e:
         logging.error("An error occurred: %s", e)
 
-
-if __name__ == "__main__":
+def entrypoint():
     root = logging.getLogger()
     if root.handlers:
         for handler in root.handlers:
@@ -475,3 +474,6 @@ if __name__ == "__main__":
 
     # pdb.set_trace()
     # # print(newdf)
+
+if __name__ == "__main__":
+    entrypoint()

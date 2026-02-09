@@ -4,7 +4,9 @@ API reference
 
 ..
     to document functions, add them to __all__ in ../s1ifr/__init__.py
-
+    
+ESA product Family Logic
+------------------------
 
 .. automodule:: s1ifr.check_SAFE_files
     :members:
@@ -13,9 +15,6 @@ API reference
     :members:
 
 .. automodule:: s1ifr.match_measu_l1_l2
-    :members:
-
-.. automodule:: s1ifr.paths_safe_product_family
     :members:
 
 .. automodule:: s1ifr.clean_sentinel1_duplicates_function
@@ -32,3 +31,12 @@ API reference
 
 .. automodule:: s1ifr.match_SLC_GRD
     :members:
+
+Ifremer product Family Logic
+----------------------------
+
+.. automodule:: s1ifr.paths_safe_product_family
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members: _resolve_slc_path, _find_version_path
