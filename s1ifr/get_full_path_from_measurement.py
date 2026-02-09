@@ -1,11 +1,5 @@
 """
-author: Antoine Grouazel
-date: 6/04/2016
-:usage:
- python get_full_path_from_measurement.py date --date 20190501t003325 --sat S1A
-
- import get_full_path_from_measurement
- get_full_path_from_measurement.get_full_path_from_measu(measu)
+methods to find path in Ifremer archive for a given measurement base-name
 """
 
 import datetime

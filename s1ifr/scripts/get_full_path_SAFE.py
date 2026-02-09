@@ -37,7 +37,7 @@ def parseargs():
     return args
 
 
-def entrypoint(verbose, input, output):
+def main(verbose, input, output):
     """
 
     Treat one or many SAFE basenames to find full path in Ifr archive
@@ -94,11 +94,15 @@ def entrypoint(verbose, input, output):
     logging.info("output : %s", output)
     return df
 
-
-if __name__ == "__main__":
+def entrypoint():
     args = parseargs()
-    entrypoint(
+    main(
         verbose=args.verbose,
         input=args.input,
         output=args.output,
     )
+
+
+
+if __name__ == "__main__":
+   entrypoint()

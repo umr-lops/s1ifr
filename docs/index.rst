@@ -9,16 +9,15 @@ Documentation
 Overview
 ........
 
-Python library for wind or waves downstream applications.
+Python library for wind or waves downstream applications. 
+It provides both a Python API for developers and Command Line Interface (CLI) tools for archive management.
 
-usage:
+Python API Usage
+................
 
 .. code-block:: python
 
     import s1ifr
-
-
-
 
 Examples
 ........
@@ -32,12 +31,18 @@ Examples
         inputa=safe, archive_name="datawork"
     )
 
+Command Line Interface
+......................
+
+The library includes several entry points (``syncsafe``, ``archivesafe``, etc.) for managing products directly from the terminal. 
+See the :doc:`usage` page for detailed CLI documentation.
 
 
 Reference
 .........
 
 * :doc:`basic_api`
+* :doc:`usage`
 
 Get in touch
 ------------
@@ -57,5 +62,6 @@ Last documentation build: |today|
    :caption: Reference
 
    basic_api
+   usage
 
 .. _on gitlab: https://gitlab.ifremer.fr/lops-wave/s1ifr

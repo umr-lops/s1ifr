@@ -44,12 +44,13 @@ def match_slc_grd(
     safenameslc, type_input="SLC_", type_seek="GRDH", minimal_time_diff=3
 ) -> str:
     """
-    return the safe if it exists at Ifremer otherwise None
+    get the safe if it exists at Ifremer otherwise None
 
-    params: safenameslc str base safe
-    params: type_input str 'SLC_' or 'GRDH'
-    params: type_seek str 'GRDH' or 'SLC_'
-    params: minimal_time_diff int in seconds
+    Args:
+        safenameslc str: base safe
+        type_input str: 'SLC_' or 'GRDH'
+        type_seek str: 'GRDH' or 'SLC_'
+        minimal_time_diff int: in seconds
 
     returns
         goodsafe str or None, full path of the SAFE if found otherwise None

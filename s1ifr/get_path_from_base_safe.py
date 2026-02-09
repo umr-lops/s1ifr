@@ -1,7 +1,5 @@
 """
 Functions to resolve full paths for Sentinel-1 SAFE products in the Ifremer archive.
-
-author: Antoine Grouazel
 """
 
 import glob

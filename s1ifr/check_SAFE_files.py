@@ -1,8 +1,5 @@
 """
-Author: Antoine Grouazel
-creation: june2014
-check that S1 Level 0 and Level1 data is not corrupted
-#TODO: check also Level2!!!
+set of methods to confirm a product Sentinel-1 is nominal using manifest file
 """
 
 import collections
