@@ -50,100 +50,100 @@ def get_output_l1b_safe(slc_iw_path_safe, outputdir, productid) -> str:
     return safe_output
 
 
+def _resolve_slc_path(slc_identifier):
+    """Resolves the physical path of an SLC SAFE."""
+    if "/" in slc_identifier:
+        return slc_identifier if os.path.exists(slc_identifier) else None
+
+    # Try datawork archive
+    fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
+        slc_identifier, archive_name="datawork"
+    )
+    if os.path.exists(fp):
+        return fp
+
+    # Fallback to scale archive
+    fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
+        slc_identifier, archive_name="scale"
+    )
+    return fp if os.path.exists(fp) else None
+
+
+def _find_l1b_for_version(slc_path, pid, dir_outs_l1b):
+    """Searches for a specific L1B version across output directories."""
+    for out_dir in dir_outs_l1b:
+        safel1b = get_output_l1b_safe(
+            slc_path, outputdir=out_dir, productid=pid
+        )
+        if os.path.exists(safel1b):
+            return safel1b
+    return None
+
+
+def _process_row(slc_id, versions, dir_outs_l1b, cpt):
+    """Processes a single row and returns found paths for all versions."""
+    row_results = {pid: "" for pid in versions}
+    cpt["total_safe_slc"] += 1
+
+    fp = _resolve_slc_path(slc_id)
+    if not fp:
+        cpt["SLC_absent"] += 1
+        cpt["L1B_absent"] += 1
+        return row_results
+
+    cpt["total_safe_slc_avail_at_ifr"] += 1
+    any_l1b_found = False
+
+    for pid in versions:
+        found_path = _find_l1b_for_version(fp, pid, dir_outs_l1b)
+        if found_path:
+            row_results[pid] = found_path
+            cpt[f"L1B_{pid}_found"] += 1
+            any_l1b_found = True
+        else:
+            cpt[f"L1B_{pid}_absent"] += 1
+
+    cpt["L1B_found" if any_l1b_found else "L1B_absent"] += 1
+    return row_results
+
+
 def add_L1B(df, cpt=None, versions=None, disable_tqdm=False, config_path=None):
     """
-
-    collect Level-1B paths from Ifr archive.
-    Multiple version/directories can be tested.
+    from L1 path, find all possible version/paths of L1B XSP products available
 
     Args:
         df (pd.DataFrame):
-        cpt (collections.defaultdict(int)): [optional]
+        cpt (collection.defaultdict(int)): [optional]
         versions (list): [optional]
+        disable_tqdm (bool): True -> no progress bar [optional]
         config_path (str): full path of config file .yml for s1ifr [optional]
-
-    Return:
-        df (pd.DataFrame): updated
-        cpt (collections.defaultdict(int)): updated
     """
     conf = load_config(config_path=config_path)
     dir_outs_l1b = conf["paths"]["datawork"]["dir_outs_l1b"]
-    DEFAULT_VERSIONS_L1B = conf["DEFAULT_VERSIONS_L1B"]
-    if versions is None:
-        versions = DEFAULT_VERSIONS_L1B
+    versions = versions or conf["DEFAULT_VERSIONS_L1B"]
+    cpt = cpt if cpt is not None else defaultdict(int)
+
     logging.info("Level-1B version to be tested: %s", versions)
-    if cpt is None:
-        cpt = defaultdict(int)
 
-    L1B_found = {}
-    # loop over all SLC SAFE
-    for xx in tqdm(range(len(df["L1_SLC"])), disable=disable_tqdm):
-        ii = df["L1_SLC"].iloc[xx]
-        assert isinstance(ii, str)
-        # get full path of SLC SAFE
-        if "/" not in ii:
+    # Main processing loop
+    results = []
+    for slc_id in tqdm(df["L1_SLC"], disable=disable_tqdm):
+        results.append(_process_row(slc_id, versions, dir_outs_l1b, cpt))
 
-            fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
-                ii, archive_name="datawork"
-            )
-            if not os.path.exists(fp):
-                fp = s1ifr.get_path_from_base_safe.get_path_from_base_safe(
-                    ii, archive_name="scale"
-                )
-        else:
-            fp = ii
-        found = False
-        cpt["total_safe_slc"] += 1
-        if fp != "" and fp is not None and os.path.exists(fp):
-            cpt["total_safe_slc_avail_at_ifr"] += 1
-            # loop over versions of L1B XSP
-            for pid in versions:  # ,'A15'
-                found_version = False
-                # loop over output directories for a given version
-                for out in dir_outs_l1b:
-                    if pid not in L1B_found:
-                        L1B_found[pid] = []
-                    safel1b = get_output_l1b_safe(
-                        fp, outputdir=out, productid=pid
-                    )
-                    if os.path.exists(safel1b):
-                        cpt["L1B_" + pid + "_found"] += 1
-                        # path_l1b[versionl1b_complete].append(safel1b)
-                        found = True
-                        found_version = True
-                        break  # break loop on directories
-                    else:
-                        pass
-                if found_version is True:
-                    # logging.debug('break loop')
-
-                    L1B_found[pid].append(safel1b)
-                else:
-                    cpt["L1B_" + pid + "_absent"] += 1
-                    L1B_found[pid].append("")
-
-        else:
-            cpt["SLC_absent"] += 1
-        if found is True:
-            cpt["L1B_found"] += 1
-            # L1B_found.append(safel1b)
-        else:
-            # L1B_found.append('')
-            cpt["L1B_absent"] += 1
-
-    L1B_found = pd.DataFrame(L1B_found)
-    for uu in L1B_found:
-        sumnotnull = (L1B_found[uu] != "").sum()
+    # Aggregate results into DataFrame
+    res_df = pd.DataFrame(results)
+    for pid in versions:
+        sumnotnull = (res_df[pid] != "").sum()
         pct = (
-            sumnotnull / cpt["total_safe_slc"] * 100
+            (sumnotnull / cpt["total_safe_slc"] * 100)
             if cpt["total_safe_slc"] > 0
             else 0
         )
         logging.info(
-            "version: %s -> %i safe found (%.1f%%)", uu, sumnotnull, pct
+            "version: %s -> %i safe found (%.1f%%)", pid, sumnotnull, pct
         )
-        df[f"L1B_XSP_{uu}"] = L1B_found[uu]
-    # df['L1B_XSP'] = L1B_found[versions[-1]]
+        df[f"L1B_XSP_{pid}"] = res_df[pid].values
+
     logging.info("counter: %s", cpt)
     return df, cpt
 
