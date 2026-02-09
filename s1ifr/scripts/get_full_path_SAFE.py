@@ -94,6 +94,7 @@ def main(verbose, input, output):
     logging.info("output : %s", output)
     return df
 
+
 def entrypoint():
     args = parseargs()
     main(
@@ -103,6 +104,5 @@ def entrypoint():
     )
 
 
-
 if __name__ == "__main__":
-   entrypoint()
+    entrypoint()

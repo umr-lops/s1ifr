@@ -1,8 +1,8 @@
 """Clean multiple occurrences of the same SAFE file in Sentinel-1 data.
 
 This script identifies duplicate Sentinel-1 products based on their acquisition
-parameters and keeps only the version with the latest processing time. 
-Old versions are moved to quarantine or deleted. It is designed to be called 
+parameters and keeps only the version with the latest processing time.
+Old versions are moved to quarantine or deleted. It is designed to be called
 by the Sentinel-1 'pieuvre' (data ventilation) system.
 
 Example:
@@ -32,7 +32,7 @@ def get_ending_processing_time(safe_full_path):
         safe_full_path (str): Full path to the SAFE directory.
 
     Returns:
-        datetime.datetime: The processing stop time extracted from the manifest. 
+        datetime.datetime: The processing stop time extracted from the manifest.
             Returns 2014-01-01 as a default value if the manifest is missing or empty.
     """
     pattern = "/metadataObject/metadataWrap/xmlData/{http://www.esa.int/safe/sentinel-1.0}processing"
@@ -106,8 +106,8 @@ def latest_safe_processed(duplicates_list):
 def check_duplicate(file_to_be_checked, archive="datawork", dryrun=True):
     """Detect and remove duplicate SAFEs based on processing time.
 
-    Identifies SAFEs with the same acquisition dates as the input file. 
-    Keeps only the version with the latest processing time and sends others 
+    Identifies SAFEs with the same acquisition dates as the input file.
+    Keeps only the version with the latest processing time and sends others
     to quarantine.
 
     Args:
@@ -176,18 +176,18 @@ def main():
         )
     cpt = collections.defaultdict(int)
     logging.info("start the check")
-    
+
     cpt_deleted = check_duplicate(
         file_to_be_checked=args.safe, dryrun=args.dryrun
     )
     cpt["total_safe_analysed"] += 1
     cpt["total_safe_removed"] += cpt_deleted
-    
+
     if cpt_deleted == 0:
         cpt["total_acqui_already_ok"] += 1
     else:
         cpt["total_acqui_already_fixed"] += 1
-        
+
     if cpt["total_safe_analysed"] % 100 == 1:
         logging.info("counter for duplicate fixing S1: %s", cpt)
     logging.info("fin script : %s", cpt)

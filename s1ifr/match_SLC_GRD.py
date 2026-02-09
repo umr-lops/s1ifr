@@ -30,7 +30,7 @@ def core_find(fp, minimal_time_diff, res_base, startdate) -> str:
         basesafel1 = os.path.basename(safe)
         instance = ExplodeSAFE(basesafel1)
         l1st = instance.get("startdate")
-        
+
         if abs(startdate - l1st) < mini_ecart:
             mini_ecart = abs(startdate - l1st)
             if mini_ecart < datetime.timedelta(seconds=minimal_time_diff):
@@ -63,10 +63,10 @@ def match_slc_grd(
     # Search in datawork
     fp = get_path_from_base_safe(safe_mirrored, archive_name="datawork")
     goodsafe = core_find(fp, minimal_time_diff, res_base, startdate=st)
-    
+
     # Fallback to scale
     if goodsafe is None:
         fp = get_path_from_base_safe(safe_mirrored, archive_name="scale")
         goodsafe = core_find(fp, minimal_time_diff, res_base, startdate=st)
-        
+
     return goodsafe

@@ -4,7 +4,7 @@ API reference
 
 ..
     to document functions, add them to __all__ in ../s1ifr/__init__.py
-    
+
 ESA product Family Logic
 ------------------------
 

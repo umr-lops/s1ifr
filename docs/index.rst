@@ -9,7 +9,7 @@ Documentation
 Overview
 ........
 
-Python library for wind or waves downstream applications. 
+Python library for wind or waves downstream applications.
 It provides both a Python API for developers and Command Line Interface (CLI) tools for archive management.
 
 Python API Usage
@@ -34,7 +34,7 @@ Examples
 Command Line Interface
 ......................
 
-The library includes several entry points (``syncsafe``, ``archivesafe``, etc.) for managing products directly from the terminal. 
+The library includes several entry points (``syncsafe``, ``archivesafe``, etc.) for managing products directly from the terminal.
 See the :doc:`usage` page for detailed CLI documentation.
 
 
