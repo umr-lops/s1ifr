@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l walltime=02:45:00
+#PBS -l walltime=10:45:00
 #PBS -l mem=500m
 #PBS -N archives1safe
 #PBS -j oe
