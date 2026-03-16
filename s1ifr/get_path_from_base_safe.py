@@ -34,6 +34,7 @@ def get_path_from_base_safe(
     safe_basename: str,
     archive_name: str = "datawork",
     check_existence: bool = False,
+    config_path: str = None,
 ) -> str | None:
     """Constructs the full, absolute path for a given SAFE product basename.
 
@@ -46,7 +47,7 @@ def get_path_from_base_safe(
             (e.g., "S1A_IW_OCN__2SDV_20150731T222653_20150731T222719_007061_0099AE_B180.SAFE")
         archive_name: The target archive, either 'datawork' or 'scale'.
         check_existence: True -> check if the file exists, and if safe does not exist return None, False -> do not check.
-
+        config_path: str path of configuration .yml file
     Returns:
         The absolute path to the SAFE product if found, otherwise None or the
         path with the unresolved wildcard.
@@ -66,7 +67,7 @@ def get_path_from_base_safe(
 
     # try:
     archive_base_dir = which_archive_dir(
-        safe_basename, archive_name=archive_name
+        safe_basename, archive_name=archive_name, config_path=config_path
     )
     # except Exception as e:
     #     logging.error(

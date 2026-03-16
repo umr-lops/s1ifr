@@ -294,7 +294,7 @@ def add_L2WAV(
     return df, cpt
 
 
-def add_SLC(df, cpt=None):
+def add_SLC(df, cpt=None, config_path=None):
     """
 
     to be used if the input listing is GRD
@@ -302,6 +302,7 @@ def add_SLC(df, cpt=None):
     Args:
         df (pd.DataFrame):
         cpt (collections.defaultditc(int)): [optional]
+        config_path (str): [optional]
     :return:
     """
     if cpt is None:
@@ -309,7 +310,9 @@ def add_SLC(df, cpt=None):
     GRD_withou_SLC = []
     SLC = []
     for uu in df["grd"]:
-        slc = match_slc_grd(uu, type_input="GRDH", type_seek="SLC_")
+        slc = match_slc_grd(
+            uu, type_input="GRDH", type_seek="SLC_", config_path=config_path
+        )
         if slc is None:
             cpt["SLC_absent"] += 1
             GRD_withou_SLC.append(uu)
@@ -325,7 +328,7 @@ def add_SLC(df, cpt=None):
 
 
 def get_products_family(
-    df, l1bversions=None, l1cversions=None, disable_tqdm=False
+    df, l1bversions=None, l1cversions=None, disable_tqdm=False, config=None
 ) -> pd.DataFrame:
     """
     wrapper method to add Level-1B , Level-1C and Level-2 WAV paths associated to initial SAFE
@@ -335,20 +338,35 @@ def get_products_family(
         l1bversions: list of str ['A12'] for instance [optional]
         l1cversions : list of str ['B17'] for instance [optional]
         disable_tqdm: bool
+        config: str path of the config [optional default=None]
     Returns:
         df: pandas.DataFrame with new columns
 
     """
     cpt = defaultdict(int)
     if "L1_SLC" not in df:
-        df, cpt = add_SLC(df, cpt=cpt)
+        df, cpt = add_SLC(df, cpt=cpt, config_path=config)
     df, cpt = add_L1B(
-        df, cpt=cpt, versions=l1bversions, disable_tqdm=disable_tqdm
+        df,
+        cpt=cpt,
+        versions=l1bversions,
+        disable_tqdm=disable_tqdm,
+        config_path=config,
     )
     df, cpt = add_L1C(
-        df, cpt=cpt, versions=l1cversions, disable_tqdm=disable_tqdm
+        df,
+        cpt=cpt,
+        versions=l1cversions,
+        disable_tqdm=disable_tqdm,
+        config_path=config,
     )
-    df, cpt = add_L2WAV(df, versions=None, cpt=cpt, disable_tqdm=disable_tqdm)
+    df, cpt = add_L2WAV(
+        df,
+        versions=None,
+        cpt=cpt,
+        disable_tqdm=disable_tqdm,
+        config_path=config,
+    )
     logging.info("\n=====================================\n")
     for kee in sorted([kk for kk in cpt]):
         if bool(re.search(r"\d{2}", kee)):
@@ -431,6 +449,12 @@ def entrypoint():
         required=False,
         default=None,
     )
+    parser.add_argument(
+        "--config",
+        help="path of s1ifr config.yml file [optional default=None]",
+        required=False,
+        default=None,
+    )
     args = parser.parse_args()
     assert os.path.isdir(args.outputdir)
     fmt = "%(asctime)s %(levelname)s %(filename)s(%(lineno)d) %(message)s"
@@ -445,8 +469,12 @@ def entrypoint():
     merged_df = pd.read_csv(args.listing, names=["L1_SLC"])
     logging.debug("L1B versions %s", args.l1bversions)
     logging.debug("L1C versions %s", args.l1cversions)
+    logging.debug("config path: %s", args.config)
     newdf = get_products_family(
-        merged_df, l1bversions=args.l1bversions, l1cversions=args.l1cversions
+        merged_df,
+        l1bversions=args.l1bversions,
+        l1cversions=args.l1cversions,
+        config=args.config,
     )
     fout = os.path.join(
         args.outputdir,
