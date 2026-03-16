@@ -22,12 +22,15 @@ def parseargs():
         required=True,
         help="input listing (.txt or .lst or .csv) containing base SAFE or directly a single base SAFE",
     )
+    parser.add_argument('--check_existence',action='store_true',default=False,help='True -> check whether a SAFE exist on disk')
+    parser.add_argument('--remove_empty_lines',action='store_true',default=False,help='True -> remove empty lines ti get clean listing.')
     # parser.add_argument(
     #     "--archivename",
     #     required=False,
     #     default="datawork",
     #     help="name of the archive 'scale' or 'datawork' or ...",
     # )
+    
     parser.add_argument(
         "--output",
         required=True,
@@ -37,7 +40,7 @@ def parseargs():
     return args
 
 
-def main(verbose, input, output):
+def main(verbose, input, output, check_existence, remove_empty_lines):
     """
 
     Treat one or many SAFE basenames to find full path in Ifr archive
@@ -70,13 +73,13 @@ def main(verbose, input, output):
     for ii in tqdm(range(len(df["base"]))):
         safe = df["base"].iloc[ii].replace(".zip", "")
         fp = get_path_from_base_safe(
-            safe_basename=safe, archive_name="scale", check_existence=True
+            safe_basename=safe, archive_name="scale", check_existence=check_existence
         )
         if fp is None:
             fp = get_path_from_base_safe(
                 safe_basename=safe,
                 archive_name="datawork",
-                check_existence=True,
+                check_existence=check_existence,
             )
         # add a test without unique ID and glob
         if fp is not None:
@@ -88,6 +91,8 @@ def main(verbose, input, output):
         all_fp.append(fp)
     logging.info("counter: %s", cpt)
     df["fullpath"] = all_fp
+    if remove_empty_lines:
+        df = df.dropna()
     logging.info("%s", df)
     # write to disk
     df["fullpath"].to_csv(output, index=False, header=False)
@@ -101,6 +106,8 @@ def entrypoint():
         verbose=args.verbose,
         input=args.input,
         output=args.output,
+        check_existence=args.check_existence,
+        remove_empty_lines=args.remove_empty_lines,
     )
 
 
