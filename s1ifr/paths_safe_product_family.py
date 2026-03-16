@@ -310,8 +310,9 @@ def add_SLC(df, cpt=None, config_path=None):
     GRD_withou_SLC = []
     SLC = []
     for uu in df["grd"]:
-        slc = match_slc_grd(uu, type_input="GRDH", type_seek="SLC_",
-                             config_path=config_path)
+        slc = match_slc_grd(
+            uu, type_input="GRDH", type_seek="SLC_", config_path=config_path
+        )
         if slc is None:
             cpt["SLC_absent"] += 1
             GRD_withou_SLC.append(uu)
@@ -346,15 +347,26 @@ def get_products_family(
     if "L1_SLC" not in df:
         df, cpt = add_SLC(df, cpt=cpt, config_path=config)
     df, cpt = add_L1B(
-        df, cpt=cpt, versions=l1bversions, disable_tqdm=disable_tqdm,
-          config_path=config
+        df,
+        cpt=cpt,
+        versions=l1bversions,
+        disable_tqdm=disable_tqdm,
+        config_path=config,
     )
     df, cpt = add_L1C(
-        df, cpt=cpt, versions=l1cversions, disable_tqdm=disable_tqdm, 
-        config_path=config
+        df,
+        cpt=cpt,
+        versions=l1cversions,
+        disable_tqdm=disable_tqdm,
+        config_path=config,
     )
-    df, cpt = add_L2WAV(df, versions=None, cpt=cpt, disable_tqdm=disable_tqdm,
-                        config_path=config)
+    df, cpt = add_L2WAV(
+        df,
+        versions=None,
+        cpt=cpt,
+        disable_tqdm=disable_tqdm,
+        config_path=config,
+    )
     logging.info("\n=====================================\n")
     for kee in sorted([kk for kk in cpt]):
         if bool(re.search(r"\d{2}", kee)):
@@ -438,10 +450,10 @@ def entrypoint():
         default=None,
     )
     parser.add_argument(
-        '--config',
-        help='path of s1ifr config.yml file [optional default=None]',
+        "--config",
+        help="path of s1ifr config.yml file [optional default=None]",
         required=False,
-        default=None
+        default=None,
     )
     args = parser.parse_args()
     assert os.path.isdir(args.outputdir)
@@ -457,10 +469,12 @@ def entrypoint():
     merged_df = pd.read_csv(args.listing, names=["L1_SLC"])
     logging.debug("L1B versions %s", args.l1bversions)
     logging.debug("L1C versions %s", args.l1cversions)
-    logging.debug('config path: %s',args.config)
+    logging.debug("config path: %s", args.config)
     newdf = get_products_family(
-        merged_df, l1bversions=args.l1bversions, l1cversions=args.l1cversions,
-        config=args.config
+        merged_df,
+        l1bversions=args.l1bversions,
+        l1cversions=args.l1cversions,
+        config=args.config,
     )
     fout = os.path.join(
         args.outputdir,

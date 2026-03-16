@@ -67,7 +67,7 @@ def get_path_from_base_safe(
 
     # try:
     archive_base_dir = which_archive_dir(
-        safe_basename, archive_name=archive_name,config_path=config_path
+        safe_basename, archive_name=archive_name, config_path=config_path
     )
     # except Exception as e:
     #     logging.error(

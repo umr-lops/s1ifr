@@ -22,15 +22,25 @@ def parseargs():
         required=True,
         help="input listing (.txt or .lst or .csv) containing base SAFE or directly a single base SAFE",
     )
-    parser.add_argument('--check_existence',action='store_true',default=False,help='True -> check whether a SAFE exist on disk')
-    parser.add_argument('--remove_empty_lines',action='store_true',default=False,help='True -> remove empty lines ti get clean listing.')
+    parser.add_argument(
+        "--check_existence",
+        action="store_true",
+        default=False,
+        help="True -> check whether a SAFE exist on disk",
+    )
+    parser.add_argument(
+        "--remove_empty_lines",
+        action="store_true",
+        default=False,
+        help="True -> remove empty lines ti get clean listing.",
+    )
     # parser.add_argument(
     #     "--archivename",
     #     required=False,
     #     default="datawork",
     #     help="name of the archive 'scale' or 'datawork' or ...",
     # )
-    
+
     parser.add_argument(
         "--output",
         required=True,
@@ -73,7 +83,9 @@ def main(verbose, input, output, check_existence, remove_empty_lines):
     for ii in tqdm(range(len(df["base"]))):
         safe = df["base"].iloc[ii].replace(".zip", "")
         fp = get_path_from_base_safe(
-            safe_basename=safe, archive_name="scale", check_existence=check_existence
+            safe_basename=safe,
+            archive_name="scale",
+            check_existence=check_existence,
         )
         if fp is None:
             fp = get_path_from_base_safe(

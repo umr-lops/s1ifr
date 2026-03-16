@@ -39,7 +39,11 @@ def core_find(fp, minimal_time_diff, res_base, startdate) -> str:
 
 
 def match_slc_grd(
-    safenameslc, type_input="SLC_", type_seek="GRDH", minimal_time_diff=3, config_path=None
+    safenameslc,
+    type_input="SLC_",
+    type_seek="GRDH",
+    minimal_time_diff=3,
+    config_path=None,
 ) -> str:
     """Matches an SLC product with its corresponding GRD (or vice versa).
 
@@ -62,14 +66,16 @@ def match_slc_grd(
     logging.debug("safe_mirrored: %s", safe_mirrored)
 
     # Search in datawork
-    fp = get_path_from_base_safe(safe_mirrored, archive_name="datawork",
-                                  config_path=config_path)
+    fp = get_path_from_base_safe(
+        safe_mirrored, archive_name="datawork", config_path=config_path
+    )
     goodsafe = core_find(fp, minimal_time_diff, res_base, startdate=st)
 
     # Fallback to scale
     if goodsafe is None:
-        fp = get_path_from_base_safe(safe_mirrored, archive_name="scale",
-                                      config_path=config_path)
+        fp = get_path_from_base_safe(
+            safe_mirrored, archive_name="scale", config_path=config_path
+        )
         goodsafe = core_find(fp, minimal_time_diff, res_base, startdate=st)
 
     return goodsafe
