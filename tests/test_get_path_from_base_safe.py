@@ -43,7 +43,7 @@ class TestGetPathFromBaseSafe(unittest.TestCase):
         # --- Assert ---
         self.assertEqual(result, expected_path)
         mock_which_archive_dir.assert_called_once_with(
-            safe_name, archive_name="datawork"
+            safe_name, archive_name="datawork", config_path=None
         )
         mock_glob.assert_not_called()  # Glob should not be called if there's no wildcard
 
