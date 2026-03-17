@@ -1,10 +1,25 @@
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
 [project]
 name = "s1ifr"
-requires-python = ">= 3.10"
-license = "MIT"
+requires-python = ">=3.10"
+license = "LGPL-3.0-only"
 description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
 readme = "README.md"
-dependencies = ["numpy", "xarray", "lxml", 'tqdm', 'pandas', 'pyyaml']
+authors = [
+  { name = "Antoine GROUAZEL", email = "antoine.grouazel@ifremer.fr" }
+]
+dependencies = [
+  "numpy",
+  "xarray",
+  "lxml",
+  "tqdm",
+  "pandas",
+  "pyyaml",
+]
 keywords = [
   "earth-observation",
   "remote-sensing",
@@ -16,7 +31,6 @@ keywords = [
   "database",
   "files",
   "SAFE",
-
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -27,27 +41,12 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering",
+  "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
 dynamic = ["version"]
 
 [tool.poetry]
-name = "s1ifr"
 version = "2026.2.9"
-description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
-license = "LGPL-3.0-only"
-authors = ["Antoine GROUAZEL <antoine.grouazel@ifremer.fr>"]
-readme = "README.md"
-classifiers = [
-  "Development Status :: 4 - Beta",
-  "Operating System :: OS Independent",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Intended Audience :: Science/Research",
-  "Topic :: Scientific/Engineering",
-  "License :: OSI Approved :: GNU Lesser General Public License (LGPLv3)",
-]
 exclude = ["tests"]
 
 [tool.poetry.dependencies]
@@ -58,6 +57,16 @@ lxml = "*"
 tqdm = "*"
 pandas = "*"
 pyyaml = "*"
+
+[tool.poetry.group.dev.dependencies]
+# execute commands before commit
+pre-commit = "^2.15.0"
+flake8 = "*"
+flake8-junit-report-basic = "*"
+# unit tests
+pytest = "^6"
+pytest-cov = "^2"
+coverage = { version="*", extras=["toml"]}
 
 [project.urls]
 homepage = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io"
@@ -72,18 +81,11 @@ archivesafe = 's1ifr.sentinel1_pieuvre:main'
 get-s1-full-path-safe = 's1ifr.scripts.get_full_path_SAFE:entrypoint'
 familyprod = 's1ifr.paths_safe_product_family:entrypoint'
 
-[build-system]
-requires = ["setuptools>=64.0", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
-
 [tool.setuptools]
 packages = ["s1ifr"]
 
 #[tool.setuptools.packages.find]
 #where = ["s1ifr"]
-
-[tool.setuptools_scm]
-fallback_version = "999"
 
 [tool.isort]
 profile = "black"
