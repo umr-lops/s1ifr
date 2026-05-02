@@ -2,6 +2,6 @@ include:
   - component: $CI_SERVER_FQDN/dev-ops/templates/automatisation/ci-cd/pipeline-documentation-sphinx@~latest
     inputs:
       documentation_python_requirements: requirements_doc.txt
-  - component: $CI_SERVER_FQDN/dev-ops/templates/automatisation/ci-cd/pipeline-python@~latest
+  - component: $CI_SERVER_FQDN/dev-ops/templates/automatisation/ci-cd/pipeline-python-publish@~latest
     inputs:
-      container_image_build_enable_layer_unlayered: "false"
+      python_packager: poetry
