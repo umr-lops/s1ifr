@@ -44,8 +44,9 @@ def finalize_archiving(
     archive_dir,
     unzipped_safe,
     final_place,
+    config_path,
     ziptype="",
-    archive_name="mpc",
+    archive_name="datawork",
 ):
     """
     mv the safe to archive directory then chmod
@@ -53,6 +54,7 @@ def finalize_archiving(
         archive_dir (str):
         unzipped_safe (str): fullpath but without .tar
         final_place (str): the place the safe should be in archive if no corruption
+        config_path (str): path to the configuration file for s1ifr
         ziptype (str): .tar or .zip or ''
         archive_name (str):
     """
@@ -85,7 +87,7 @@ def finalize_archiving(
             "%s is corrupted, so we delete it to let it be re download",
             unzipped_safe,
         )
-        quarantine_ticket(unzipped_safe, archive_name)
+        quarantine_ticket(unzipped_safe, archive_name, config_path=config_path)
         doom_flag = QUARANTINED
     original_full_path = unzipped_safe + ziptype
     logging.debug("original_full_path = %s", original_full_path)
@@ -101,6 +103,7 @@ def finalize_archiving(
 
 def sort_one_safe(
     full_path_safe,
+    config_path,
     log_file_handler=None,
     other_archive="datawork",
     security_second=600,
@@ -109,6 +112,7 @@ def sort_one_safe(
     """
     :input:
         full_path_safe (str): can be anywhere with or without .tar extension
+        config_path (str): path to the configuration file
         log_file_handler (int): [optional]
         other_archive (str) : name of the archive where to store the file [optional]
         security_second (int): number minimum of seconds since last modification [optional]
@@ -140,7 +144,7 @@ def sort_one_safe(
             safe_basename = safe_basename + EXTENSION_SAFE
         logging.debug("basename : %s", safe_basename)
         archive_dir = which_archive_dir(
-            safe_basename, archive_name=other_archive
+            safe_basename, archive_name=other_archive, config_path=config_path
         )
         final_place = os.path.join(archive_dir, safe_basename)
         if dryrun is True:
@@ -148,7 +152,7 @@ def sort_one_safe(
         else:
             logging.debug("final path should be %s", final_place)
         flag_continue, _, _ = product_is_present_at_ifremer(
-            safe_basename, full_path_safe
+            safe_basename, full_path_safe, config_path=config_path
         )
         if flag_continue is True and dryrun is False:
 
@@ -177,7 +181,9 @@ def sort_one_safe(
                         "classical case",
                     )
                     spool_dir = which_spool_dir(
-                        safe_basename, archive=other_archive
+                        safe_basename,
+                        archive=other_archive,
+                        config_path=config_path,
                     )
                     os.chdir(spool_dir)
                     st = os.system("tar xf " + full_path_safe)
@@ -193,7 +199,11 @@ def sort_one_safe(
                         print(traceback.format_exc())
                         #                         shutil.move(full_path_safe,QUARANTINE)
                         #                         os.system('mv -f '+full_path_safe+' '+whichquarantinedir(safe_basename,archive=other_archive))
-                        quarantine_ticket(full_path_safe, other_archive)
+                        quarantine_ticket(
+                            full_path_safe,
+                            other_archive,
+                            config_path=config_path,
+                        )
                         doom_flag = QUARANTINED
                     else:
                         logging.debug("untar seemed to work")
@@ -205,12 +215,15 @@ def sort_one_safe(
                             archive_dir,
                             unziped_safe,
                             final_place,
-                            ".tar",
+                            ziptype=".tar",
                             archive_name=other_archive,
+                            config_path=config_path,
                         )
                 elif full_path_safe.endswith(".zip"):
                     spool_dir = which_spool_dir(
-                        safe_basename, archive=other_archive
+                        safe_basename,
+                        archive=other_archive,
+                        config_path=config_path,
                     )
                     logging.debug("spool dir: %s", spool_dir)
                     logging.debug("pwd: %s %s", os.curdir, os.getcwd())
@@ -251,8 +264,9 @@ def sort_one_safe(
                             archive_dir,
                             unziped_safe,
                             final_place,
-                            ".zip",
+                            ziptype=".zip",
                             archive_name=other_archive,
+                            config_path=config_path,
                         )
                     else:
                         logging.error(
@@ -264,7 +278,11 @@ def sort_one_safe(
                         logging.error("traceback %s", traceback.format_exc())
                         #                         os.remove(full_path_safe)
                         #                         shutil.move(full_path_safe,QUARANTINE)
-                        quarantine_ticket(full_path_safe, other_archive)
+                        quarantine_ticket(
+                            full_path_safe,
+                            other_archive,
+                            config_path=config_path,
+                        )
                         #                         os.system('mv -f '+full_path_safe+' '+whichquarantinedir(safe_basename,archive=other_archive))
                         doom_flag = QUARANTINED
 
@@ -275,6 +293,7 @@ def sort_one_safe(
                         unziped_safe,
                         final_place,
                         archive_name=other_archive,
+                        config_path=config_path,
                     )
                 elif "tar." in full_path_safe:
                     logging.debug(
@@ -283,7 +302,9 @@ def sort_one_safe(
                     )
                     #                     shutil.move(full_path_safe,QUARANTINE)
                     #                     os.system('mv -f '+full_path_safe+' '+whichquarantinedir(safe_basename))
-                    quarantine_ticket(full_path_safe, other_archive)
+                    quarantine_ticket(
+                        full_path_safe, other_archive, config_path=config_path
+                    )
                     doom_flag = QUARANTINED
                 else:
                     logging.error(
@@ -295,7 +316,12 @@ def sort_one_safe(
                     safe_basename[0:2] == "S1" and doom_flag == NORMAL
                 ):  # specific behavior for sentinel-1 data
                     # march 2018, decision to remove duplicate also for WV since it gives us issues in the indexes and statistics of processing
-                    cpt_dupli = check_duplicate(final_place, other_archive)
+                    cpt_dupli = check_duplicate(
+                        final_place,
+                        archive=other_archive,
+                        config_path=config_path,
+                        dryrun=dryrun,
+                    )
             else:
                 doom_flag = TOORECENT
                 logging.debug(
@@ -343,6 +369,12 @@ def main():
         help="name of the archive to use datawork or scale",
     )
     parser.add_argument(
+        "--config-path",
+        action="store",
+        dest="config_path",
+        help="full path of config file .yml for s1ifr",
+    )
+    parser.add_argument(
         "--dryrun",
         action="store_true",
         default=False,
@@ -371,7 +403,6 @@ def main():
     if user_run != "satwave":
         logging.warning('you must run this script with user "satwave".')
     logging.info("user : %s", user_run)
-    # archive_output = ["datawork"]
     archive_output = [args.archivename]
     logging.info("the script will sort sentinel1 product : %s", args.safe)
     sort_one_safe(
@@ -379,6 +410,7 @@ def main():
         other_archive=archive_output[0],
         security_second=0,
         dryrun=args.dryrun,
+        config_path=args.config_path,
     )
     logging.info("time to sort the data %1.1f seconds", time.time() - t0)
 
