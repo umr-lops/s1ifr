@@ -6,7 +6,9 @@ import shutil
 from s1ifr.SAFEsortingfunctions import whichquarantinedir
 
 
-def quarantine_ticket(safe_full_path: str, other_archive: str) -> None:
+def quarantine_ticket(
+    safe_full_path: str, other_archive: str, config_path: str
+) -> None:
     """Moves a corrupted SAFE product to quarantine.
 
     This function handles a failed product by creating a "ticket" in the
@@ -18,10 +20,12 @@ def quarantine_ticket(safe_full_path: str, other_archive: str) -> None:
         safe_full_path: The full path to the corrupted .SAFE file or directory.
         other_archive: The name of the archive (e.g., 'datawork', 'scale')
             where the quarantine directory is located.
+        config_path: The path to the configuration file for s1ifr.
     """
     base_safe = os.path.basename(safe_full_path)
     path_ticket = os.path.join(
-        whichquarantinedir(archive=other_archive), base_safe
+        whichquarantinedir(archive=other_archive, config_path=config_path),
+        base_safe,
     )
 
     # Use 'with open' for safer file handling. It ensures the file is
