@@ -15,7 +15,7 @@ def core_find(fp, max_delta_second, res_base, startdate) -> str:
      .. deprecated:: 2026.10.1
         :func:`core_find` will be removed in a future release.
         Use :func:`new_replacement_function` instead.
-    
+
     Args:
         fp (str): Full path pattern of the SAFE to test.
         max_delta_second (int): Maximum allowed time difference in seconds.
