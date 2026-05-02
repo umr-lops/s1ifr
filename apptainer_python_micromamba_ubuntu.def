@@ -1,44 +1,46 @@
 Bootstrap: docker
 From: ubuntu:22.04
 
+%files
+    . /opt/app-s1ifr/src/s1ifr
+
 %post
-    # Update package list and install prerequisites
+    set -e
+
     apt-get update && apt-get install -y \
         wget \
         curl \
         ca-certificates \
         bzip2 \
+        tar \
         libglib2.0-0 \
         libxext6 \
         libsm6 \
         libxrender1
 
-    # Install micromamba
-    MICROMAMBA_URL="https://micromamba.snakepit.net/api/micromamba/linux-64/latest"
+    # Install micromamba from conda-forge
     MICROMAMBA_DIR=/opt/app-s1ifr/micromamba
     mkdir -p $MICROMAMBA_DIR/bin
-    curl -L $MICROMAMBA_URL -o $MICROMAMBA_DIR/bin/micromamba
-    chmod +x $MICROMAMBA_DIR/bin/micromamba
-
-    # Add micromamba to PATH
+    cd $MICROMAMBA_DIR
+    curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
     export PATH=$MICROMAMBA_DIR/bin:$PATH
 
-    # Create a micromamba environment with Python 3.12
-    ENV_DIR=/opt/app-s1ifr/python
-    $MICROMAMBA_DIR/bin/micromamba create --yes --root-prefix $MICROMAMBA_DIR -p $ENV_DIR python=3.12
+    # Create environment with Python 3.12
+    ENV_DIR=/opt/app-s1ifr/envs/envs1ifr
+    $MICROMAMBA_DIR/bin/micromamba create --yes \
+        --root-prefix $MICROMAMBA_DIR \
+        -p $ENV_DIR \
+        python=3.12 pip
 
-    # Activate the environment in the container's shell
-    echo "export PATH=$ENV_DIR/bin:\$PATH" >> /environment
+    # Install s1ifr and its dependencies
+    $ENV_DIR/bin/pip install /opt/app-s1ifr/src/s1ifr
 
-    # Cleanup
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 %environment
-    # Set environment variables
-    export PATH=/opt/app-s1ifr/python/bin:/opt/app-s1ifr/micromamba/bin:$PATH
+    export PATH=/opt/app-s1ifr/envs/envs1ifr/bin:/opt/app-s1ifr/micromamba/bin:$PATH
     export LC_ALL=C.UTF-8
     export LANG=C.UTF-8
 
 %runscript
-    # Default command to run Python
     exec python "$@"

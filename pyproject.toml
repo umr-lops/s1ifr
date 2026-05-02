@@ -37,7 +37,7 @@ classifiers = [
 dynamic = ["version"]
 
 [tool.poetry]
-version = "2026.2.9"
+version = "2026.5.2"
 exclude = ["tests"]
 
 [tool.poetry.dependencies]

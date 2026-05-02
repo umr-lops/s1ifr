@@ -21,4 +21,4 @@ echo "script to call apptainer image for sorting Sentinel-1 product: "$scriptapp
 
 bash $scriptapptainer $alloptions
 
-echo 'end of slurm job'
+echo 'end of slurm job to store S1 products in Ifremer database.'
