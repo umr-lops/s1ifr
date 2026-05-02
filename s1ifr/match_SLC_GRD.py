@@ -8,12 +8,17 @@ from s1ifr.explodesafename import ExplodeSAFE
 from s1ifr.get_path_from_base_safe import get_path_from_base_safe
 
 
-def core_find(fp, minimal_time_diff, res_base, startdate) -> str:
-    """Finds the SAFE path if it exists at Ifremer.
+def core_find(fp, max_delta_second, res_base, startdate) -> str:
+    """
+    Finds the SAFE path if it exists at Ifremer.
 
+     .. deprecated:: 2026.10.1
+        :func:`core_find` will be removed in a future release.
+        Use :func:`new_replacement_function` instead.
+    
     Args:
         fp (str): Full path pattern of the SAFE to test.
-        minimal_time_diff (int): Maximum allowed time difference in seconds.
+        max_delta_second (int): Maximum allowed time difference in seconds.
         res_base (str): Radical of the SAFE pattern to replace in original SAFE.
         startdate (datetime.datetime): Start date of the input product.
 
@@ -33,7 +38,7 @@ def core_find(fp, minimal_time_diff, res_base, startdate) -> str:
 
         if abs(startdate - l1st) < mini_ecart:
             mini_ecart = abs(startdate - l1st)
-            if mini_ecart < datetime.timedelta(seconds=minimal_time_diff):
+            if mini_ecart < datetime.timedelta(seconds=max_delta_second):
                 goodsafe = safe
     return goodsafe
 
@@ -42,17 +47,22 @@ def match_slc_grd(
     safenameslc,
     type_input="SLC_",
     type_seek="GRDH",
-    minimal_time_diff=3,
+    max_delta_second=3,
     config_path=None,
 ) -> str:
     """Matches an SLC product with its corresponding GRD (or vice versa).
+
+    .. deprecated:: 2026.10.1
+        :func:`match_slc_grd` will be removed in a future release.
+        Use :func:`new_replacement_function` instead.
+
 
     Args:
         safenameslc (str): The basename of the SAFE product.
         type_input (str): The type of the input product, e.g., ``"SLC_"`` or ``"GRDH"``.
         type_seek (str): The type of product to search for, e.g., ``"GRDH"`` or ``"SLC_"``.
-        minimal_time_diff (int): Maximum time difference in seconds for a valid match.
-            Defaults to 3.
+        max_delta_second (int): Maximum time difference in seconds for a valid match.
+            Defaults to 3. Found one case with 7 seconds diff.
         config_path (str): path of the confg .yml file [optional, default is None]
 
     Returns:
@@ -69,13 +79,13 @@ def match_slc_grd(
     fp = get_path_from_base_safe(
         safe_mirrored, archive_name="datawork", config_path=config_path
     )
-    goodsafe = core_find(fp, minimal_time_diff, res_base, startdate=st)
+    goodsafe = core_find(fp, max_delta_second, res_base, startdate=st)
 
     # Fallback to scale
     if goodsafe is None:
         fp = get_path_from_base_safe(
             safe_mirrored, archive_name="scale", config_path=config_path
         )
-        goodsafe = core_find(fp, minimal_time_diff, res_base, startdate=st)
+        goodsafe = core_find(fp, max_delta_second, res_base, startdate=st)
 
     return goodsafe
