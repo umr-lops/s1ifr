@@ -316,7 +316,12 @@ def sort_one_safe(
                     safe_basename[0:2] == "S1" and doom_flag == NORMAL
                 ):  # specific behavior for sentinel-1 data
                     # march 2018, decision to remove duplicate also for WV since it gives us issues in the indexes and statistics of processing
-                    cpt_dupli = check_duplicate(final_place, other_archive)
+                    cpt_dupli = check_duplicate(
+                        final_place,
+                        archive=other_archive,
+                        config_path=config_path,
+                        dryrun=dryrun,
+                    )
             else:
                 doom_flag = TOORECENT
                 logging.debug(

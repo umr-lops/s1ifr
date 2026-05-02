@@ -103,7 +103,9 @@ def latest_safe_processed(duplicates_list):
     return indice_latest_processing, duplicates_list, stoptimes
 
 
-def check_duplicate(file_to_be_checked, archive="datawork", dryrun=True):
+def check_duplicate(
+    file_to_be_checked, config_path, archive="datawork", dryrun=True
+):
     """Detect and remove duplicate SAFEs based on processing time.
 
     Identifies SAFEs with the same acquisition dates as the input file.
@@ -112,6 +114,7 @@ def check_duplicate(file_to_be_checked, archive="datawork", dryrun=True):
 
     Args:
         file_to_be_checked (str): Full path of the .SAFE (or .tar) to be checked.
+        config_path (str): Full path of the config .yml file for s1ifr.
         archive (str): Storage name ('scale' or 'datawork'). Defaults to "datawork".
         dryrun (bool): If True, logs actions without deleting/moving files. Defaults to True.
 
@@ -138,7 +141,7 @@ def check_duplicate(file_to_be_checked, archive="datawork", dryrun=True):
                 cpt_deleted += 1
                 logging.debug("to delete %s", pot)
                 if dryrun is False:
-                    quarantine_ticket(pot, archive)
+                    quarantine_ticket(pot, archive, config_path=config_path)
 
     else:
         logging.debug("no duplicate found")
@@ -152,6 +155,12 @@ def main():
 
     parser = argparse.ArgumentParser(description="clean SAFE duplicate")
     parser.add_argument("--verbose", action="store_true", default=False)
+    parser.add_argument(
+        "--config-path",
+        action="store",
+        dest="config_path",
+        help="full path of config file .yml for s1ifr",
+    )
     parser.add_argument(
         "--dryrun",
         action="store_true",
@@ -178,7 +187,9 @@ def main():
     logging.info("start the check")
 
     cpt_deleted = check_duplicate(
-        file_to_be_checked=args.safe, dryrun=args.dryrun
+        file_to_be_checked=args.safe,
+        config_path=args.config_path,
+        dryrun=args.dryrun,
     )
     cpt["total_safe_analysed"] += 1
     cpt["total_safe_removed"] += cpt_deleted
