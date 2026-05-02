@@ -6,7 +6,7 @@ build-backend = "poetry.core.masonry.api"
 [project]
 name = "s1ifr"
 requires-python = ">=3.10"
-license = "MIT
+license = "LGPL-3.0-only"
 description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
 readme = "README.md"
 authors = [
@@ -46,24 +46,6 @@ classifiers = [
 dynamic = ["version"]
 
 [tool.poetry]
-name = "s1ifr"
-version = "2026.3.16"
-description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
-license = "MIT"
-authors = ["Antoine GROUAZEL <antoine.grouazel@ifremer.fr>"]
-readme = "README.md"
-classifiers = [
-  "Development Status :: 4 - Beta",
-  "Operating System :: OS Independent",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Intended Audience :: Science/Research",
-  "Topic :: Scientific/Engineering",
-  "License :: OSI Approved :: MIT",
-]
-=======
 version = "2026.2.9"
 exclude = ["tests"]
 
