@@ -9,17 +9,8 @@ requires-python = ">=3.10"
 license = "LGPL-3.0-only"
 description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
 readme = "README.md"
-authors = [
-  { name = "Antoine GROUAZEL", email = "antoine.grouazel@ifremer.fr" }
-]
-dependencies = [
-  "numpy",
-  "xarray",
-  "lxml",
-  "tqdm",
-  "pandas",
-  "pyyaml",
-]
+authors = [{ name = "Antoine GROUAZEL", email = "antoine.grouazel@ifremer.fr" }]
+dependencies = ["numpy", "xarray", "lxml", "tqdm", "pandas", "pyyaml"]
 keywords = [
   "earth-observation",
   "remote-sensing",
@@ -66,7 +57,8 @@ flake8-junit-report-basic = "*"
 # unit tests
 pytest = "^6"
 pytest-cov = "^2"
-coverage = { version="*", extras=["toml"]}
+pytest-mock = "*"
+coverage = { version = "*", extras = ["toml"] }
 
 [project.urls]
 homepage = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io"
