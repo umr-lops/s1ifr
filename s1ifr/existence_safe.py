@@ -41,7 +41,7 @@ def product_is_present_at_ifremer(
     elif safe_basename[0:2] == "S3":
         possible_archives = ["s3sral"]
     else:
-        raise ValueError("product not handle by the poulpe")
+        raise ValueError("product %s not handle by the poulpe"%safe_basename)
     for archive in possible_archives:
         possible_archive = which_archive_dir(
             safe=safe_basename, archive_name=archive
