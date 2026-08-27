@@ -16,6 +16,7 @@ From: ubuntu:22.04
         libglib2.0-0 \
         libxext6 \
         libsm6 \
+        unzip \
         libxrender1
 
     # Install micromamba from conda-forge
