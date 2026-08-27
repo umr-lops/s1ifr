@@ -17,6 +17,7 @@ import shutil
 import subprocess
 import time
 import traceback
+import zipfile
 
 from s1ifr.check_SAFE_files import safe_checker
 from s1ifr.clean_sentinel1_duplicates_function import check_duplicate
@@ -249,23 +250,14 @@ def sort_one_safe(
                     )
                     logging.debug("spool dir: %s", spool_dir)
                     logging.debug("pwd: %s %s", os.curdir, os.getcwd())
-                    os.chdir(spool_dir)
-                    cmd = "unzip -o " + full_path_safe
-                    logging.debug("command: %s", cmd)
 
                     try:
-                        st = subprocess.check_output(
-                            cmd,
-                            shell=True,
-                            stderr=subprocess.STDOUT,
-                            text=True,
-                        )
-                    except subprocess.CalledProcessError as e:
-                        st = e.returncode
-                        logging.error(f"Error with cmd : {e}")
-                        logging.error(f"status returned : {e.returncode}")
-                        logging.error(f"cmd output : {e.output}")
-                    logging.debug("status unzip : %s", st)
+                        with zipfile.ZipFile(full_path_safe) as zf:
+                            zf.extractall(spool_dir)
+                        logging.debug("unzip via zipfile succeeded for %s", full_path_safe)
+                    except (zipfile.BadZipFile, OSError) as e:
+                        logging.error("Error uncompressing %s : %s", full_path_safe, e)
+
                     unziped_safe = full_path_safe.strip(".zip")
                     unziped_safe = unziped_safe.replace(
                         os.path.dirname(full_path_safe), spool_dir
@@ -278,9 +270,7 @@ def sort_one_safe(
                         unziped_safe,
                         os.path.exists(unziped_safe),
                     )
-                    testexistenceuncompressedsafe = os.path.exists(
-                        unziped_safe
-                    )
+                    testexistenceuncompressedsafe = os.path.exists(unziped_safe)
                     if testexistenceuncompressedsafe:
                         doom_flag = finalize_archiving(
                             archive_dir,
@@ -295,17 +285,12 @@ def sort_one_safe(
                             "uncompress operation on %s failed ",
                             full_path_safe,
                         )
-                        # in this case the tar is kept because we are not sure that the tar itself is broken => risk of stagging tar ??
-                        #                         raise Exception('fail to uncompress %s so it will be removed from spool',full_path_safe)
                         logging.error("traceback %s", traceback.format_exc())
-                        #                         os.remove(full_path_safe)
-                        #                         shutil.move(full_path_safe,QUARANTINE)
                         quarantine_ticket(
                             full_path_safe,
                             other_archive,
                             config_path=config_path,
                         )
-                        #                         os.system('mv -f '+full_path_safe+' '+whichquarantinedir(safe_basename,archive=other_archive))
                         doom_flag = QUARANTINED
 
                 elif full_path_safe[-4:] in ["SAFE", "SEN3"]:
