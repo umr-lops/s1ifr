@@ -29,7 +29,7 @@ from s1ifr.SAFEsortingfunctions import (
     which_archive_dir,
     which_spool_dir,
 )
-
+from s1ifr.utils import load_config
 UNEXISTANT = "unexistant"
 NORMAL = "normal"
 ALREADY = "already_in"
@@ -60,21 +60,30 @@ def finalize_archiving(
     """
     #     unziped_safe = full_path_safe.strip('.tar')
     # check that the SAFE uncompressed is not corrupted
+    conf = load_config(config_path=config_path)
+    tmp_dir = conf["paths"]["scratch"]["satwave"]
     doom_flag = NORMAL
     user_run = getpass.getuser()
     logpath = os.path.join(
-        "/home1/scratch", user_run, "sentinel1_quality_check_after_unzip.txt"
+        tmp_dir.replace('satwave',user_run), "sentinel1_quality_check_after_unzip.txt"
     )
 
     is_ok_safe = safe_checker(unzipped_safe, logpath=logpath, security_time=0)
-
-    if is_ok_safe:
+    if os.path.exists(final_place) is True:
+        logging.warning(
+            "%s already exist in %s, so we delete the one in spool dir",
+            final_place,
+            archive_dir,
+        )
+        remove_safe_from_disk(unzipped_safe)
+        doom_flag = ALREADY
+    if is_ok_safe and os.path.exists(unzipped_safe) is True and os.path.exists(final_place) is False:
         cmd = "/bin/mv -f " + unzipped_safe + " " + archive_dir
         logging.debug("command to execute %s", cmd)
 
         status = subprocess.check_output(cmd, shell=True)
         if status != 0:
-            st = os.system("chmod 775 -R " + final_place)
+            st = subprocess.check_output("chmod 775 -R " + final_place, shell=True)
             if st != 0:
                 logging.error("chmod operation on %s failed", final_place)
                 doom_flag = FAILED
