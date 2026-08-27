@@ -254,9 +254,14 @@ def sort_one_safe(
                     try:
                         with zipfile.ZipFile(full_path_safe) as zf:
                             zf.extractall(spool_dir)
-                        logging.debug("unzip via zipfile succeeded for %s", full_path_safe)
+                        logging.debug(
+                            "unzip via zipfile succeeded for %s",
+                            full_path_safe,
+                        )
                     except (zipfile.BadZipFile, OSError) as e:
-                        logging.error("Error uncompressing %s : %s", full_path_safe, e)
+                        logging.error(
+                            "Error uncompressing %s : %s", full_path_safe, e
+                        )
 
                     unziped_safe = full_path_safe.strip(".zip")
                     unziped_safe = unziped_safe.replace(
@@ -270,7 +275,9 @@ def sort_one_safe(
                         unziped_safe,
                         os.path.exists(unziped_safe),
                     )
-                    testexistenceuncompressedsafe = os.path.exists(unziped_safe)
+                    testexistenceuncompressedsafe = os.path.exists(
+                        unziped_safe
+                    )
                     if testexistenceuncompressedsafe:
                         doom_flag = finalize_archiving(
                             archive_dir,
