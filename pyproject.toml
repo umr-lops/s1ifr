@@ -1,16 +1,16 @@
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 
 [project]
 name = "s1ifr"
+dynamic = ["version"]
 requires-python = ">=3.10"
-license = "LGPL-3.0-only"
+license = { text = "LGPL-3.0-only" }
 description = "python methods to find / move / copy / sort / store / count Sentinel-1 SAR mission files in Ifremer archive"
 readme = "README.md"
 authors = [{ name = "Antoine GROUAZEL", email = "antoine.grouazel@ifremer.fr" }]
-dependencies = ["numpy", "xarray", "lxml", "tqdm", "pandas", "pyyaml"]
 keywords = [
   "earth-observation",
   "remote-sensing",
@@ -34,51 +34,82 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
-dynamic = ["version"]
+dependencies = [
+  "numpy",
+  "xarray",
+  "lxml",
+  "tqdm",
+  "pandas",
+  "pyyaml",
+]
 
-[tool.poetry]
-version = "2026.5.2"
-exclude = ["tests"]
-
-[tool.poetry.dependencies]
-python = ">=3.10"
-numpy = "*"
-xarray = "*"
-lxml = "*"
-tqdm = "*"
-pandas = "*"
-pyyaml = "*"
-
-[tool.poetry.group.dev.dependencies]
-# execute commands before commit
-pre-commit = "^2.15.0"
-flake8 = "*"
-flake8-junit-report-basic = "*"
-# unit tests
-pytest = "^6"
-pytest-cov = "^2"
-pytest-mock = "*"
-coverage = { version = "*", extras = ["toml"] }
+[project.optional-dependencies]
+dev = [
+  "pre-commit>=2.15.0",
+  "flake8",
+  "flake8-junit-report-basic",
+  "pytest>=6",
+  "pytest-cov>=2",
+  "pytest-mock",
+  "coverage[toml]",
+  "ruff",
+  "black",
+  "isort",
+]
+docs = [
+  "sphinx",
+  "sphinx-rtd-theme",
+  "nbsphinx",
+  "ipython",
+]
 
 [project.urls]
-homepage = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io"
-documentation = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io"
-repository = "https://gitlab.ifremer.fr/lops-wave/s1ifr"
-changelog = "https://gitlab.ifremer.fr/lops-wave/s1ifr.readthedocs.io/en/latest/changelog.html"
+Homepage = "https://github.com/umr-lops/s1ifr"
+Repository = "https://github.com/umr-lops/s1ifr"
+Issues = "https://github.com/umr-lops/s1ifr/issues"
+Documentation = "https://s1ifr.readthedocs.io"
+Changelog = "https://github.com/umr-lops/s1ifr/blob/main/CHANGELOG.md"
 
 [project.scripts]
 syncsafe = "s1ifr.move_safe_from_ifr_to_ifr:main"
 syncsafebatch = "s1ifr.scripts.move_safe_from_ifr_to_ifr_prun:main"
-archivesafe = 's1ifr.sentinel1_pieuvre:main'
-get-s1-full-path-safe = 's1ifr.scripts.get_full_path_SAFE:entrypoint'
-familyprod = 's1ifr.paths_safe_product_family:entrypoint'
+archivesafe = "s1ifr.sentinel1_pieuvre:main"
+get-s1-full-path-safe = "s1ifr.scripts.get_full_path_SAFE:entrypoint"
+familyprod = "s1ifr.paths_safe_product_family:entrypoint"
 
-[tool.setuptools]
+
+# ---------------------------------------------------------------------------
+# Hatch: versioning via git tags (nécessite hatch-vcs) + packaging
+# ---------------------------------------------------------------------------
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "s1ifr/_version.py"
+
+[tool.hatch.build.targets.wheel]
 packages = ["s1ifr"]
 
-#[tool.setuptools.packages.find]
-#where = ["s1ifr"]
+[tool.hatch.build.targets.sdist]
+include = [
+  "/s1ifr",
+  "/tests",
+  "/docs",
+  "/README.md",
+  "/LICENSE",
+  "/pyproject.toml",
+]
+exclude = [
+  "/s1ifr/localconfig.yml",
+  "/s1ifr/*.backup",
+  "**/__pycache__",
+  "**/.ipynb_checkpoints",
+]
 
+
+# ---------------------------------------------------------------------------
+# Outils de dev (inchangés)
+# ---------------------------------------------------------------------------
 [tool.isort]
 profile = "black"
 skip_gitignore = true
@@ -123,5 +154,8 @@ known-first-party = ["s1ifr"]
 known-third-party = ["xarray", "toolz", "construct"]
 
 [tool.ruff.lint.flake8-tidy-imports]
-# Disallow all relative imports.
 ban-relative-imports = "all"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"

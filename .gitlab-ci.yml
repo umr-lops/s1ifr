@@ -1,7 +1,0 @@
-include:
-  - component: $CI_SERVER_FQDN/dev-ops/templates/automatisation/ci-cd/pipeline-documentation-sphinx@~latest
-    inputs:
-      documentation_python_requirements: requirements_doc.txt
-  - component: $CI_SERVER_FQDN/dev-ops/templates/automatisation/ci-cd/pipeline-python-publish@~latest
-    inputs:
-      python_packager: poetry
