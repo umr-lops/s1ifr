@@ -31,7 +31,7 @@ repos:
       #- id: ruff-format # optionnel si tu veux ruff-format en plus de black
 
   - repo: https://github.com/kynan/nbstripout
-    rev: 0.7.1
+    rev: 0.9.1
     hooks:
       - id: nbstripout
         args: [--extra-keys=metadata.kernelspec metadata.language_info.version]
