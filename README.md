@@ -101,7 +101,7 @@ Issues and pull requests are welcome on GitHub:
 
 ## License
 
-This project is licensed under the terms of the **GNU Lesser General Public License v3.0 (LGPL-3.0)**.
+This project is licensed under the terms of the **MIT License**.
 See [LICENSE](https://github.com/umr-lops/s1ifr/blob/main/LICENSE) for details.
 
 ## Authors
