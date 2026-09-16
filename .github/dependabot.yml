@@ -1,0 +1,85 @@
+# .github/dependabot.yml
+# Documentation: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # ---------------------------------------------------------------------------
+  # GitHub Actions utilisées dans .github/workflows/
+  # (actions/checkout, setup-python, codecov, pypa/gh-action-pypi-publish, ...)
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # ---------------------------------------------------------------------------
+  # Dépendances Python (lues dans pyproject.toml via l'écosystème pip)
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    # Ignore les mises à jour de Python lui-même (ce n'est pas une dépendance pip)
+    ignore:
+      - dependency-name: "python"
+    groups:
+      # Groupe 1 : dépendances de runtime (numpy, xarray, ...)
+      runtime:
+        patterns:
+          - "numpy"
+          - "xarray"
+          - "lxml"
+          - "tqdm"
+          - "pandas"
+          - "pyyaml"
+        update-types:
+          - "minor"
+          - "patch"
+      # Groupe 2 : outillage de dev (pytest, ruff, black, ...)
+      dev-tools:
+        patterns:
+          - "pytest*"
+          - "coverage*"
+          - "ruff"
+          - "black"
+          - "isort"
+          - "pre-commit"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ---------------------------------------------------------------------------
+  # pre-commit hooks (lit .pre-commit-config.yaml)
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "pre-commit"
+      include: "scope"
+
+  # ---------------------------------------------------------------------------
+  # Dockerfile (si tu publies/maintains une image)
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "docker"
+      include: "scope"

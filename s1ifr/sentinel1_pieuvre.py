@@ -178,7 +178,6 @@ def sort_one_safe(
             safe_basename, full_path_safe, config_path=config_path
         )
         if flag_continue is True and dryrun is False:
-
             os.makedirs(archive_dir, 0o0775, exist_ok=True)
             t = os.path.getctime(full_path_safe)
             creation_date = datetime.datetime.fromtimestamp(t)

@@ -322,7 +322,7 @@ if __name__ == "__main__":
                     get_full_path_from_measu(measurement)
                     == expected_res[lst.index(measurement)]
                 )
-                logging.info("test #%i : OK" % lst.index(measurement))
+                logging.info(f"test #{lst.index(measurement)} : OK")
         else:
             measurement = args.input
             print("input", measurement)

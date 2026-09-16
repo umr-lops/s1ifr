@@ -318,7 +318,6 @@ def main_loop(
     logging.debug("writing suspicious SAFE in %s", list_safe_having_problem)
     cpt_checked = 0
     if unique_safe is not None:
-
         flag_ok_safe = safe_checker(
             unique_safe, list_safe_having_problem, enable_checksum
         )
@@ -462,7 +461,6 @@ def main():
             "exploit mode : check Sentinel1 SAFE product on the current month"
         )
         for sat in satellites:
-
             typo = args.mode
             formato = args.producttype
             if args.which == "last_x_days":
@@ -521,5 +519,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()

@@ -1,9 +1,9 @@
 """
-    Author:  Antoine.Grouazel@ifremer.fr
-    Purpose:separate information in SAFE name sentinel1
-    Creation:  2014-11-28
-    Arguments: basename SAFE directory
-    note: valid also for Sentinel3 SRAL data
+Author:  Antoine.Grouazel@ifremer.fr
+Purpose:separate information in SAFE name sentinel1
+Creation:  2014-11-28
+Arguments: basename SAFE directory
+note: valid also for Sentinel3 SRAL data
 """
 
 import datetime
