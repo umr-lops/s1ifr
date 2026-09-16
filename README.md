@@ -1,6 +1,6 @@
 # s1ifr
 
-This library allows to perform filesystem operation on Ifremer Sentinel-1 Archive.
+This library allows to perform I/O filesystem operations on Ifremer Sentinel-1 Archive.
 
 ## Installation
 
