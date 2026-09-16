@@ -49,7 +49,14 @@ dev = [
   "black",
   "isort",
 ]
-docs = ["sphinx", "sphinx-rtd-theme", "nbsphinx", "ipython"]
+docs = [
+  "sphinx",
+  "sphinx-rtd-theme",
+  "nbsphinx",
+  "jupyter-sphinx",               # ← ajouté
+  "sphinxcontrib-programoutput",  # ← ajouté
+  "ipython",
+]
 
 [project.urls]
 Homepage = "https://github.com/umr-lops/s1ifr"
