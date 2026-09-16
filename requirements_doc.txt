@@ -1,5 +1,5 @@
 -e .
-pandoc==2.3
+pandoc==2.4
 sphinx
 numpydoc
 sphinx-rtd-theme
