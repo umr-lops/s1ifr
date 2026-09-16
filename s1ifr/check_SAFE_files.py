@@ -58,7 +58,9 @@ def delete_corrupted_safe(corrupted_list, dirout) -> int:
     :return:
     """
     logging.info("read %s to delete spotted corrupted SAFE", corrupted_list)
-    current_time = datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d_%Hh%M")
+    current_time = datetime.datetime.strftime(
+        datetime.datetime.now(), "%Y%m%d_%Hh%M"
+    )
     logout = dirout + "deleted_" + current_time + ".lst"
     fod = open(corrupted_list)
     lines = fod.readlines()
@@ -85,10 +87,14 @@ def delete_corrupted_safe(corrupted_list, dirout) -> int:
                         "error during the suppression of the SAFE: %s",
                         traceback.format_exc(),
                     )
-                    logging.info("impossible to delete this SAFE: %s", safe_path)
+                    logging.info(
+                        "impossible to delete this SAFE: %s", safe_path
+                    )
                 cpt += 1
             else:
-                logging.info("it seems that %s does not exist anymore", safe_path)
+                logging.info(
+                    "it seems that %s does not exist anymore", safe_path
+                )
             fid.write(safe_path + "\n")
         fid.close()
     return cpt
@@ -451,7 +457,9 @@ def main():
             satellites = args.satellite
         logging.info("satellites: %s", satellites)
         #     if options.exploitation is not None:
-        logging.info("exploit mode : check Sentinel1 SAFE product on the current month")
+        logging.info(
+            "exploit mode : check Sentinel1 SAFE product on the current month"
+        )
         for sat in satellites:
             typo = args.mode
             formato = args.producttype
@@ -498,7 +506,9 @@ def main():
     else:
         raise ValueError("this case does not exist")
     if suppression_flag is True and os.path.exists(list_safe_having_problem):
-        nb_safe_deleted = delete_corrupted_safe(list_safe_having_problem, dirdeleted)
+        nb_safe_deleted = delete_corrupted_safe(
+            list_safe_having_problem, dirdeleted
+        )
         logging.info("Nber of SAFE deleted: %s", nb_safe_deleted)
     # avoid empty log file suspicious
     if os.path.exists(list_safe_having_problem):

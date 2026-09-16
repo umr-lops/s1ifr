@@ -66,7 +66,9 @@ def get_output_l1b_safe(slc_iw_path_safe, outputdir, productid) -> str:
         safe_basename.split("_")[5], "%Y%m%dT%H%M%S"
     )
     safe_basename = safe_basename.replace("SLC", "XSP")
-    safe_basename = safe_basename.replace(".SAFE", "_" + productid.upper() + ".SAFE")
+    safe_basename = safe_basename.replace(
+        ".SAFE", "_" + productid.upper() + ".SAFE"
+    )
     return os.path.join(
         outputdir,
         safestartdate.strftime("%Y"),
@@ -88,7 +90,9 @@ def get_output_l2wav_safe(slc_path, outputdir, productid) -> str:
         str: Constructed path.
     """
     base_safe = os.path.basename(slc_path)
-    datedt_slc = datetime.datetime.strptime(base_safe.split("_")[5], "%Y%m%dT%H%M%S")
+    datedt_slc = datetime.datetime.strptime(
+        base_safe.split("_")[5], "%Y%m%dT%H%M%S"
+    )
     base_safe_l2 = (
         base_safe.replace("SLC", "WAV")
         .replace("_1S", "_2S")
@@ -167,7 +171,9 @@ def add_L1B(df, cpt=None, versions=None, disable_tqdm=False, config_path=None):
     res_df = pd.DataFrame(results)
     for pid in versions:
         df[f"L1B_XSP_{pid}"] = res_df[pid].values
-        logging.info("version: %s -> %i safe found", pid, (res_df[pid] != "").sum())
+        logging.info(
+            "version: %s -> %i safe found", pid, (res_df[pid] != "").sum()
+        )
 
     return df, cpt
 
@@ -253,7 +259,9 @@ def _process_l2wav_row(slc_id, versions, dir_outs, cpt):
     return row_results
 
 
-def add_L2WAV(df, versions=None, cpt=None, disable_tqdm=False, config_path=None):
+def add_L2WAV(
+    df, versions=None, cpt=None, disable_tqdm=False, config_path=None
+):
     """
     From SLC path, find associated L2-WAV products.
 
@@ -373,9 +381,7 @@ def get_products_family(
 def create_a_listing(newdf):
     try:
         # 1. Ask for the column name
-        consign = (
-            f"Enter the column name to filter: possibles names are : {newdf.keys()}"
-        )
+        consign = f"Enter the column name to filter: possibles names are : {newdf.keys()}"
         input_from_user_colname = input(consign).strip()
 
         # (Optional) Validate that column exists to prevent a crash later
@@ -457,7 +463,9 @@ def entrypoint():
             level=logging.DEBUG, format=fmt, datefmt="%d/%m/%Y %H:%M:%S"
         )
     else:
-        logging.basicConfig(level=logging.INFO, format=fmt, datefmt="%d/%m/%Y %H:%M:%S")
+        logging.basicConfig(
+            level=logging.INFO, format=fmt, datefmt="%d/%m/%Y %H:%M:%S"
+        )
     merged_df = pd.read_csv(args.listing, names=["L1_SLC"])
     logging.debug("L1B versions %s", args.l1bversions)
     logging.debug("L1C versions %s", args.l1cversions)

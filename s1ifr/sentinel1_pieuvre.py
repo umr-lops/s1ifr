@@ -100,7 +100,9 @@ def finalize_archiving(
                 )
                 logging.debug("chmod done")
             except subprocess.CalledProcessError as e:
-                logging.error("chmod operation on %s failed: %s", final_place, e)
+                logging.error(
+                    "chmod operation on %s failed: %s", final_place, e
+                )
                 doom_flag = FAILED
     else:
         logging.error(
@@ -190,7 +192,8 @@ def sort_one_safe(
             time.sleep(1)
             taille2 = os.path.getsize(full_path_safe)
             if (
-                seconds_since_creation >= datetime.timedelta(seconds=security_second)
+                seconds_since_creation
+                >= datetime.timedelta(seconds=security_second)
                 and taille1 == taille2
             ):
                 if log_file_handler is not None:
@@ -255,7 +258,9 @@ def sort_one_safe(
                             full_path_safe,
                         )
                     except (zipfile.BadZipFile, OSError) as e:
-                        logging.error("Error uncompressing %s : %s", full_path_safe, e)
+                        logging.error(
+                            "Error uncompressing %s : %s", full_path_safe, e
+                        )
 
                     unziped_safe = full_path_safe.strip(".zip")
                     unziped_safe = unziped_safe.replace(
@@ -269,7 +274,9 @@ def sort_one_safe(
                         unziped_safe,
                         os.path.exists(unziped_safe),
                     )
-                    testexistenceuncompressedsafe = os.path.exists(unziped_safe)
+                    testexistenceuncompressedsafe = os.path.exists(
+                        unziped_safe
+                    )
                     if testexistenceuncompressedsafe:
                         doom_flag = finalize_archiving(
                             archive_dir,
@@ -340,10 +347,14 @@ def sort_one_safe(
             if dryrun is False and os.path.exists(full_path_safe):
                 remove_safe_from_disk(full_path_safe)
     else:
-        logging.debug("sentinel1_pieuvre | %s doesnt exist anymore", full_path_safe)
+        logging.debug(
+            "sentinel1_pieuvre | %s doesnt exist anymore", full_path_safe
+        )
         doom_flag = UNEXISTANT
     if doom_flag == NORMAL:
-        logging.info("final path where the product is stored : %s", final_place)
+        logging.info(
+            "final path where the product is stored : %s", final_place
+        )
     logging.info("final flag: %s", doom_flag)
     logging.info("final path where the product is stored : %s", final_place)
     return doom_flag, cpt_dupli

@@ -84,7 +84,9 @@ class TestUtils(unittest.TestCase):
         # --- Arrange ---
         # Create a fake configuration dictionary to be returned by the mock
         fake_config = {
-            "satellites": {"longnames": {"S1A": "sentinel-1a", "S1B": "sentinel-1b"}},
+            "satellites": {
+                "longnames": {"S1A": "sentinel-1a", "S1B": "sentinel-1b"}
+            },
             "paths": {"datarmor": {"archive_esa": "/test/archive/path"}},
         }
         # Tell the mock to return our fake config when called

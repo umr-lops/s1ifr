@@ -31,7 +31,9 @@ def mock_conf():
 
 def test_get_full_path_from_measu_found_first_try(mock_conf):
     """Test path resolution when the file is found on the first glob attempt."""
-    measurement = "s1a-wv1-ocn-vv-20150911t123908-20150911t123911-007667-00aa41-079.nc"
+    measurement = (
+        "s1a-wv1-ocn-vv-20150911t123908-20150911t123911-007667-00aa41-079.nc"
+    )
     expected_path = (
         "/archive/esa/sentinel-1a/L2/WV/S1A_WV_OCN__2S/2015/254/SOME_SAFE/measurement/"
         + measurement
@@ -48,7 +50,9 @@ def test_get_full_path_from_measu_found_first_try(mock_conf):
 
 def test_get_full_path_from_measu_found_day_before(mock_conf):
     """Test the fallback logic: not found today, but found in the previous day folder."""
-    measurement = "s1a-wv1-ocn-vv-20150911t123908-20150911t123911-007667-00aa41-079.nc"
+    measurement = (
+        "s1a-wv1-ocn-vv-20150911t123908-20150911t123911-007667-00aa41-079.nc"
+    )
     day_before_path = (
         "/archive/esa/sentinel-1a/L2/WV/S1A_WV_OCN__2S/2015/253/SOME_SAFE/measurement/"
         + measurement
@@ -66,7 +70,9 @@ def test_get_full_path_from_measu_found_day_before(mock_conf):
 
 def test_get_full_path_from_measu_not_found(mock_conf):
     """Test when glob returns nothing for both attempts."""
-    measurement = "s1a-wv1-ocn-vv-20150911t123908-20150911t123911-007667-00aa41-079.nc"
+    measurement = (
+        "s1a-wv1-ocn-vv-20150911t123908-20150911t123911-007667-00aa41-079.nc"
+    )
 
     with patch(
         "s1ifr.get_full_path_from_measurement.load_config",
@@ -105,7 +111,9 @@ def test_get_full_path_ocn_wv_approximate_found(mock_conf):
 def test_get_full_path_with_safe_and_measu_logic(mock_conf):
     """Verify string construction for specific SAFE and measurement pair."""
     safebase = "S1A_WV_OCN__2SSV_20230101.SAFE"
-    measu_base = "s1a-wv1-ocn-vv-20230101t120000-20230101t120003-012345-0AB123-001.nc"
+    measu_base = (
+        "s1a-wv1-ocn-vv-20230101t120000-20230101t120003-012345-0AB123-001.nc"
+    )
 
     with patch(
         "s1ifr.get_full_path_from_measurement.load_config",
@@ -125,7 +133,9 @@ def test_get_full_path_with_safe_and_measu_logic(mock_conf):
 def test_get_full_path_with_safe_and_measu_slc(mock_conf):
     """Check L1 / SLC logic in path construction."""
     safebase = "S1A_WV_SLC__1SSV_20230101.SAFE"
-    measu_base = "s1a-wv1-slc-vv-20230101t120000-20230101t120003-012345-0AB123-001.tiff"
+    measu_base = (
+        "s1a-wv1-slc-vv-20230101t120000-20230101t120003-012345-0AB123-001.tiff"
+    )
 
     with patch(
         "s1ifr.get_full_path_from_measurement.load_config",

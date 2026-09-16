@@ -61,7 +61,9 @@ class ExplodeSAFE:
             # Use SAFE regex for robust extraction of named groups
 
             # m = re.match(SAFE_PATTERN, self.safename)
-            m, flag_is_safe = check_safe_name_match_expected_s1_pattern(self.safename)
+            m, flag_is_safe = check_safe_name_match_expected_s1_pattern(
+                self.safename
+            )
             if flag_is_safe is False or m is None:
                 raise ValueError(
                     f"S1 SAFE name does not match expected pattern: '{self.safename}'"
@@ -107,8 +109,12 @@ class ExplodeSAFE:
             self.level = splitos[2]
             self.kind = None
             self.polarisation = None
-            self.startdate = datetime.datetime.strptime(splitos[7], DEFAULT_DATE_FORMAT)
-            self.enddate = datetime.datetime.strptime(splitos[9], DEFAULT_DATE_FORMAT)
+            self.startdate = datetime.datetime.strptime(
+                splitos[7], DEFAULT_DATE_FORMAT
+            )
+            self.enddate = datetime.datetime.strptime(
+                splitos[9], DEFAULT_DATE_FORMAT
+            )
             self.absolute_orbit_number = None
             self.cycle_number = splitos[11]
             self.relative_orbit_number = splitos[12]

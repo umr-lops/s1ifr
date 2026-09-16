@@ -57,13 +57,24 @@ def write_measurement_list(
     EXTENSIONS = conf["product_info"]["extensions"]
     format_safe = format.rjust(4, "_")
     format_file = format
-    subtype = satellite + "_" + type + "_" + format_safe.upper() + "_" + level[1] + "S"
+    subtype = (
+        satellite
+        + "_"
+        + type
+        + "_"
+        + format_safe.upper()
+        + "_"
+        + level[1]
+        + "S"
+    )
     repdatatype = os.path.join(repdata, type, subtype)
     logging.debug("rep %s", repdatatype)
     extension = EXTENSIONS[level]
     user_run = getpass.getuser()
     filout = os.path.join("/home1/scratch/", user_run)
-    pattern = satellite.lower() + "*" + format_file[0:3].lower() + "*." + extension
+    pattern = (
+        satellite.lower() + "*" + format_file[0:3].lower() + "*." + extension
+    )
     logname = (
         satellite
         + "_"
@@ -170,7 +181,9 @@ def list_safe_s1_ifr_fs(
     list_safe = []
     repdatamode = os.path.join(repdata, mode + "/")
 
-    known_format = satellite + "_" + mode + "_" + formato + "_" + level[1] + category
+    known_format = (
+        satellite + "_" + mode + "_" + formato + "_" + level[1] + category
+    )
     repdatatype = os.path.join(repdatamode, known_format + "/")
     logging.info("rep %s", repdatatype)
     extension = "SAFE"
@@ -230,7 +243,9 @@ def write_safe_to_file_list(
     return logpath
 
 
-def find_netcdf_day_before(nbdays, satellite, archive_name="mpc", config_path=None):
+def find_netcdf_day_before(
+    nbdays, satellite, archive_name="mpc", config_path=None
+):
     """
     browse Ifremer repositories to find the netCDF data from the X past days
     Args:
@@ -277,7 +292,9 @@ def find_netcdf_between_2_dates(
     :returns
         netcdf_list (list):
     """
-    logging.debug("looking for SAR netcdf files between %s-%s dates", start, stop)
+    logging.debug(
+        "looking for SAR netcdf files between %s-%s dates", start, stop
+    )
     netcdf_list = []
     additional_archives = get_all_archives(config_path=config_path)
     root_archive = additional_archives[archive_name]
@@ -365,7 +382,9 @@ def find_s1_measurement_between_2_dates(
     for dd in tqdm(rrule.rrule(rrule.DAILY, dtstart=start, until=stop)):
         year = str(dd.year)
         doy = str(dd.timetuple().tm_yday).zfill(3)
-        patho = os.path.join(root_archive, fs, level, mode, product_type, year, doy)
+        patho = os.path.join(
+            root_archive, fs, level, mode, product_type, year, doy
+        )
         logging.debug("path constructed: %s", patho)
         if os.path.exists(patho):
             pattern = os.path.join(patho, "*.SAFE", ext)
@@ -395,7 +414,9 @@ def find_sar_tiff_between_2_dates(
         processing_format (str): GRDM or SLC_ or GRDH or GRDF or *
         config_path (str): full path of config file .yml for s1ifr [optional]
     """
-    logging.debug("looking for SAR tiff files between %s-%s dates", start, stop)
+    logging.debug(
+        "looking for SAR tiff files between %s-%s dates", start, stop
+    )
     if isinstance(mode, str):
         mode = [mode]
     tiff_list = []

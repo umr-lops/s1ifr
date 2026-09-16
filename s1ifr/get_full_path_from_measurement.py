@@ -21,7 +21,9 @@ prodtype_levels = {
 }
 
 
-def get_full_path_from_measu(measurement, storage="datawork", config_path=None) -> str:
+def get_full_path_from_measu(
+    measurement, storage="datawork", config_path=None
+) -> str:
     """
     to get the full path in ifremer archive of given measurement
 
@@ -60,7 +62,9 @@ def get_full_path_from_measu(measurement, storage="datawork", config_path=None) 
 
     fullsat = "sentinel-1" + sat.lower()[-1]
     root = os.path.join(conf["paths"][storage]["archive_esa"], fullsat)
-    datestart = datetime.datetime.strptime(measurement.split("-")[5], DATE_FORMAT_MEASU)
+    datestart = datetime.datetime.strptime(
+        measurement.split("-")[5], DATE_FORMAT_MEASU
+    )
     date_before = datestart - datetime.timedelta(days=1)
     year = datestart.strftime("%Y")
     doy = datestart.strftime("%j")
@@ -214,7 +218,9 @@ def get_full_path_with_safe_and_measu(
     conf = load_config(config_path=config_path)
     sat = measu_base[0:3].upper()
     prodtype = measu_base.split("-")[2]
-    datedt = datetime.datetime.strptime(measu_base.split("-")[4], DATE_FORMAT_MEASU)
+    datedt = datetime.datetime.strptime(
+        measu_base.split("-")[4], DATE_FORMAT_MEASU
+    )
     root = os.path.join(
         conf["paths"][storage]["archive_esa"], "sentinel-1" + sat.lower()[-1]
     )
@@ -257,11 +263,19 @@ if __name__ == "__main__":
         "date": "search from date",
     }
     for subcmd in chco:
-        dico_subparsers[subcmd] = subparsers.add_parser(subcmd, help=f"{chco[subcmd]}")
+        dico_subparsers[subcmd] = subparsers.add_parser(
+            subcmd, help=f"{chco[subcmd]}"
+        )
         dico_subparsers[subcmd].set_defaults(which=subcmd)
-    dico_subparsers["date"].add_argument("--date", type=str, help="YYYYmmddtHHMMSS")
-    dico_subparsers["date"].add_argument("--sat", type=str, help="S1A or S1X...")
-    dico_subparsers["date"].add_argument("--level", type=str, help="L1 or L2...")
+    dico_subparsers["date"].add_argument(
+        "--date", type=str, help="YYYYmmddtHHMMSS"
+    )
+    dico_subparsers["date"].add_argument(
+        "--sat", type=str, help="S1A or S1X..."
+    )
+    dico_subparsers["date"].add_argument(
+        "--level", type=str, help="L1 or L2..."
+    )
     dico_subparsers["base"].add_argument(
         "--input",
         type=str,

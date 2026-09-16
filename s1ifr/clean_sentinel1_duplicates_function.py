@@ -103,7 +103,9 @@ def latest_safe_processed(duplicates_list):
     return indice_latest_processing, duplicates_list, stoptimes
 
 
-def check_duplicate(file_to_be_checked, config_path, archive="datawork", dryrun=True):
+def check_duplicate(
+    file_to_be_checked, config_path, archive="datawork", dryrun=True
+):
     """Detect and remove duplicate SAFEs based on processing time.
 
     Identifies SAFEs with the same acquisition dates as the input file.

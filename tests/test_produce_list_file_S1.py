@@ -128,7 +128,9 @@ class TestProduceListFileS1(unittest.TestCase):
 
         # --- Assert ---
         expected_logname = f"S1A_{start_date_str}_{end_date_str}_dirSAFE.lst"
-        expected_path = f"/home1/scratch/testuser/PRUN_workspace/{expected_logname}"
+        expected_path = (
+            f"/home1/scratch/testuser/PRUN_workspace/{expected_logname}"
+        )
 
         self.assertEqual(logpath, expected_path)
 

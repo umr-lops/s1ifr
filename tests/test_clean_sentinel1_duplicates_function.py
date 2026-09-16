@@ -53,7 +53,9 @@ DEFAULT_VERSIONS_L2WAV: ["E11"]
 @pytest.fixture
 def config_path():
     """Write a temporary config YAML file and yield its path."""
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".yml", delete=False
+    ) as f:
         f.write(CONFIG_YAML)
         path = f.name
     yield path
@@ -69,7 +71,9 @@ def test_get_ending_processing_time_success():
     with (
         patch("os.path.isfile", return_value=True),
         patch("os.path.getsize", return_value=100),
-        patch("s1ifr.clean_sentinel1_duplicates_function.etree.parse") as mock_parse,
+        patch(
+            "s1ifr.clean_sentinel1_duplicates_function.etree.parse"
+        ) as mock_parse,
     ):
         mock_tree = MagicMock()
         mock_element = MagicMock()
