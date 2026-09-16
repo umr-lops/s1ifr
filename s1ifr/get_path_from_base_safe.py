@@ -53,9 +53,7 @@ def get_path_from_base_safe(
         path with the unresolved wildcard.
     """
     # check that safe_basename matches expected SAFE pattern
-    if not check_safe_name_match_expected_s1_pattern(
-        safe_basename.replace(".zip", "")
-    ):
+    if not check_safe_name_match_expected_s1_pattern(safe_basename.replace(".zip", "")):
         logging.error(
             "The provided SAFE basename does not match the expected Sentinel-1 pattern: %s",
             safe_basename,
@@ -91,15 +89,12 @@ def get_path_from_base_safe(
             return final_path
     if check_existence:
         if not os.path.exists(final_path):
-
             # try to replace the unique product ID of the SAFE name because a
             # single acquisition can be processed several times
             inst = ExplodeSAFE(safe_basename)
             product_id = inst.get("product_id")
             safe_name_wildcard = safe_basename.replace(product_id, "*")
-            safe_path_wildcard = os.path.join(
-                archive_base_dir, safe_name_wildcard
-            )
+            safe_path_wildcard = os.path.join(archive_base_dir, safe_name_wildcard)
             pot_wild = sorted(glob.glob(safe_path_wildcard))
             if len(pot_wild) > 0:
                 final_path = pot_wild[0]  # arbitraril take first one

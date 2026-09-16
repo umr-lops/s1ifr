@@ -158,7 +158,9 @@ class TestSortOneSafe(unittest.TestCase):
         mock_archive_dir,
     ):
         """Test successful processing of a .tar SAFE file."""
-        safe_name = "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        safe_name = (
+            "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        )
         safe_path = os.path.join(self.spool_dir, f"{safe_name}.tar")
 
         # Mock file operations
@@ -193,7 +195,9 @@ class TestSortOneSafe(unittest.TestCase):
         self, mock_remove, mock_exists, mock_product_present, mock_archive_dir
     ):
         """Test when product already exists at destination."""
-        safe_name = "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        safe_name = (
+            "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        )
         safe_path = os.path.join(self.spool_dir, f"{safe_name}.SAFE")
 
         mock_exists.return_value = True
@@ -230,7 +234,9 @@ class TestSortOneSafe(unittest.TestCase):
         mock_archive_dir,
     ):
         """Test when file is too recent (security_second not met)."""
-        safe_name = "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        safe_name = (
+            "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        )
         safe_path = os.path.join(self.spool_dir, f"{safe_name}.SAFE")
 
         mock_exists.return_value = True
@@ -256,15 +262,11 @@ class TestSortOneSafe(unittest.TestCase):
 
     @patch("s1ifr.sentinel1_pieuvre.which_archive_dir")
     @patch("s1ifr.sentinel1_pieuvre.product_is_present_at_ifremer")
-    def test_sort_one_safe_file_not_found(
-        self, mock_product_present, mock_archive_dir
-    ):
+    def test_sort_one_safe_file_not_found(self, mock_product_present, mock_archive_dir):
         """Test when file doesn't exist."""
         safe_path = "/fake/path/does/not/exist.SAFE"
 
-        with patch(
-            "s1ifr.sentinel1_pieuvre.os.path.exists", return_value=False
-        ):
+        with patch("s1ifr.sentinel1_pieuvre.os.path.exists", return_value=False):
             result, cpt = sentinel1_pieuvre.sort_one_safe(
                 full_path_safe=safe_path,
                 config_path=self.config_path,
@@ -294,7 +296,9 @@ class TestSortOneSafe(unittest.TestCase):
         mock_archive_dir,
     ):
         """Test dryrun mode."""
-        safe_name = "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        safe_name = (
+            "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        )
         safe_path = os.path.join(self.spool_dir, f"{safe_name}.tar")
 
         mock_exists.return_value = True
@@ -344,7 +348,9 @@ class TestSortOneSafe(unittest.TestCase):
         mock_archive_dir,
     ):
         """Test corrupted tar file gets quarantined."""
-        safe_name = "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        safe_name = (
+            "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        )
         safe_path = os.path.join(self.spool_dir, f"{safe_name}.tar")
 
         mock_exists.return_value = True
@@ -389,7 +395,9 @@ class TestFinalizeArchivingAdditional(unittest.TestCase):
         os.makedirs(self.archive_dir, exist_ok=True)
         os.makedirs(self.spool_dir, exist_ok=True)
 
-        self.safe_name = "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        self.safe_name = (
+            "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        )
         self.unzipped_safe = os.path.join(self.spool_dir, self.safe_name)
         self.final_place = os.path.join(self.archive_dir, self.safe_name)
 
@@ -674,9 +682,7 @@ class TestEdgeCases(unittest.TestCase):
         """Test that trailing slash is handled correctly."""
         safe_path = "/fake/path/S1A_IW_GRDH.SAFE/"
 
-        with patch(
-            "s1ifr.sentinel1_pieuvre.os.path.exists", return_value=False
-        ):
+        with patch("s1ifr.sentinel1_pieuvre.os.path.exists", return_value=False):
             result, _ = sentinel1_pieuvre.sort_one_safe(
                 full_path_safe=safe_path,
                 config_path=self.config_path,
@@ -713,7 +719,9 @@ class TestEdgeCases(unittest.TestCase):
         mock_archive_dir,
     ):
         """Test zip extraction failure."""
-        safe_name = "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        safe_name = (
+            "S1A_IW_GRDH_1SDV_20200101T000000_20200101T000025_030000_030000_0000.SAFE"
+        )
         safe_path = os.path.join("/fake/spool", f"{safe_name}.zip")
 
         # Only the original .zip exists on disk; nothing produced by the
@@ -731,9 +739,7 @@ class TestEdgeCases(unittest.TestCase):
         mock_product_present.return_value = (True, None, None)
 
         # Mock unzip to fail with CalledProcessError
-        mock_check_output.side_effect = subprocess.CalledProcessError(
-            1, "unzip"
-        )
+        mock_check_output.side_effect = subprocess.CalledProcessError(1, "unzip")
 
         result, _ = sentinel1_pieuvre.sort_one_safe(
             full_path_safe=safe_path,
@@ -750,9 +756,7 @@ class TestEdgeCases(unittest.TestCase):
         """Test when SAFE doesn't have proper extension."""
         safe_path = "/fake/spool/some_file_without_extension"
 
-        with patch(
-            "s1ifr.sentinel1_pieuvre.os.path.exists", return_value=False
-        ):
+        with patch("s1ifr.sentinel1_pieuvre.os.path.exists", return_value=False):
             result, _ = sentinel1_pieuvre.sort_one_safe(
                 full_path_safe=safe_path,
                 config_path=self.config_path,
@@ -785,7 +789,9 @@ class TestEdgeCases(unittest.TestCase):
         mock_archive_dir,
     ):
         """Test handling of SEN3 files."""
-        safe_name = "S3A_SL_1_RBT_20200101T000000_20200101T000025_030000_030000_0000.SEN3"
+        safe_name = (
+            "S3A_SL_1_RBT_20200101T000000_20200101T000025_030000_030000_0000.SEN3"
+        )
         safe_path = os.path.join("/fake/spool", safe_name)
 
         mock_exists.return_value = True

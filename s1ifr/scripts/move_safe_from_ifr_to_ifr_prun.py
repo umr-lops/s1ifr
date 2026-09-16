@@ -1,6 +1,6 @@
 #!/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python
-"""
-"""
+""" """
+
 import sys
 
 print(sys.executable)
@@ -19,9 +19,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="start prun")
     parser.add_argument("--verbose", action="store_true", default=False)
-    parser.add_argument(
-        "--outputdir", help="outputdir destination", required=True
-    )
+    parser.add_argument("--outputdir", help="outputdir destination", required=True)
     parser.add_argument(
         "--listinginputsafe",
         help="listing containing paths of the safe to sync",
@@ -59,9 +57,7 @@ def main():
     fud = open(tmplisting, "w")
     for ll in lines:
         if args.removesource is True:
-            ll2 = (
-                ll.replace("\n", "") + " " + args.outputdir + " --removesource"
-            )
+            ll2 = ll.replace("\n", "") + " " + args.outputdir + " --removesource"
         else:
             ll2 = ll.replace("\n", "") + " " + args.outputdir
         # new_lines.append(ll2)
@@ -71,9 +67,7 @@ def main():
 
     # initial listing
     # current_directory = os.getcwd()
-    pbs = os.path.join(
-        os.path.dirname(__file__), "move_safe_from_ifr_to_ifr.pbs"
-    )
+    pbs = os.path.join(os.path.dirname(__file__), "move_safe_from_ifr_to_ifr.pbs")
     # call prun
     opts = " --split-max-jobs=50 --background -e "
     py2 = "/home1/datawork/agrouaze/conda_envs2/envs/py2.7_cwave/bin/python "

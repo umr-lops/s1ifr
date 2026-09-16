@@ -45,24 +45,18 @@ class TestCheckSafeFiles(unittest.TestCase):
         # Test success case
         with patch("os.path.exists", return_value=True) as mock_exists:
             self.assertTrue(
-                check_SAFE_files.check_presence_of_manifest_file(
-                    expected_manifest_path
-                )
+                check_SAFE_files.check_presence_of_manifest_file(expected_manifest_path)
             )
             mock_exists.assert_called_once_with(expected_manifest_path)
 
         # Test failure case
         with patch("os.path.exists", return_value=False) as mock_exists:
             self.assertFalse(
-                check_SAFE_files.check_presence_of_manifest_file(
-                    expected_manifest_path
-                )
+                check_SAFE_files.check_presence_of_manifest_file(expected_manifest_path)
             )
             mock_exists.assert_called_once_with(expected_manifest_path)
 
-    @patch(
-        "builtins.open", new_callable=mock_open, read_data=FAKE_MANIFEST_XML
-    )
+    @patch("builtins.open", new_callable=mock_open, read_data=FAKE_MANIFEST_XML)
     @patch("os.path.exists")
     def test_check_number_of_measurement_success(self, mock_exists, mock_file):
         """
@@ -82,13 +76,9 @@ class TestCheckSafeFiles(unittest.TestCase):
             "/fake/S1A_....SAFE/./measurement/s1a-iw-grd-vv-....tiff"
         )
 
-    @patch(
-        "builtins.open", new_callable=mock_open, read_data=FAKE_MANIFEST_XML
-    )
+    @patch("builtins.open", new_callable=mock_open, read_data=FAKE_MANIFEST_XML)
     @patch("os.path.exists")
-    def test_check_number_of_measurement_missing_file(
-        self, mock_exists, mock_file
-    ):
+    def test_check_number_of_measurement_missing_file(self, mock_exists, mock_file):
         """
         Should return False when a measurement file listed in the manifest is missing.
         """
@@ -124,9 +114,7 @@ class TestCheckSafeFiles(unittest.TestCase):
 
         # Test success case
         with patch("os.path.exists", return_value=True) as mock_isdir:
-            self.assertTrue(
-                check_SAFE_files.check_sub_directories(safe_path, "1", "S")
-            )
+            self.assertTrue(check_SAFE_files.check_sub_directories(safe_path, "1", "S"))
 
             # This assertion is good because it confirms the function is checking
             # for the 'measurement' directory.
@@ -145,9 +133,7 @@ class TestCheckSafeFiles(unittest.TestCase):
 
     @patch("s1ifr.check_SAFE_files.write_to_log")
     @patch("s1ifr.check_SAFE_files.check_sub_directories", return_value=True)
-    @patch(
-        "s1ifr.check_SAFE_files.check_number_of_measurement", return_value=True
-    )
+    @patch("s1ifr.check_SAFE_files.check_number_of_measurement", return_value=True)
     @patch(
         "s1ifr.check_SAFE_files.check_presence_of_manifest_file",
         return_value=True,
@@ -172,9 +158,7 @@ class TestCheckSafeFiles(unittest.TestCase):
         safe_path = "/fake/S1A_IW_GRDH_1SDV_...SAFE"
         manifest_path = os.path.join(safe_path, "manifest.safe")
 
-        result = check_SAFE_files.safe_checker(
-            safe_path, logpath="/fake/log.txt"
-        )
+        result = check_SAFE_files.safe_checker(safe_path, logpath="/fake/log.txt")
 
         self.assertTrue(result)
         # Ensure all individual checks were called with the correct arguments
@@ -209,9 +193,7 @@ class TestCheckSafeFiles(unittest.TestCase):
         mock_getctime.return_value = one_day_ago_ts
         safe_path = "/fake/S1A_EW_GRDM_1SDH_...SAFE"
 
-        result = check_SAFE_files.safe_checker(
-            safe_path, logpath="/fake/log.txt"
-        )
+        result = check_SAFE_files.safe_checker(safe_path, logpath="/fake/log.txt")
 
         self.assertFalse(result)
         # Ensure the failure was logged with the correct reason
@@ -247,9 +229,7 @@ class TestCheckSafeFiles(unittest.TestCase):
         mock_getctime.return_value = one_day_ago_ts
         safe_path = "/fake/S1A_EW_GRDM_1SDH_...SAFE"
 
-        result = check_SAFE_files.safe_checker(
-            safe_path, logpath="/fake/log.txt"
-        )
+        result = check_SAFE_files.safe_checker(safe_path, logpath="/fake/log.txt")
 
         self.assertFalse(result)
         mock_write_log.assert_called_once_with(
@@ -260,9 +240,7 @@ class TestCheckSafeFiles(unittest.TestCase):
     @patch(
         "s1ifr.check_SAFE_files.check_sub_directories", return_value=False
     )  # This is the check we want to fail
-    @patch(
-        "s1ifr.check_SAFE_files.check_number_of_measurement", return_value=True
-    )
+    @patch("s1ifr.check_SAFE_files.check_number_of_measurement", return_value=True)
     @patch(
         "s1ifr.check_SAFE_files.check_presence_of_manifest_file",
         return_value=True,
@@ -285,9 +263,7 @@ class TestCheckSafeFiles(unittest.TestCase):
         mock_getctime.return_value = one_day_ago_ts
         safe_path = "/fake/S1A_EW_GRDM_1SDH_...SAFE"
 
-        result = check_SAFE_files.safe_checker(
-            safe_path, logpath="/fake/log.txt"
-        )
+        result = check_SAFE_files.safe_checker(safe_path, logpath="/fake/log.txt")
 
         self.assertFalse(result)
         mock_write_log.assert_called_once_with(
@@ -305,9 +281,7 @@ class TestCheckSafeFiles(unittest.TestCase):
         mock_getctime.return_value = now_ts
         safe_path = "/fake/S1A_IW_GRDH_1SDV_...SAFE"
 
-        result = check_SAFE_files.safe_checker(
-            safe_path, logpath="/fake/log.txt"
-        )
+        result = check_SAFE_files.safe_checker(safe_path, logpath="/fake/log.txt")
 
         self.assertTrue(result)
         # Ensure that because the file is too new, no checks were actually performed

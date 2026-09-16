@@ -34,14 +34,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
-dependencies = [
-  "numpy",
-  "xarray",
-  "lxml",
-  "tqdm",
-  "pandas",
-  "pyyaml",
-]
+dependencies = ["numpy", "xarray", "lxml", "tqdm", "pandas", "pyyaml"]
 
 [project.optional-dependencies]
 dev = [
@@ -56,12 +49,7 @@ dev = [
   "black",
   "isort",
 ]
-docs = [
-  "sphinx",
-  "sphinx-rtd-theme",
-  "nbsphinx",
-  "ipython",
-]
+docs = ["sphinx", "sphinx-rtd-theme", "nbsphinx", "ipython"]
 
 [project.urls]
 Homepage = "https://github.com/umr-lops/s1ifr"

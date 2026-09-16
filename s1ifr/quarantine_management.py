@@ -32,9 +32,7 @@ def quarantine_ticket(
     # closed automatically, even if errors occur.
     mode = "a" if os.path.exists(path_ticket) else "w"
     with open(path_ticket, mode) as fid:
-        fid.write(
-            datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S") + "\n"
-        )
+        fid.write(datetime.datetime.today().strftime("%Y-%m-%dT%H:%M:%S") + "\n")
 
     remove_safe_from_disk(safe_full_path)
 
@@ -98,9 +96,7 @@ def test_quarantine_before_download(safe_full_path: str, archive: str) -> bool:
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Test if a product is blacklisted."
-    )
+    parser = argparse.ArgumentParser(description="Test if a product is blacklisted.")
     parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument(
         "--inputsafe",
@@ -129,9 +125,7 @@ def main():
     if can_be_downloaded:
         logging.info("Product '%s' is OK to download.", args.inputsafe)
     else:
-        logging.info(
-            "Product '%s' is BLACKLISTED. Do not download.", args.inputsafe
-        )
+        logging.info("Product '%s' is BLACKLISTED. Do not download.", args.inputsafe)
 
 
 if __name__ == "__main__":

@@ -105,22 +105,14 @@ def match_slc_grd(
     # REASON FOR CHANGE: Loop through archives to avoid repeating code (DRY principle).
     for archive in ["datawork", "scale"]:
         logging.debug("Searching in '%s' archive...", archive)
-        base_path = get_path_from_base_safe(
-            target_safename, archive_name=archive
-        )
+        base_path = get_path_from_base_safe(target_safename, archive_name=archive)
 
         # REASON FOR CHANGE: Use os.path.join for robust path construction.
-        search_pattern = os.path.join(
-            os.path.dirname(base_path), target_base_pattern
-        )
+        search_pattern = os.path.join(os.path.dirname(base_path), target_base_pattern)
 
-        found_safe = _core_find(
-            search_pattern, input_start_date, minimal_time_diff
-        )
+        found_safe = _core_find(search_pattern, input_start_date, minimal_time_diff)
         if found_safe:
             return found_safe
 
-    logging.warning(
-        "No matching product found for %s in any archive.", safename
-    )
+    logging.warning("No matching product found for %s in any archive.", safename)
     return None

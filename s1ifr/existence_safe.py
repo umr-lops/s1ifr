@@ -12,9 +12,7 @@ from s1ifr.quarantine_management import test_quarantine_before_download
 from s1ifr.SAFEsortingfunctions import which_archive_dir
 
 
-def product_is_present_at_ifremer(
-    safe_basename, full_path_safe=None, config_path=None
-):
+def product_is_present_at_ifremer(safe_basename, full_path_safe=None, config_path=None):
     """
     check that the safe downloaded do not exist in other archive dirs
     and delete the one in spool_dir if yes
@@ -43,15 +41,11 @@ def product_is_present_at_ifremer(
     else:
         raise ValueError(f"product {safe_basename} not handle by the poulpe")
     for archive in possible_archives:
-        possible_archive = which_archive_dir(
-            safe=safe_basename, archive_name=archive
-        )
+        possible_archive = which_archive_dir(safe=safe_basename, archive_name=archive)
         possible_storage = os.path.join(possible_archive, safe_basename)
         if os.path.exists(possible_storage) is True:
             existing_storage = possible_storage
-            logging.debug(
-                "%s is already in %s archive", possible_storage, archive
-            )
+            logging.debug("%s is already in %s archive", possible_storage, archive)
             flag_continue = False
             if full_path_safe is not None:
                 remove_file_already_in_archive(full_path_safe)

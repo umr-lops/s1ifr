@@ -71,9 +71,7 @@ class TestGetPathFromBaseSafe(unittest.TestCase):
         self.assertEqual(
             result, "/fake/archive/path/S1A_IW_SLC__1SDV_..._REAL_MATCH.SAFE"
         )
-        mock_glob.assert_called_once_with(
-            f"/fake/archive/path/{wildcard_name}"
-        )
+        mock_glob.assert_called_once_with(f"/fake/archive/path/{wildcard_name}")
 
     @patch("s1ifr.get_path_from_base_safe.glob.glob")
     @patch("s1ifr.get_path_from_base_safe.which_archive_dir")

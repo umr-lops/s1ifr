@@ -24,9 +24,7 @@ def load_config(config_path=None):
         if os.path.exists(local_config_path):
             config_path = local_config_path
         else:
-            config_path = os.path.join(
-                os.path.dirname(s1ifr.__file__), "config.yml"
-            )
+            config_path = os.path.join(os.path.dirname(s1ifr.__file__), "config.yml")
 
     logging.debug("config path: %s", config_path)
     stream = open(config_path)
