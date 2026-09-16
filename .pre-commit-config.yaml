@@ -28,7 +28,7 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
-      - id: ruff-format # optionnel si tu veux ruff-format en plus de black
+      #- id: ruff-format # optionnel si tu veux ruff-format en plus de black
 
   - repo: https://github.com/kynan/nbstripout
     rev: 0.7.1
