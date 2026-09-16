@@ -47,7 +47,7 @@ Reference
 Get in touch
 ------------
 
-- Report bugs, suggest features or view the source code `on gitlab`_.
+- Report bugs, suggest features or view the source code `on github`_.
 
 ----------------------------------------------
 
@@ -64,4 +64,4 @@ Last documentation build: |today|
    basic_api
    usage
 
-.. _on gitlab: https://gitlab.ifremer.fr/lops-wave/s1ifr
+.. _on github: https://github.com/umr-lops/s1ifr

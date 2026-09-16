@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Permet de lancer manuellement depuis l'onglet Actions
+  workflow_dispatch:
+
+# Annule les runs en cours si on pousse un nouveau commit sur la même branche/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1 : lint (rapide, séparé pour feedback immédiat)
+  # ---------------------------------------------------------------------------
+  lint:
+    name: Lint (ruff + black)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Pas besoin de l'historique complet pour le lint
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install lint tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff==0.7.1 black==24.10.0
+
+      - name: Run ruff (check)
+        run: ruff check s1ifr tests
+
+      - name: Run black (check)
+        run: black --check s1ifr tests
+
+  # ---------------------------------------------------------------------------
+  # Job 2 : tests unitaires (matrice multi-Python)
+  # ---------------------------------------------------------------------------
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # CRITIQUE pour hatch-vcs : sans ça, la version sera 0.0.0
+          # et le build/install peut échouer ou produire un mauvais numéro
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+          # Indique à setup-python où trouver le cache pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements*.txt
+
+      - name: Install package (editable) + dev deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ \
+            --cov=s1ifr \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            -v
+
+      - name: Upload coverage to Codecov
+        # Upload seulement depuis une version (évite les doublons)
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          fail_ci_if_error: false

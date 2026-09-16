@@ -91,7 +91,6 @@ def get_path_from_base_safe(
             return final_path
     if check_existence:
         if not os.path.exists(final_path):
-
             # try to replace the unique product ID of the SAFE name because a
             # single acquisition can be processed several times
             inst = ExplodeSAFE(safe_basename)

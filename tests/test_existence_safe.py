@@ -13,7 +13,6 @@ tests = [test, test1, test2, test3]
 
 @pytest.mark.parametrize("safe_basename", tests)
 def test_products_existence_usage(safe_basename):
-
     flag_continue, existing_storage, archive = product_is_present_at_ifremer(
         safe_basename=safe_basename
     )
