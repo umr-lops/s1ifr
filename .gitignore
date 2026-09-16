@@ -619,3 +619,6 @@ ipynb_checkpoints
 .idea
 
 .ipynb_checkpoints/
+
+# hatchling versioning files
+_version.py
