@@ -37,7 +37,7 @@ repos:
         args: [--extra-keys=metadata.kernelspec metadata.language_info.version]
 
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.3.3
+    rev: v3.9.10
     hooks:
       - id: prettier
         types_or: [markdown, yaml, json]
