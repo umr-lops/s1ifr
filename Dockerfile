@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:2.9.0
+FROM mambaorg/micromamba:2.10.0
 
 WORKDIR /app
 COPY . .
