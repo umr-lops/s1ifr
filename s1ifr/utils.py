@@ -55,6 +55,6 @@ def dir_data(satellite_acronym: str, config_path=None) -> str:
     config = load_config(config_path=config_path)
     # Access satellite and path info from the config dictionary
     sat_long_name = config["satellites"]["longnames"][satellite_acronym]
-    datarmor_esa_archive = config["paths"]["datarmor"]["archive_esa"]
+    esa_archive = config["paths"]["datawork"]["archive_esa"]
 
-    return os.path.join(datarmor_esa_archive, sat_long_name)
+    return os.path.join(esa_archive, sat_long_name)
