@@ -87,7 +87,7 @@ class TestUtils(unittest.TestCase):
             "satellites": {
                 "longnames": {"S1A": "sentinel-1a", "S1B": "sentinel-1b"}
             },
-            "paths": {"datarmor": {"archive_esa": "/test/archive/path"}},
+            "paths": {"datawork": {"archive_esa": "/test/archive/path"}},
         }
         # Tell the mock to return our fake config when called
         mock_load_config.return_value = fake_config
