@@ -17,6 +17,7 @@ From: ubuntu:22.04
         libxext6 \
         libsm6 \
         unzip \
+        git \
         libxrender1
 
     # Install micromamba from conda-forge
@@ -33,6 +34,9 @@ From: ubuntu:22.04
         -p $ENV_DIR \
         python=3.12 pip
 
+    # the s1ifr version is computed by hatch-vcs/setuptools-scm from .git (copied by %files):
+    # git is needed for that, and safe.directory because .git belongs to another uid with --fakeroot
+    git config --global --add safe.directory "*"
     # Install s1ifr and its dependencies
     $ENV_DIR/bin/pip install /opt/app-s1ifr/src/s1ifr
 
