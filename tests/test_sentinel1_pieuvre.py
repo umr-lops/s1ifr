@@ -485,7 +485,7 @@ class TestFinalizeArchivingAdditional(unittest.TestCase):
         mock_subprocess,
         mock_safe_checker,
     ):
-        """Test when chmod operation fails."""
+        """A chmod failure after a successful mv is only a warning."""
         mock_safe_checker.return_value = True
         mock_isdir.return_value = False
         # Make mv succeed (b''), but chmod fail (CalledProcessError)
@@ -515,7 +515,7 @@ class TestFinalizeArchivingAdditional(unittest.TestCase):
             config_path=self.config_path,
         )
 
-        self.assertEqual(result, sentinel1_pieuvre.FAILED)
+        self.assertEqual(result, sentinel1_pieuvre.NORMAL)
 
     @patch("s1ifr.sentinel1_pieuvre.safe_checker")
     @patch("s1ifr.sentinel1_pieuvre.subprocess.check_output")
@@ -689,6 +689,45 @@ class TestMainFunction(unittest.TestCase):
             dryrun=True,
             config_path=self.config_path,
         )
+
+    @patch("s1ifr.sentinel1_pieuvre.sort_one_safe")
+    @patch("argparse.ArgumentParser.parse_args")
+    def test_main_exits_non_zero_when_failed(self, mock_args, mock_sort):
+        """main must exit with code 1 when the sorting failed."""
+        mock_args.return_value = argparse.Namespace(
+            safe="/fake/path/S1A_IW_GRDH.SAFE",
+            archivename="datawork",
+            config_path=self.config_path,
+            verbose=False,
+            dryrun=False,
+        )
+        mock_sort.return_value = (sentinel1_pieuvre.FAILED, 0)
+
+        with self.assertRaises(SystemExit) as cm:
+            sentinel1_pieuvre.main()
+        self.assertEqual(cm.exception.code, 1)
+
+    @patch("s1ifr.sentinel1_pieuvre.sort_one_safe")
+    @patch("argparse.ArgumentParser.parse_args")
+    def test_main_exits_zero_when_not_failed(self, mock_args, mock_sort):
+        """Other flags (quarantine, already in, too recent...) are not errors."""
+        for flag in (
+            sentinel1_pieuvre.NORMAL,
+            sentinel1_pieuvre.ALREADY,
+            sentinel1_pieuvre.QUARANTINED,
+            sentinel1_pieuvre.TOORECENT,
+            sentinel1_pieuvre.UNEXISTANT,
+        ):
+            with self.subTest(flag=flag):
+                mock_args.return_value = argparse.Namespace(
+                    safe="/fake/path/S1A_IW_GRDH.SAFE",
+                    archivename="datawork",
+                    config_path=self.config_path,
+                    verbose=False,
+                    dryrun=False,
+                )
+                mock_sort.return_value = (flag, 0)
+                sentinel1_pieuvre.main()  # must not raise SystemExit
 
 
 class TestEdgeCases(unittest.TestCase):

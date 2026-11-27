@@ -15,6 +15,7 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import time
 import traceback
 import zipfile
@@ -114,13 +115,14 @@ def finalize_archiving(
                 )
                 logging.debug("chmod done")
             except subprocess.CalledProcessError as e:
-                logging.error(
+                # the SAFE is archived: a chmod failure (e.g. files owned by
+                # another user) does not make the archiving fail.
+                logging.warning(
                     "chmod operation on %s failed: %s | output: %s",
                     final_place,
                     e,
                     _decode_output(e.output),
                 )
-                doom_flag = FAILED
     else:
         logging.error(
             "%s is corrupted, so we delete it to let it be re download",
@@ -444,7 +446,7 @@ def main():
     logging.info("user : %s", user_run)
     archive_output = [args.archivename]
     logging.info("the script will sort sentinel1 product : %s", args.safe)
-    sort_one_safe(
+    doom_flag, _ = sort_one_safe(
         args.safe,
         other_archive=archive_output[0],
         security_second=0,
@@ -452,6 +454,11 @@ def main():
         config_path=args.config_path,
     )
     logging.info("time to sort the data %1.1f seconds", time.time() - t0)
+    if doom_flag == FAILED:
+        # non-zero exit code so that the failure is visible to the caller
+        # (e.g. Slurm array task / Airflow), the SAFE stays in the spool.
+        logging.error("sorting of %s failed", args.safe)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
