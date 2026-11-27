@@ -560,6 +560,41 @@ class TestFinalizeArchivingAdditional(unittest.TestCase):
         self.assertEqual(result, sentinel1_pieuvre.FAILED)
 
     @patch("s1ifr.sentinel1_pieuvre.safe_checker")
+    @patch("s1ifr.sentinel1_pieuvre.subprocess.check_output")
+    @patch("s1ifr.sentinel1_pieuvre.os.path.exists")
+    @patch("s1ifr.sentinel1_pieuvre.os.remove")
+    @patch("s1ifr.sentinel1_pieuvre.shutil.rmtree")
+    def test_finalize_archiving_mv_failure_unzipped_safe_is_kept(
+        self,
+        mock_rmtree,
+        mock_remove,
+        mock_exists,
+        mock_subprocess,
+        mock_safe_checker,
+    ):
+        """A SAFE (no archive extension) whose mv fails must not be deleted."""
+        mock_safe_checker.return_value = True
+        mock_subprocess.side_effect = subprocess.CalledProcessError(
+            1, "mv", output=b"mv: cannot move: Permission denied"
+        )
+        mock_exists.side_effect = lambda path: path == self.unzipped_safe
+
+        with self.assertLogs(level="ERROR") as logs:
+            result = sentinel1_pieuvre.finalize_archiving(
+                archive_dir=self.archive_dir,
+                unzipped_safe=self.unzipped_safe,
+                final_place=self.final_place,
+                ziptype="",
+                archive_name="datawork",
+                config_path=self.config_path,
+            )
+
+        self.assertEqual(result, sentinel1_pieuvre.FAILED)
+        mock_rmtree.assert_not_called()
+        mock_remove.assert_not_called()
+        self.assertTrue(any("Permission denied" in m for m in logs.output))
+
+    @patch("s1ifr.sentinel1_pieuvre.safe_checker")
     @patch("s1ifr.sentinel1_pieuvre.os.path.exists")
     @patch("s1ifr.sentinel1_pieuvre.quarantine_ticket")
     @patch("s1ifr.sentinel1_pieuvre.os.remove")
