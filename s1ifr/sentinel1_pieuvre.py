@@ -42,6 +42,15 @@ FAILED = "failed"  # mean the script crash
 EXTENSION_SAFE = ".SAFE"
 
 
+def _decode_output(output):
+    """Return subprocess output as a stripped str (it can be bytes or None)."""
+    if output is None:
+        return ""
+    if isinstance(output, bytes):
+        output = output.decode(errors="replace")
+    return output.strip()
+
+
 def finalize_archiving(
     archive_dir,
     unzipped_safe,
@@ -89,7 +98,12 @@ def finalize_archiving(
         try:
             subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
-            logging.error("mv operation on %s failed: %s", unzipped_safe, e)
+            logging.error(
+                "mv operation on %s failed: %s | output: %s",
+                unzipped_safe,
+                e,
+                _decode_output(e.output),
+            )
             doom_flag = FAILED
         else:
             try:
@@ -101,7 +115,10 @@ def finalize_archiving(
                 logging.debug("chmod done")
             except subprocess.CalledProcessError as e:
                 logging.error(
-                    "chmod operation on %s failed: %s", final_place, e
+                    "chmod operation on %s failed: %s | output: %s",
+                    final_place,
+                    e,
+                    _decode_output(e.output),
                 )
                 doom_flag = FAILED
     else:
@@ -115,7 +132,16 @@ def finalize_archiving(
     original_full_path = unzipped_safe + ziptype
     logging.debug("original_full_path = %s", original_full_path)
     # remove the tar or zip file that is now useless since uncompress has been done, or move to quarantine
-    if os.path.exists(original_full_path) is True:
+    if doom_flag == FAILED and os.path.normpath(
+        original_full_path
+    ) == os.path.normpath(unzipped_safe):
+        # the SAFE was not archived (e.g. mv failed): never delete the only copy,
+        # leave it in the spool so that it can be sorted at the next run.
+        logging.warning(
+            "%s is kept in spool since it could not be archived",
+            original_full_path,
+        )
+    elif os.path.exists(original_full_path) is True:
         logging.info("%s has been deleted ", original_full_path)
         if os.path.isdir(original_full_path):
             shutil.rmtree(original_full_path)
