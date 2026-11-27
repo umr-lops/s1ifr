@@ -94,6 +94,50 @@ Git hooks (optional but recommended):
 pre-commit install
 ```
 
+## Production Apptainer image
+
+The Airflow DAG `sentinel1_sort_products_hpc` runs `archivesafe` from an
+Apptainer image built with
+[`apptainer_python_micromamba_ubuntu.def`](apptainer_python_micromamba_ubuntu.def).
+
+1. Build from a **clean clone** of `main`. `%files` copies the whole current
+   directory, including `.git`, which is needed to compute the package version.
+   Untracked files or a stale `s1ifr/_version.py` would end up in the image.
+
+   ```shell
+   version=$(date +%Y.%-m.%-d)  # e.g. 2026.11.27
+   build=/scratch/$USER/s1ifr-build-$version
+   git clone https://github.com/umr-lops/s1ifr.git $build/src
+   cd $build/src
+   export APPTAINER_TMPDIR=$build/tmp APPTAINER_CACHEDIR=$build/cache
+   mkdir -p $APPTAINER_TMPDIR
+   apptainer build --fakeroot $build/s1ifr-$version.sif apptainer_python_micromamba_ubuntu.def
+   ```
+
+2. Test the image:
+
+   ```shell
+   apptainer exec $build/s1ifr-$version.sif pip show s1ifr  # version must match `git describe`
+   apptainer exec --bind /legacy/project/cersat/public --bind /scale --bind /scratch \
+       $build/s1ifr-$version.sif archivesafe --input-safe <spool SAFE> \
+       --archivename datawork \
+       --config-path /scale/project/lops-siam-airflow/configs_exploit/s1ifr/exploit_hpc.yml \
+       --dryrun
+   ```
+
+3. Copy it next to the previous images and keep the old ones so you can roll back:
+
+   ```shell
+   dest=/scale/project/lops-siam-airflow/envs_exploit/apptainer
+   cp $build/s1ifr-$version.sif $dest/
+   chgrp siam-airflow $dest/s1ifr-$version.sif && chmod 755 $dest/s1ifr-$version.sif
+   ```
+
+4. Update `img_apptainer` in
+   `dags/sentinel1/sentinel1_sort_product_in_ifr_archive.py` in the
+   [airflow-aas-dags-siam](https://gitlab.ifremer.fr/lops-sys/airflow-aas-dags-siam)
+   repository (merge request), then check the next `sort_products_datawork` run.
+
 ## Contributing
 
 Issues and pull requests are welcome on GitHub:
